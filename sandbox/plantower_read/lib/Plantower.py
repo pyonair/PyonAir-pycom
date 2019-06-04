@@ -9,13 +9,16 @@
 #from datetime import datetime, timedelta
 #from serial import Serial, SerialException
 from machine import UART
+from machine import RTC
 
 DEFAULT_SERIAL_PINS = ('P11','P10')# pins order: (TX, RX)
 DEFAULT_BAUD_RATE = 9600 # Serial baud rate to use if no other specified
 DEFAULT_ID = 1 #
 DEFAULT_TIMEOUT = 1000
 
-
+# Initialise the time
+rtc = RTC()
+timestamp_template = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}" # yyyy-mm-dd hh-mm-ss
 
 
 MSG_CHAR_1 = b'\x42' # First character to be recieved in a valid packet
@@ -31,7 +34,8 @@ class PlantowerReading(object):
             an object containing the data
         """
         # self.timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-        self.timestamp = '2019-06-03 14:15:22' # temp
+        t = rtc.now()
+        self.timestamp = timestamp_template.format(t[0], t[1], t[2], t[3], t[4], t[5])
         self.pm10_cf1 = round(line[4] * 256 + line[5], 1)
         self.pm25_cf1 = round(line[6] * 256 + line[7], 1)
         self.pm100_cf1 = round(line[8] * 256 + line[9], 1)
