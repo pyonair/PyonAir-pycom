@@ -6,4 +6,4 @@ plantower = Plantower()
 
 while (True):
     plantower.read()
-    time.sleep(0.05)
+    time.sleep(0.1)

@@ -109,18 +109,17 @@ class Plantower():
             before performing the read, otherwise, it'll just read the first
             item in the buffer
         """
-        print()
-        recv = b''
-        #start = datetime.utcnow() #Start timer
 
-        recv = self.serial.readline()
-        print (recv)
-
-        if recv is None:
-            print("recv:", recv)
+        # Exit method if nothing on serial
+        if not self.serial.any():
             return
 
+        recv = self.serial.readline()
+        print(recv)
+
+
         self._verify(recv) # verify the checksum
+        print()
         return PlantowerReading(recv) # convert to reading object
             #If the character isn't what we are expecting loop until timeout
         raise PlantowerException("No message recieved")
