@@ -49,7 +49,7 @@ class PlantowerReading(object):
         self.gr50um = round(line[24] * 256 + line[25], 1)
         self.gr100um = round(line[26] * 256 + line[27], 1)
 
-    def str(self):
+    def __str__(self):
         return (
             "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s," %
             (self.timestamp, self.pm10_cf1, self.pm10_std, self.pm25_cf1, self.pm25_std,
