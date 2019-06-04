@@ -5,5 +5,8 @@ import time
 plantower = Plantower()
 
 while (True):
-    plantower.read()
+    recv = plantower.read()
+    if recv:
+        print(recv)
+        print()
     time.sleep(0.1)
