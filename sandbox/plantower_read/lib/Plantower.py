@@ -96,11 +96,11 @@ class Plantower():
         for c in bytearray(recv[:-2]): #Add all the bytes together except the checksum bytes
             calc += c
             ord_arr.append(c)
-        print(str(ord_arr))
+        # print(str(ord_arr))
         sent = (recv[-2] << 8) | recv[-1] # Combine the 2 bytes together
         if sent != calc:
-            print("Checksum failure %d != %d", sent, calc)
-            # raise PlantowerException("Checksum failure")
+            # print("Checksum failure %d != %d", sent, calc)
+            raise PlantowerException("Checksum failure")
 
     def read(self, perform_flush=True):
         """
@@ -115,7 +115,7 @@ class Plantower():
             return
 
         recv = self.serial.readline()
-        print(recv)
+        # print(recv)
 
 
         self._verify(recv) # verify the checksum
