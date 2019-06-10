@@ -11,6 +11,6 @@ class SDCard:
         os.mount(self.sd, '/sd')
         print("3")
 
-    def write_csv_line(self, filename, line):
+    def write_line(self, filename, line):
         with open(self.path_template.format(filename), 'w') as f:
             f.write(line + '\n')
