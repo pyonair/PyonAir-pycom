@@ -17,4 +17,4 @@ class SDCard:
 
     def write_line(self, filename, line):
         with open(self.path_template.format(filename), 'a') as f:
-            f.write(line + '\n')
+            f.write(line + '\r\n')
