@@ -10,6 +10,7 @@
 #from serial import Serial, SerialException
 from machine import UART
 from machine import RTC
+from strings import timestamp_template
 
 DEFAULT_SERIAL_PINS = ('P11','P10')# pins order: (TX, RX)
 DEFAULT_BAUD_RATE = 9600 # Serial baud rate to use if no other specified
@@ -18,7 +19,6 @@ DEFAULT_TIMEOUT = 1000
 
 # Initialise the time
 rtc = RTC()
-timestamp_template = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}" # yyyy-mm-dd hh-mm-ss
 
 
 MSG_CHAR_1 = b'\x42' # First character to be recieved in a valid packet
