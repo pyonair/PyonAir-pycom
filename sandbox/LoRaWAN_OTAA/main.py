@@ -1,5 +1,6 @@
 from network import LoRa
 import socket
+import struct
 import time
 import ubinascii
 from keys import APP_EUI, APP_KEY
@@ -36,8 +37,9 @@ s.setblocking(True)
 
 # send some data
 for i in range(255):
-    print("Sending:", i)
-    s.send(bytes([i]))
+    payload = struct.pack('BB', i, 12)
+    print("Sending:", payload)
+    s.send(payload)
     print("Sleeping")
     time.sleep(1)
 

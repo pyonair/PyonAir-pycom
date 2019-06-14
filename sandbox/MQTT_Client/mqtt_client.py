@@ -1,6 +1,7 @@
 # Python 3.7
 import time
 import ttn
+import struct
 import base64
 
 import sys
@@ -9,10 +10,12 @@ from keys import app_id, access_key
 
 
 def uplink_callback(msg, client):
+    payload = msg.payload_raw
     print("Received uplink from ", msg.dev_id)
     print("msg:", msg)
-    print("raw payload:", msg.payload_raw)
-    print("encoded payload:", int(base64.b64decode(msg.payload_raw).hex()))
+    print("raw payload:", payload)
+    # print("encoded payload:", int(base64.b64decode(msg.payload_raw).hex()))
+    print("decoded payload:", struct.unpack('BB', base64.b64decode(payload)))
     print()
 
 
