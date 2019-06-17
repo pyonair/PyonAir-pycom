@@ -3,7 +3,7 @@ from plantower import Plantower, PlantowerException
 import time
 from sd_card import SDCard
 from machine import RTC
-from strings import log_file_template, timestamp_template
+from strings import logfile_template, timestamp_template
 
 # Initialise the time
 rtc = RTC()
@@ -11,7 +11,7 @@ rtc.init((2017, 2, 28, 10, 30, 0, 0, 0))  # TODO: get time from GPS
 now = rtc.now()
 
 # Initialise SD card
-logfile = '{}.csv'.format(log_file_template.format(*now))
+logfile = logfile_template.format(*now)
 error_logfile = 'error_log.txt'
 sd = SDCard(
     logfile=logfile,
