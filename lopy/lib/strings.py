@@ -12,3 +12,5 @@ headers_dict_v3 = {
     "SPS030": ["timestamp", "PM1", "PM25", "PM4", "PM10", "n05", "n1", "n25", "n4", "n10", "tps"],
     "SDS018": ["timestamp", "PM10", "PM25"]
 }
+
+status_header = ['type', 'timestamp', 'message']

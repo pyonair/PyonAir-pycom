@@ -1,8 +1,8 @@
 from machine import SD
 import os
-from strings import headers_dict_v3
+from strings import headers_dict_v3, status_header
 
-headers = headers_dict_v3['PMS5003']
+sensor_header = headers_dict_v3['PMS5003']
 
 
 class SDCard:
@@ -41,7 +41,8 @@ class SDCard:
         # Mount SD card
         os.mount(self.sd, '/sd')
         # Create log files
-        self.create_sensor_log_file()
+        self.create_logfile(self.sensor_logfile, sensor_header, ', ')
+        self.create_logfile(self.status_logfile, status_header, '\t')
 
     # Setters
     def set_sensor_logfile(self, sensor_logfile):
@@ -51,11 +52,15 @@ class SDCard:
         self.status_logfile = status_logfile
 
     # Helper methods
-    def create_sensor_log_file(self):
-        sensor_logfile = self.sensor_logfile
+    def create_logfile(self, filename, header, separator):
+        """
+        :param filename:
+        :param header: list of strings containing the names of the headers (first line in the log file)
+        :param separator: string separating the fields in the header (e.g. ', ')
+        """
         # If the file exists, skip creation
-        if sensor_logfile in os.listdir('/sd'):
+        if filename in os.listdir('/sd'):
             # TODO: log status
             return
-        with open(self.path_template.format(sensor_logfile), 'w') as f:
-            f.write(', '.join(headers) + '\n')
+        with open(self.path_template.format(filename), 'w') as f:
+            f.write(separator.join(header) + '\n')
