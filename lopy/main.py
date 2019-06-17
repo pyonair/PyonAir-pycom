@@ -14,12 +14,10 @@ now = rtc.now()
 sensor_logfile = sensor_logfile_template.format(*now)
 status_logfile = 'status_log.txt'
 sd = SDCard(
+    rtc=rtc,
     sensor_logfile=sensor_logfile,
     status_logfile=status_logfile
 )
-
-# Create log file with headers
-sd.create_sensor_log_file(sensor_logfile)
 
 plantower = Plantower()
 
