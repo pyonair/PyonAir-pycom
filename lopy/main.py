@@ -3,7 +3,7 @@ from plantower import Plantower, PlantowerException
 import time
 from sd_card import SDCard
 from machine import RTC
-from strings import logfile_template, timestamp_template
+from strings import sensor_logfile_template, timestamp_template
 
 # Initialise the time
 rtc = RTC()
@@ -11,15 +11,15 @@ rtc.init((2017, 2, 28, 10, 30, 0, 0, 0))  # TODO: get time from GPS
 now = rtc.now()
 
 # Initialise SD card
-logfile = logfile_template.format(*now)
-error_logfile = 'error_log.txt'
+sensor_logfile = sensor_logfile_template.format(*now)
+status_logfile = 'status_log.txt'
 sd = SDCard(
-    logfile=logfile,
-    error_logfile=error_logfile
+    sensor_logfile=sensor_logfile,
+    status_logfile=status_logfile
 )
 
 # Create log file with headers
-sd.create_log_file(logfile)
+sd.create_log_file(sensor_logfile)
 
 plantower = Plantower()
 
@@ -29,9 +29,9 @@ while (True):
         if recv:
             print(recv)
             print()
-            sd.log_line(str(recv))
+            sd.log_sensor_line(str(recv))
     except PlantowerException as e:
-        error_line = ', '.join([timestamp_template.format(*rtc.now()), str(e.__class__)])
-        print(error_line)
-        sd.log_line(error_line)
+        status_line = ', '.join([timestamp_template.format(*rtc.now()), str(e.__class__)])
+        print(status_line)
+        sd.log_sensor_line(status_line)
     time.sleep(0.1)
