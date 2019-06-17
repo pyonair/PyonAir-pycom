@@ -13,8 +13,13 @@ class SDCard:
         self.sensor_logfile = sensor_logfile
         self.status_logfile = status_logfile
 
-    def create_log_file(self, filename):
-        with open(self.path_template.format(filename), 'w') as f:  # TODO: Change permission to x in production
+    def create_sensor_log_file(self):
+        sensor_logfile = self.sensor_logfile
+        # If the file exists, skip creation
+        if sensor_logfile in os.listdir('/sd'):
+            # TODO: log status
+            return
+        with open(self.path_template.format(sensor_logfile), 'w') as f:  # TODO: Change permission to x in production
             f.write(', '.join(headers) + '\n')
 
     def log_sensor_line(self, line):

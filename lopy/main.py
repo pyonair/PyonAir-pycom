@@ -19,7 +19,7 @@ sd = SDCard(
 )
 
 # Create log file with headers
-sd.create_log_file(sensor_logfile)
+sd.create_sensor_log_file(sensor_logfile)
 
 plantower = Plantower()
 
