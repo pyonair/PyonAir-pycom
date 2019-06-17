@@ -16,7 +16,8 @@ status_logfile = 'status_log.txt'
 sd = SDCard(
     rtc=rtc,
     sensor_logfile=sensor_logfile,
-    status_logfile=status_logfile
+    status_logfile=status_logfile,
+    debug=True
 )
 
 plantower = Plantower()

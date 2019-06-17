@@ -32,13 +32,15 @@ class SDCard:
     def log_sensor_line(self, line):
         self.log_line_in_path(self.sensor_logfile, line)
 
-    def log_status_line(self, msg_type, msg):
+    def log_status(self, msg_type, msg):
         """
         :param msg_type: type of status (defined in the __init__ of this class, e.g. SDCard.INFO)
         :param msg: message to be logged
         """
-        pass
-        # line = [msg_type, timestamp_template.format(*self.rtc.now()), msg]
+        line = '\t'.join([msg_type, timestamp_template.format(*self.rtc.now()), msg])
+        if self.debug:
+            print(line)
+        self.log_line_in_path(self.status_logfile, line)
 
     def initialize(self):
         # Mount SD card
@@ -63,7 +65,7 @@ class SDCard:
         """
         # If the file exists, skip creation
         if filename in os.listdir('/sd'):
-            self.log_status_line(self.INFO, '{} already exists, skipping its creation'.format(filename))
+            self.log_status(self.INFO, '{} already exists, skipping its creation'.format(filename))
             return
         with open(self.path_template.format(filename), 'w') as f:
             f.write(separator.join(header) + '\n')
