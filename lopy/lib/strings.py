@@ -1,5 +1,5 @@
 timestamp_template = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}"  # yyyy-mm-dd hh-mm-ss
-sensor_logfile_template = "{:04d}-{:02d}-{:02d}_{:02d}.csv"  # yyyy-mm-dd hh-mm-ss
+sensor_logfile_template = "{:04d}-{:02d}-{:02d}.csv"  # yyyy-mm-dd
 
 headers_dict_v3 = {
     "PMS5003": ["timestamp", "pm10_cf1", "PM1", "pm25_cf1", "PM25", "pm100_cf1", "PM10", "gr03um", "gr05um", "gr10um", "gr25um", "gr50um", "gr100um", ""],
