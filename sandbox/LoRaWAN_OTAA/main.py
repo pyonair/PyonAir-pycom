@@ -11,7 +11,7 @@ from keys import APP_EUI, APP_KEY
 # Australia = LoRa.AU915
 # Europe = LoRa.EU868
 # United States = LoRa.US915
-lora = LoRa(mode=LoRa.LORAWAN, region=LoRa.EU868)
+lora = LoRa(mode=LoRa.LORAWAN, region=LoRa.EU868, adr=True)
 
 # create an OTAA authentication parameters
 app_eui = ubinascii.unhexlify(APP_EUI)
