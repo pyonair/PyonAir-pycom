@@ -2,9 +2,8 @@
 from plantower import Plantower, PlantowerException
 import time
 from sd_card import SDCard
-from machine import RTC
+from machine import RTC, Timer
 from strings import sensor_logfile_template, timestamp_template
-from machine import Timer
 
 # Setting
 loop_time = 0.1  # delay between the sensor readings (seconds)
@@ -15,12 +14,10 @@ rtc.init((2017, 2, 28, 10, 30, 0, 0, 0))  # TODO: get time from GPS
 now = rtc.now()
 
 # Initialise SD card
-sensor_logfile = sensor_logfile_template.format(*now)
-status_logfile = 'status_log.txt'
 sd = SDCard(
     rtc=rtc,
-    sensor_logfile=sensor_logfile,
-    status_logfile=status_logfile,
+    sensor_logfile=sensor_logfile_template.format(*now),
+    status_logfile='status_log.txt',
     debug=True
 )
 
