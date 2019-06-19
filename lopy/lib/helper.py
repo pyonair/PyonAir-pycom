@@ -4,7 +4,7 @@
 def mean_across_arrays(arrays):
     """
     Computes elementwise mean across arrays.
-    E.g. for input [[1, 2, 4], [5, 3, 6]] returns [3, 2.5, 10]
+    E.g. for input [[1, 2, 4], [5, 3, 6]] returns [3, 2.5, 5]
     :param arrays: list of arrays of the same length
     :return: elementwise average across arrays
     """
