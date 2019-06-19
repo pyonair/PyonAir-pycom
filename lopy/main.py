@@ -4,6 +4,10 @@ import time
 from sd_card import SDCard
 from machine import RTC
 from strings import sensor_logfile_template, timestamp_template
+from machine import Timer
+
+# Setting
+loop_time = 0.1  # delay between the sensor readings (seconds)
 
 # Initialise the time
 rtc = RTC()
@@ -22,6 +26,9 @@ sd = SDCard(
 
 plantower = Plantower()
 
+# Chronometer for timing the loop execution
+chrono = Timer.Chrono()
+chrono.start()
 while (True):
     try:
         recv = plantower.read()
@@ -32,5 +39,12 @@ while (True):
     except PlantowerException as e:
         status_line = ', '.join([timestamp_template.format(*rtc.now()), str(e.__class__)])
         print(status_line)
-        sd.log_sensor_line(status_line)
-    time.sleep(0.1)
+        # TODO: log exception
+    finally:
+        elapsed = chrono.read()
+        if elapsed < loop_time:
+            time.sleep(loop_time - elapsed)
+        # TODO: raise warning if the elapsed time is loner than the loop_time
+        chrono.reset()
+
+# TODO: take mean of the messages if two or more readings per second
