@@ -37,10 +37,13 @@ s.setblocking(True)
 
 # send some data
 for i in range(255):
+    print('bandwidth:', lora.bandwidth())
+    print('spreading factor:', lora.sf())
     payload = struct.pack('BB', i, 12)
     print("Sending:", payload)
     s.send(payload)
     print("Sleeping")
+    print()
     time.sleep(1)
 
 # s.send(bytes([0x01, 0x02, 0x03]))
