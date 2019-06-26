@@ -17,7 +17,7 @@ Your-project-folder
     |-plantower.py
 |-main.py
 </pre>
-Then you can upload your project to the board (e.g. using Pymark).
+Then you can upload your project to the board (e.g. using Pymark). The example code assumes that the Plantower sensor is connected to pins P10 and P11 of LoPy board.
 
 Alternative is to clone the repository using subtree. In your main project directory (that is a git repo), run 
 ```bash
