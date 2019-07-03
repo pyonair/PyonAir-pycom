@@ -12,9 +12,9 @@ sh.setFormatter(formatter)
 log.addHandler(sh)
 
 # Uncomment to log into file
-file_handler = handlers.RotatingFileHandler('testfile.txt', maxBytes=1000, backupCount=10)
-file_handler.setFormatter(formatter)
-log.addHandler(file_handler)
+# file_handler = handlers.RotatingFileHandler('testfile.txt', maxBytes=1000, backupCount=10)
+# file_handler.setFormatter(formatter)
+# log.addHandler(file_handler)
 
 log.info("Test info message")
 log.error("Test message4")
