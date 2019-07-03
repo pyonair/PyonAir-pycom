@@ -4,6 +4,8 @@ from sd_card import SDCard
 from machine import RTC, Timer
 from strings import sensor_logfile_template
 from PM_thread import pm_thread
+from interrupt import ButtonPress
+from machine import Pin
 import _thread
 import time
 
@@ -23,11 +25,13 @@ sd = SDCard(
 
 # TODO: Initialise Logger
 
+# initialise interrupt for configuration over wifi
+interrupt = ButtonPress(sd)
+p = Pin("P14", mode=Pin.IN, pull=None)
+p.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, interrupt.press_handler)
+
 # Read configuration file
-sd.get_configuration()
-print("APP_KEY:", sd.APP_KEY)
-print("APP_EUI:", sd.APP_EUI)
-print("interval:", sd.interval)
+sd.get_config()
 
 # TODO: Process and send remaining data from previous boot
 
@@ -37,4 +41,4 @@ _thread.start_new_thread(pm_thread, (sd, 'PM1'))
 while True:
     pass
     # print("Main thread executing")
-    # time.sleep(1)
+    # time.sleep(3)
