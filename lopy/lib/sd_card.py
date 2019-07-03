@@ -1,6 +1,6 @@
 from machine import SD
 import os
-from strings import headers_dict_v3, status_header, timestamp_template
+from strings import headers_dict_v3, status_header, timestamp_template, config_filename
 
 sensor_header = headers_dict_v3['PMS5003']
 
@@ -17,6 +17,11 @@ class SDCard:
         self.sensor_logfile = sensor_logfile
         self.status_logfile = status_logfile
         self.debug = debug
+
+        self.config_filename = config_filename
+        self.APP_KEY = 'APP_KEY'
+        self.APP_EUI = 'APP_EUI'
+        self.interval = 'interval'
 
         self.path_template = '/sd/{}'
         self.sd = SD()
@@ -73,3 +78,13 @@ class SDCard:
     def log_line_in_path(self, filename, line):
         with open(self.path_template.format(filename), 'a') as f:
             f.write(line + '\r\n')
+
+    def get_configuration(self):
+        if config_filename not in os.listdir('/sd'):
+            self.log_status(self.WARN, '{} does not exist, failed to configure device'.format(config_filename))
+            return
+        with open(self.path_template.format(config_filename), 'r') as f:
+            lines = f.readlines()
+            self.APP_KEY = lines[0][0:-2]
+            self.APP_EUI = lines[1][0:-2]
+            self.interval = lines[2][0:-2]
