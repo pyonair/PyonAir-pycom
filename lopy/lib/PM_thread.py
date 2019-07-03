@@ -14,7 +14,7 @@ def pm_thread(sd, id):
     # read and log pm sensor data
     while True:
 
-        print("Thread: {} executing".format(id))
+        #  print("Thread: {} executing".format(id))
 
         try:
             recv = plantower.read()

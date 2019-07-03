@@ -14,3 +14,5 @@ headers_dict_v3 = {
 }
 
 status_header = ['type', 'timestamp', 'message']
+
+config_filename = 'config.txt'
