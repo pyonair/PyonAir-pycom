@@ -25,7 +25,7 @@ def pm_thread(sd, id, logger):
                 if curr_timestamp != last_timestamp:
                     # If there are any readings with the previous timestamps, process them
                     if len(sensor_readings_lst) > 0:
-                        lst_to_log = [last_timestamp] + [str(i) for i in mean_across_arrays(sensor_readings_lst)]
+                        lst_to_log = [last_timestamp] + [str(int(i)) for i in mean_across_arrays(sensor_readings_lst)]
                         line_to_log = ','.join(lst_to_log)
                         logger.info(line_to_log)
                     # Set/reset global variables
