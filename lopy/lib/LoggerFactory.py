@@ -6,13 +6,25 @@ STATUS_MAX_FILE_SIZE_DEFAULT = 10 * 1024 * 1024  # 10MiB
 STATUS_ARCHIVE_COUNT_DEFAULT = 10  # How many files to keep before deletion
 
 
-class LoggerFactory():
+class LoggerFactory:
     def __init__(
             self,
             level=logging.INFO,
+            path='/sd/'
     ):
         self.level = level
+        self.path = path
         self.loggers = {}  # dictionary to store loggers
+
+    def get_logger(self, name):
+        """
+        Returns logger with given name
+        :param name:
+        :type name:
+        :return: logger
+        :rtype: object
+        """
+        return self.loggers[name]
 
     def create_status_logger(
             self,
@@ -41,7 +53,7 @@ class LoggerFactory():
         sh.setFormatter(formatter)
         status_logger.addHandler(sh)
         if filename:
-            file_handler = handlers.RotatingFileHandler(filename, maxBytes=maxBytes, backupCount=backupCount)
+            file_handler = handlers.RotatingFileHandler(self.path + filename, maxBytes=maxBytes, backupCount=backupCount)
             file_handler.setFormatter(formatter)
             status_logger.addHandler(file_handler)
         self.loggers[name] = status_logger
@@ -65,7 +77,7 @@ class LoggerFactory():
         sh.setFormatter(formatter)
         sensor_logger.addHandler(sh)
         if log_to_file:
-            file_handler = SensorFileHandler(filename=name + '.csv.current')
+            file_handler = SensorFileHandler(filename=self.path + name + '.csv.current')
             file_handler.setFormatter(formatter)
             sensor_logger.addHandler(file_handler)
         self.loggers[name] = sensor_logger
