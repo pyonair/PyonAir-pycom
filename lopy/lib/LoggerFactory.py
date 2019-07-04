@@ -46,6 +46,8 @@ class LoggerFactory:
         :type maxBytes: int
         :param backupCount: number of archive files
         :type backupCount: int
+        :return: reference to the logger stored in the class
+        :rtype: object
         """
         status_logger = logging.getLogger(name)
         formatter = logging.Formatter(fmt=fmt)
@@ -57,6 +59,7 @@ class LoggerFactory:
             file_handler.setFormatter(formatter)
             status_logger.addHandler(file_handler)
         self.loggers[name] = status_logger
+        return self.loggers[name]
 
     def create_sensor_logger(
             self,
@@ -69,6 +72,8 @@ class LoggerFactory:
         :type name: str
         :param log_to_file: True to log into file named name.csv.current
         :type log_to_file: bool
+        :return: reference to the logger stored in the class
+        :rtype: object
         """
         sensor_logger = logging.getLogger(name)
         fmt = '%(message)s'
@@ -81,6 +86,7 @@ class LoggerFactory:
             file_handler.setFormatter(formatter)
             sensor_logger.addHandler(file_handler)
         self.loggers[name] = sensor_logger
+        return self.loggers[name]
 
 
 class SensorFileHandler(Handler):
