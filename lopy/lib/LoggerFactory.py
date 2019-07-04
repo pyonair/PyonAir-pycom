@@ -6,7 +6,7 @@ STATUS_MAX_FILE_SIZE_DEFAULT = 10 * 1024 * 1024  # 10MiB
 STATUS_ARCHIVE_COUNT_DEFAULT = 10  # How many files to keep before deletion
 
 
-class AQLogger():
+class LoggerFactory():
     def __init__(
             self,
             level=logging.INFO,
