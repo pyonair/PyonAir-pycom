@@ -6,6 +6,8 @@ import time
 
 def pm_thread(sd, id):
 
+    print("Thread: {} started".format(id))
+
     # variables for sensor reading and computing averages
     plantower = Plantower()
     last_timestamp = None
@@ -13,8 +15,6 @@ def pm_thread(sd, id):
 
     # read and log pm sensor data
     while True:
-
-        #  print("Thread: {} executing".format(id))
 
         try:
             recv = plantower.read()

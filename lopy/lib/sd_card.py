@@ -79,7 +79,7 @@ class SDCard:
         with open(self.path_template.format(filename), 'a') as f:
             f.write(line + '\r\n')
 
-    def get_configuration(self):
+    def get_config(self):
         if config_filename not in os.listdir('/sd'):
             self.log_status(self.WARN, '{} does not exist, failed to configure device'.format(config_filename))
             return
@@ -88,3 +88,6 @@ class SDCard:
             self.APP_KEY = lines[0][0:-2]
             self.APP_EUI = lines[1][0:-2]
             self.interval = lines[2][0:-2]
+            print("APP_KEY:", self.APP_KEY)
+            print("APP_EUI:", self.APP_EUI)
+            print("interval:", self.interval)
