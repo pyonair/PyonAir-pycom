@@ -5,6 +5,8 @@ from html import html_form, html_acknowledgement
 import time
 import pycom
 import gc
+from strings import config_filename
+import os
 
 
 def request_credentials(sd, sct):
@@ -82,3 +84,17 @@ def config_thread(sd, id):
     wlan.deinit()  # turn off wifi
     pycom.heartbeat(True)  # disable indicator LEDs
     gc.collect()
+
+
+def get_config(logger):
+    if config_filename not in os.listdir('/sd'):
+        logger.warning('{} does not exist, failed to configure device'.format(config_filename))
+        return
+    with open('/sd/' + config_filename, 'r') as f:
+        lines = f.readlines()
+        APP_KEY = lines[0][0:-2]
+        APP_EUI = lines[1][0:-2]
+        interval = lines[2][0:-2]
+        print("APP_KEY:", APP_KEY)
+        print("APP_EUI:", APP_EUI)
+        print("interval:", interval)
