@@ -21,7 +21,7 @@ os.mount(sd, '/sd')
 
 # Initialise LoggerFactory and loggers
 logger_factory = LoggerFactory(level=INFO)
-status_logger = logger_factory.create_status_logger('status_logger', filename='status_logger.txt')
+status_logger = logger_factory.create_status_logger('status_logger', filename='status_log.txt')
 PM1_logger = logger_factory.create_sensor_logger('PM1')
 
 # Initialise interrupt for configuration over wifi
