@@ -92,9 +92,11 @@ def get_config(logger):
         return
     with open('/sd/' + config_filename, 'r') as f:
         lines = f.readlines()
-        APP_KEY = lines[0][0:-2]
-        APP_EUI = lines[1][0:-2]
-        interval = lines[2][0:-2]
-        print("APP_KEY:", APP_KEY)
-        print("APP_EUI:", APP_EUI)
-        print("interval:", interval)
+        settings = [None]*3
+        settings[0] = lines[0][0:-2]
+        settings[1] = lines[1][0:-2]
+        settings[2] = int(lines[2][0:-2])*60000
+        print("APP_KEY:", settings[0])
+        print("APP_EUI:", settings[1])
+        print("interval:", settings[2])
+        return settings
