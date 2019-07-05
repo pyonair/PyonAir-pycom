@@ -16,6 +16,7 @@ import time
 path = '/sd/'
 sensor_name = 'PM1'
 PM1_processing = path + sensor_name + '.csv.processing'
+avg_interval = 20 * 1000  # ms
 
 
 # Initialise the time
@@ -45,7 +46,7 @@ p = Pin("P14", mode=Pin.IN, pull=None)
 p.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, interrupt.press_handler)
 
 # Read configuration file
-settings = get_config(logger=status_logger)
+# settings = get_config(logger=status_logger)
 
 # TODO: Process and send remaining data from previous boot
 
@@ -53,8 +54,9 @@ settings = get_config(logger=status_logger)
 _thread.start_new_thread(pm_thread, (sd, sensor_name, PM1_logger))
 
 # Calculate next event for average calculation
-events = EventScheduler(settings[2], rtc)
+events = EventScheduler(avg_interval, rtc, logger=status_logger, sensor_name=sensor_name)
 
 while True:
-    time.sleep(5)
-    flash_pm_averages(sensor_name, logger=status_logger)
+    # time.sleep(5)
+    # flash_pm_averages(sensor_name, logger=status_logger)
+    pass
