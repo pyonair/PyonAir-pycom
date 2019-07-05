@@ -1,6 +1,8 @@
 import machine
 from machine import RTC, Timer
 from tasks import flash_pm_averages
+import _thread
+from LoRa_thread import lora_thread
 
 
 class EventScheduler:
@@ -11,7 +13,9 @@ class EventScheduler:
         self.logger = logger
         self.sensor_name = sensor_name
         self.ms_to_next_lora = None
+        self.logger = logger
 
+        self.count = 1
         self.now = rtc.now()
         self.next_event_ms = self.interval_ms - (
                     ((int(self.now[3]) * 3600000) + (int(
@@ -23,7 +27,6 @@ class EventScheduler:
 
     def set_event_queue(self, arg):
         self.periodic_average_event = Timer.Alarm(self.get_averages, ms=self.interval_ms, periodic=True)
-        # print(self.rtc.now(), "Event queue was set")
         self.get_averages(arg)
 
     def get_averages(self, arg):
@@ -34,4 +37,4 @@ class EventScheduler:
 
     def send_over_lora(self, arg):
         self.logger.info("Sending data over LoRaWAN")
-        # ToDo: Replace with code that sends data over LoRa
+        _thread.start_new_thread(lora_thread, ('LoRa_send', "PM1.csv.tosend", self.logger, 30))

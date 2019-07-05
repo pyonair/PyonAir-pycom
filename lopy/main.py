@@ -41,7 +41,7 @@ if PM1_processing in os.listdir():
     os.remove(PM1_processing)
 
 # Initialise interrupt for configuration over wifi
-interrupt = ButtonPress(sd)
+interrupt = ButtonPress(sd, logger=status_logger)
 p = Pin("P14", mode=Pin.IN, pull=None)
 p.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, interrupt.press_handler)
 
