@@ -8,6 +8,7 @@ import os
 from LoggerFactory import LoggerFactory
 from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
 from configuration import get_config
+from events import EventScheduler
 from tasks import flash_pm_averages
 import time
 
@@ -44,12 +45,15 @@ p = Pin("P14", mode=Pin.IN, pull=None)
 p.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, interrupt.press_handler)
 
 # Read configuration file
-get_config(logger=status_logger)
+settings = get_config(logger=status_logger)
 
 # TODO: Process and send remaining data from previous boot
 
 # Start 1st PM sensor thread with id: PM1
 _thread.start_new_thread(pm_thread, (sd, sensor_name, PM1_logger))
+
+# Calculate next event for average calculation
+events = EventScheduler(settings[2], rtc)
 
 while True:
     time.sleep(5)
