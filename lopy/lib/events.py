@@ -4,6 +4,7 @@ from tasks import flash_pm_averages
 import _thread
 from LoRa_thread import lora_thread
 
+
 class EventScheduler:
     def __init__(self, interval_ms, rtc, sensor_name, logger):
 
