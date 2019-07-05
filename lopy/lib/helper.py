@@ -1,4 +1,16 @@
 # Helper functions
+import time
+
+def seconds_from_midnight():
+    """
+
+    :return: Number of seconds from midnight
+    :rtype: int
+    """
+    t = time.gmtime()
+    hour, minute, second = t[3], t[4], t[5]
+    seconds_from_midnight = second + (minute + hour * 60) * 60
+    return seconds_from_midnight
 
 
 def mean_across_arrays(arrays):
