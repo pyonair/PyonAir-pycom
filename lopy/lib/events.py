@@ -1,12 +1,15 @@
 import machine
 from machine import RTC, Timer
+from tasks import flash_pm_averages
 
 
 class EventScheduler:
-    def __init__(self, interval_ms, rtc):
+    def __init__(self, interval_ms, rtc, sensor_name, logger):
 
         self.interval_ms = interval_ms
         self.rtc = rtc
+        self.logger = logger
+        self.sensor_name = sensor_name
         self.ms_to_next_lora = None
 
         self.now = rtc.now()
@@ -24,10 +27,11 @@ class EventScheduler:
         self.get_averages(arg)
 
     def get_averages(self, arg):
-        print(self.rtc.now(), "calculate and save averages")  # ToDo: Replace with code that calculates averages
+        self.logger.info("Running flash_pm_averages task")
+        flash_pm_averages(sensor_name=self.sensor_name, logger=self.logger)
         self.ms_to_next_lora = int(machine.rng() / (2**24) * self.interval_ms)
-        # print(self.ms_to_next_lora)
         self.random_lora_event = Timer.Alarm(self.send_over_lora, ms=self.ms_to_next_lora, periodic=False)
 
     def send_over_lora(self, arg):
-        print(self.rtc.now(), "send data over LoRa")  # ToDo: Replace with code that sends data over LoRa
+        self.logger.info("Sending data over LoRaWAN")
+        # ToDo: Replace with code that sends data over LoRa
