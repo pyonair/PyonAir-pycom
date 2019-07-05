@@ -4,9 +4,10 @@ import _thread
 
 
 class ButtonPress:
-    def __init__(self, sd):
+    def __init__(self, sd, logger):
 
         self.sd = sd
+        self.logger = logger
         self.Press = True
         self.debounce_timer = Timer.Chrono()
         self.debounce_timer.start()
@@ -24,4 +25,4 @@ class ButtonPress:
             self.Press = not self.Press
 
     def held_handler(self, arg):  # this handler is called when button was held for 3 sec
-        _thread.start_new_thread(config_thread, (self.sd, 'Config'))
+        _thread.start_new_thread(config_thread, (self.sd, 'Config', self.logger))

@@ -26,7 +26,7 @@ status_logger = logger_factory.create_status_logger('status_logger', filename='s
 PM1_logger = logger_factory.create_sensor_logger('PM1')
 
 # Initialise interrupt for configuration over wifi
-interrupt = ButtonPress(sd)
+interrupt = ButtonPress(sd, logger=status_logger)
 p = Pin("P14", mode=Pin.IN, pull=None)
 p.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, interrupt.press_handler)
 
@@ -39,7 +39,7 @@ settings = get_config(logger=status_logger)
 _thread.start_new_thread(pm_thread, (sd, 'PM1', PM1_logger))
 
 # Calculate next event for average calculation
-events = EventScheduler(settings[2], rtc)
+events = EventScheduler(settings[2], rtc, logger=status_logger)
 
 while True:
     pass

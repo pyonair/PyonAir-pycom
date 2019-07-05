@@ -1,14 +1,18 @@
 import machine
 from machine import RTC, Timer
+import _thread
+from LoRa_thread import lora_thread
 
 
 class EventScheduler:
-    def __init__(self, interval_ms, rtc):
+    def __init__(self, interval_ms, rtc, logger):
 
         self.interval_ms = interval_ms
         self.rtc = rtc
         self.ms_to_next_lora = None
+        self.logger = logger
 
+        self.count = 1
         self.now = rtc.now()
         self.next_event_ms = self.interval_ms - (
                     ((int(self.now[3]) * 3600000) + (int(
@@ -31,3 +35,6 @@ class EventScheduler:
 
     def send_over_lora(self, arg):
         print(self.rtc.now(), "send data over LoRa")  # ToDo: Replace with code that sends data over LoRa
+        _thread.start_new_thread(lora_thread, ('LoRa_send', "PM1.csv.tosend", self.logger, 30))
+        # thread.start_new_thread(lora_thread, ('LoRa_send', "PM1.txt", self.logger, 30))
+

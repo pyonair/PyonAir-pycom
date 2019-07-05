@@ -9,7 +9,7 @@ from strings import config_filename
 import os
 
 
-def request_credentials(sd, sct):
+def request_credentials(sd, sct, logger):
 
     index = [None] * 4
     credentials = {0: 'APP_KEY', 1: 'APP_EUI', 2: 'interval'}
@@ -22,6 +22,7 @@ def request_credentials(sd, sct):
             client.send(html_form)  # send html page with form to submit by the user
             pycom.rgbled(0x00FF00)  # Green LED - Connection successful
             received_data = str(client.recv(3000))  # wait for client response
+            print("received data:", received_data)
             for i in range(0, 3):  # find indices in received message
                 index[i] = received_data.rfind(credentials[i])
             if -1 not in index[0:3]:  # if all keys were found in the message, cut them up to strings
@@ -38,24 +39,24 @@ def request_credentials(sd, sct):
                     print("interval: {} minutes".format(interval))
                 client.send(html_acknowledgement.format(APP_KEY, APP_EUI, interval))  # sends acknowledgement to user
                 client.close()
-                sd.log_status(sd.INFO, 'Config data received')
+                logger.info('Configuration data received from user')
                 try:
                     with open('/sd/config.txt', 'w') as f:  # save credentials to sd card
                         f.write(APP_KEY + '\r\n' + APP_EUI + '\r\n' + interval + '\r\n')
-                    sd.log_status(sd.INFO, 'Configuration saved to SD card')
-                    sd.get_config()  # Load new configuration from sd card
+                    logger.info('Configuration saved to SD card')
+                    get_config(logger)  # Load new configuration from sd card
                 except:
-                    sd.log_status(sd.ERROR, 'Could not save config file')
+                    logger.error('Could not save config file')
                 finally:
                     return
     except:
         pycom.rgbled(0xFF0000)  # Red LED - Connection timeout
-        sd.log_status(sd.WARN, 'Wifi configuration session timed out')
+        logger.warning('Wifi configuration session timed out')
         time.sleep(3)
         return
 
 
-def config_thread(sd, id):
+def config_thread(sd, id, logger):
 
     print("Thread: {} started".format(id))
 
@@ -79,7 +80,7 @@ def config_thread(sd, id):
     pycom.heartbeat(False)
     pycom.rgbled(0x0000FF)  # Blue LED - Initialized, waiting for connection
 
-    request_credentials(sd, sct)
+    request_credentials(sd, sct, logger)
 
     wlan.deinit()  # turn off wifi
     pycom.heartbeat(True)  # disable indicator LEDs
