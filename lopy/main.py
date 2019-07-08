@@ -54,8 +54,3 @@ _thread.start_new_thread(pm_thread, (sd, sensor_name, PM1_logger))
 
 # Calculate next event for average calculation
 events = EventScheduler(avg_interval, rtc, logger=status_logger, sensor_name=sensor_name)
-
-while True:
-    # time.sleep(5)
-    # flash_pm_averages(sensor_name, logger=status_logger)
-    pass
