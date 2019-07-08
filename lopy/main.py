@@ -16,7 +16,7 @@ import time
 path = '/sd/'
 sensor_name = 'PM1'
 PM1_processing = path + sensor_name + '.csv.processing'
-avg_interval = 20 * 1000  # ms
+avg_interval = 15 * 60  # seconds
 
 
 # Initialise the time

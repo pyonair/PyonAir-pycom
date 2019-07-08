@@ -96,8 +96,8 @@ def get_config(logger):
         settings = [None]*3
         settings[0] = lines[0][0:-2]
         settings[1] = lines[1][0:-2]
-        settings[2] = int(lines[2][0:-2])*60000
-        print("APP_KEY:", settings[0])
-        print("APP_EUI:", settings[1])
-        print("interval:", settings[2])
+        settings[2] = int(lines[2][0:-2]) * 60  # seconds
+        logger.info("APP_KEY:", settings[0])
+        logger.info("APP_EUI:", settings[1])
+        logger.info("interval:", settings[2], 'seconds')
         return settings
