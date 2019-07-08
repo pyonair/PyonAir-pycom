@@ -8,8 +8,7 @@ import os
 from LoggerFactory import LoggerFactory
 from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
 from configuration import get_config
-from events import EventScheduler
-from tasks import flash_pm_averages
+from EventScheduler import EventScheduler
 import time
 
 # Provisional globals
