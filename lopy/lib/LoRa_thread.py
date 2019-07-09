@@ -65,7 +65,7 @@ def lora_thread(id, log_file_name, logger, timeout):
                 timestamp = int(named_line['timestamp'])
                 pm10 = int(named_line['PM10'])
                 pm25 = int(named_line['PM25'])
-                payload = struct.pack('iBB', timestamp, pm10, pm25)
+                payload = struct.pack('IBB', timestamp, pm10, pm25)
                 s.send(payload)
         # except Exception as e:
         #     print(e)
