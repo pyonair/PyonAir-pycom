@@ -55,19 +55,18 @@ def lora_thread(id, log_file_name, logger, timeout):
     if log_file_name not in os.listdir('/sd'):
         logger.error('{} does not exist, failed to read data to be sent over LoRaWAN'.format(log_file_name))
     else:
-        try:
-            with open('/sd/' + log_file_name, 'r') as f:
-                lines = f.readlines()
-                for line in lines:
-                    stripped_line = line[:-1]
-                    split_line_lst = stripped_line.split(',')
-                    named_line = dict(zip(header, split_line_lst))
-                    timestamp = int(named_line['timestamp'])
-                    pm10 = int(named_line['PM10'])
-                    pm25 = int(named_line['PM25'])
-                    payload = struct.pack('iBB', timestamp, pm10, pm25)
-                    s.send(payload)
-        except Exception as e:
-            print(e)
-            logger.error("Failed to send data over LoRaWAN")
-
+        #try:
+        with open('/sd/' + log_file_name, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                stripped_line = line[:-1]
+                split_line_lst = stripped_line.split(',')
+                named_line = dict(zip(header, split_line_lst))
+                timestamp = int(named_line['timestamp'])
+                pm10 = int(named_line['PM10'])
+                pm25 = int(named_line['PM25'])
+                payload = struct.pack('IBB', timestamp, pm10, pm25)
+                s.send(payload)
+        # except Exception as e:
+        #     print(e)
+            #logger.error("Failed to send data over LoRaWAN")

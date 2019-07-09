@@ -9,10 +9,8 @@ STATUS_ARCHIVE_COUNT_DEFAULT = 10  # How many files to keep before deletion
 class LoggerFactory:
     def __init__(
             self,
-            level=logging.INFO,
             path='/sd/'
     ):
-        self.level = level
         self.path = path
         self.loggers = {}  # dictionary to store loggers
 
@@ -29,6 +27,7 @@ class LoggerFactory:
     def create_status_logger(
             self,
             name,
+            level=logging.INFO,
             fmt=STATUS_FMT_DEFAULT,
             filename=None,
             maxBytes=STATUS_MAX_FILE_SIZE_DEFAULT,
@@ -50,6 +49,7 @@ class LoggerFactory:
         :rtype: object
         """
         status_logger = logging.getLogger(name)
+        status_logger.setLevel(level)
         formatter = logging.Formatter(fmt=fmt)
         sh = logging.StreamHandler()  # handler for printing to terminal
         sh.setFormatter(formatter)

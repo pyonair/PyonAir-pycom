@@ -26,11 +26,10 @@ sd = SD()
 os.mount(sd, '/sd')
 
 # Initialise LoggerFactory and loggers
-logger_factory = LoggerFactory(level=DEBUG)
-status_logger = logger_factory.create_status_logger('status_logger', filename='status_log.txt')
+logger_factory = LoggerFactory()
+status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, filename='status_log.txt')
 PM1_logger = logger_factory.create_sensor_logger(sensor_name)
 status_logger.info('booted now')
-status_logger.info('current working dir:' + str(os.getcwd()))
 
 # Delete 'PM1.csv.processing' if it exists TODO: send the content over LoRa instead
 if PM1_processing in os.listdir():
