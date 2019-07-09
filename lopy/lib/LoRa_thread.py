@@ -12,7 +12,7 @@ header = headers_dict_v3['PMS5003']
 
 def lora_thread(id, log_file_name, logger, timeout):
 
-    print("Thread: {} started".format(id))
+    logger.info("Thread: {} started".format(id))
 
     elapsed = 0
 
@@ -70,13 +70,3 @@ def lora_thread(id, log_file_name, logger, timeout):
         # except Exception as e:
         #     print(e)
             #logger.error("Failed to send data over LoRaWAN")
-
-    # make the socket non-blocking
-    # (because if there's no data received it will block forever...)
-    s.setblocking(False)
-
-    # get any data received (if any...)
-    data = s.recv(64)
-    print(data)
-
-    return

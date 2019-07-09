@@ -4,6 +4,18 @@ Tasks to be called by event scheduler
 
 import uos
 from helper import mean_across_arrays, seconds_from_midnight
+import _thread
+from LoRa_thread import lora_thread
+
+
+def send_over_lora(sensor_name, logger, timeout):
+    """
+    :param sensor_name: name of the sensor whose data is to be sent over LoRa
+    :param logger:  general status logger
+    :param timeout:  timeout for LoRa connection given in seconds
+    """
+    logger.info("Sending data over LoRaWAN")
+    _thread.start_new_thread(lora_thread, ('LoRa_send', "{}.csv.tosend".format(sensor_name), logger, timeout))
 
 
 def flash_pm_averages(sensor_name, logger):

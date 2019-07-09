@@ -1,6 +1,23 @@
 # Helper functions
 import time
 
+
+def seconds_to_first_event(rtc, interval_s):
+    """
+    Computes number of seconds (float) until the first sensor average reading
+    :param rtc: real time clock object containing current time up to microsecond precision
+    :param interval_s: interval between average readings
+    :type interval_s: int
+    :return:  number of seconds until first event
+    """
+    now = rtc.now()
+    first_event_s = interval_s - (((now[4] * 60) + now[5] + (now[6]) / 1000000) % interval_s)
+    hours = interval_s // 3600
+    if hours >= 1:
+        first_event_s += hours * 3600
+    return first_event_s
+
+
 def seconds_from_midnight():
     """
 

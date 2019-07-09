@@ -6,7 +6,7 @@ import time
 
 def pm_thread(sd, id, logger):
 
-    print("Thread: {} started".format(id))
+    logger.info("Thread: {} started".format(id))
 
     # variables for sensor reading and computing averages
     plantower = Plantower()

@@ -2,20 +2,19 @@
 
 from machine import RTC, Timer, SD, Pin
 from PM_thread import pm_thread
-from interrupt import ButtonPress
+from ButtonPress import ButtonPress
 import _thread
 import os
 from LoggerFactory import LoggerFactory
 from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
-from configuration import get_config
+from configuration import read_configuration
 from EventScheduler import EventScheduler
 
 # Provisional globals
 path = '/sd/'
 sensor_name = 'PM1'
 PM1_processing = path + sensor_name + '.csv.processing'
-avg_interval = 15 * 60  # seconds
-
+interval_s = 15 * 60  # default interval for averages (seconds)
 
 # Initialise the time
 rtc = RTC()
@@ -37,18 +36,16 @@ if PM1_processing in os.listdir():
     status_logger.info(PM1_processing + 'already exists, removing it')
     os.remove(PM1_processing)
 
-# Initialise interrupt for configuration over wifi
-interrupt = ButtonPress(sd, logger=status_logger)
-p = Pin("P14", mode=Pin.IN, pull=None)
-p.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, interrupt.press_handler)
-
-# Read configuration file
-# settings = get_config(logger=status_logger)
-
-# TODO: Process and send remaining data from previous boot
+# Read configuration file to get preferences
+interval_s = read_configuration(logger=status_logger)['interval']
 
 # Start 1st PM sensor thread with id: PM1
 _thread.start_new_thread(pm_thread, (sd, sensor_name, PM1_logger))
 
-# Calculate next event for average calculation
-events = EventScheduler(avg_interval, rtc, logger=status_logger, sensor_name=sensor_name)
+# Start calculating averages and sending data over LoRa
+PM1_Events = EventScheduler(interval_s, rtc, logger=status_logger, sensor_name=sensor_name)
+
+# Initialise interrupt on user button for configuration over wifi
+user_button = ButtonPress(logger=status_logger)
+pin_14 = Pin("P14", mode=Pin.IN, pull=None)
+pin_14.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, user_button.press_handler)
