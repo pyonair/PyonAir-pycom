@@ -5,10 +5,11 @@ from helper import seconds_to_first_event
 
 
 class EventScheduler:
-    def __init__(self, interval_s, rtc, sensor_name, logger):
+    def __init__(self, interval_m, rtc, sensor_name, logger):
 
         #  Arguments
-        self.interval_s = interval_s
+        self.interval_m = interval_m
+        self.interval_s = interval_m * 60
         self.rtc = rtc
         self.logger = logger
         self.sensor_name = sensor_name

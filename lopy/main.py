@@ -14,7 +14,7 @@ from EventScheduler import EventScheduler
 path = '/sd/'
 sensor_name = 'PM1'
 PM1_processing = path + sensor_name + '.csv.processing'
-interval_s = 15 * 60  # default interval for averages (seconds)
+interval_m = 15  # default interval for averages (minutes)
 
 # Initialise the time
 rtc = RTC()
@@ -37,13 +37,13 @@ if PM1_processing in os.listdir():
     os.remove(PM1_processing)
 
 # Read configuration file to get preferences
-interval_s = read_configuration(logger=status_logger)['interval']
+interval_m = read_configuration(logger=status_logger)['interval']
 
 # Start 1st PM sensor thread with id: PM1
 _thread.start_new_thread(pm_thread, (sd, sensor_name, PM1_logger))
 
 # Start calculating averages and sending data over LoRa
-PM1_Events = EventScheduler(interval_s, rtc, logger=status_logger, sensor_name=sensor_name)
+PM1_Events = EventScheduler(interval_m, rtc, logger=status_logger, sensor_name=sensor_name)
 
 # Initialise interrupt on user button for configuration over wifi
 user_button = ButtonPress(logger=status_logger)

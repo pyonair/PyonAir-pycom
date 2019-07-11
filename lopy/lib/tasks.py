@@ -3,7 +3,7 @@ Tasks to be called by event scheduler
 """
 
 import uos
-from helper import mean_across_arrays, seconds_from_midnight
+from helper import mean_across_arrays, minutes_from_midnight
 import _thread
 from LoRa_thread import lora_thread
 
@@ -28,7 +28,6 @@ def flash_pm_averages(sensor_name, logger):
     4) Append computed averages to sensor_name.csv.tosend
     5) Append content of sensor_name.csv.processing into sensor_name.csv
     6) Delete sensor_name.csv.processing
-    7) Schedule to send all content of sensor_name.csv.tosend over LoRaWAN
     :param filename:
     :type filename: str
     """
@@ -61,7 +60,7 @@ def flash_pm_averages(sensor_name, logger):
     avg_readings_str = [str(int(i)) for i in mean_across_arrays(lines_lst)]
 
     # Append computed averages to sensor_name.csv.tosend
-    line_to_append = str(seconds_from_midnight()) + ',' + ','.join(avg_readings_str) + '\n'
+    line_to_append = str(minutes_from_midnight()) + ',' + ','.join(avg_readings_str) + '\n'
     with open(tosend, 'w') as f_tosend:  # TODO: change permission to 'a', hence make a queue for sending
         f_tosend.write(line_to_append)
 
