@@ -11,7 +11,7 @@
 from machine import UART
 from machine import RTC
 
-DEFAULT_SERIAL_PINS = ('P11','P10')# pins order: (TX, RX)
+DEFAULT_SERIAL_PINS = ('P10','P11')# pins order: (TX, RX)
 DEFAULT_BAUD_RATE = 9600 # Serial baud rate to use if no other specified
 DEFAULT_ID = 1 #
 DEFAULT_TIMEOUT = 1000
