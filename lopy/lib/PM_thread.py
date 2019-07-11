@@ -6,8 +6,6 @@ import time
 
 def pm_thread(sd, id, logger):
 
-    logger.info("Thread: {} started".format(id))
-
     # variables for sensor reading and computing averages
     plantower = Plantower()
     last_timestamp = None
