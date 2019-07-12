@@ -14,7 +14,6 @@ from EventScheduler import EventScheduler
 path = '/sd/'
 sensor_name = 'PM1'
 PM1_processing = path + sensor_name + '.csv.processing'
-interval_m = 15  # default interval for averages (minutes)
 
 # Initialise the time
 rtc = RTC()
