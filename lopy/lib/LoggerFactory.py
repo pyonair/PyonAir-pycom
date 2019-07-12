@@ -1,5 +1,5 @@
 import loggingpycom as logging
-from loggingpycom import handlers, Handler
+from loggingpycom import handlers
 
 STATUS_FMT_DEFAULT = '%(levelname)s - %(asctime)s - %(name)s - %(message)s'
 STATUS_MAX_FILE_SIZE_DEFAULT = 10 * 1024 * 1024  # 10MiB
@@ -60,47 +60,3 @@ class LoggerFactory:
             status_logger.addHandler(file_handler)
         self.loggers[name] = status_logger
         return self.loggers[name]
-
-    def create_sensor_logger(
-            self,
-            name,
-            log_to_file=True
-    ):
-        """
-        Create sensor logger and add it to the self.loggers dictionary
-        :param name: logger name
-        :type name: str
-        :param log_to_file: True to log into file named name.csv.current
-        :type log_to_file: bool
-        :return: reference to the logger stored in the class
-        :rtype: object
-        """
-        sensor_logger = logging.getLogger(name)
-        fmt = '%(message)s'
-        formatter = logging.Formatter(fmt=fmt)
-        sh = logging.StreamHandler()  # handler for printing to terminal
-        sh.setFormatter(formatter)
-        sensor_logger.addHandler(sh)
-        if log_to_file:
-            file_handler = SensorFileHandler(filename=self.path + name + '.csv.current')
-            file_handler.setFormatter(formatter)
-            sensor_logger.addHandler(file_handler)
-        self.loggers[name] = sensor_logger
-        return self.loggers[name]
-
-
-class SensorFileHandler(Handler):
-    """
-    Handler for writing one sensor reading at a time into file.
-    """
-
-    def __init__(self, filename):
-        super().__init__()
-        self.filename = filename
-
-    def emit(self, record):
-        """Write to file."""
-        msg = self.formatter.format(record)
-
-        with open(self.filename, "a") as f:
-            f.write(msg + "\n")
