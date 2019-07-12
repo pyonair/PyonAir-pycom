@@ -48,9 +48,9 @@ def lora_thread(id, log_file_name, logger, timeout):
     # (waits for the data to be sent and for the 2 receive windows to expire)
     s.setblocking(True)
 
-    print("joined LoRa network")
-    print('bandwidth:', lora.bandwidth())
-    print('spreading factor:', lora.sf())
+    logger.info("joined LoRa network")
+    logger.info('bandwidth:' + str(lora.bandwidth()))
+    logger.info('spreading factor:' + str(lora.sf()))
 
     if log_file_name not in os.listdir('/sd'):
         logger.error('{} does not exist, failed to read data to be sent over LoRaWAN'.format(log_file_name))
@@ -70,3 +70,4 @@ def lora_thread(id, log_file_name, logger, timeout):
         # except Exception as e:
         #     print(e)
             #logger.error("Failed to send data over LoRaWAN")
+    logger.info("Thread: {} finished".format(id))

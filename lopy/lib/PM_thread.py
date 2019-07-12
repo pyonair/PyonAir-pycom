@@ -4,7 +4,9 @@ from helper import mean_across_arrays
 import time
 
 
-def pm_thread(sd, id, logger):
+def pm_thread(sensor_name, sensor_logger, status_logger):
+
+    status_logger.info(sensor_name + " thread started")
 
     # variables for sensor reading and computing averages
     plantower = Plantower()
@@ -25,7 +27,7 @@ def pm_thread(sd, id, logger):
                     if len(sensor_readings_lst) > 0:
                         lst_to_log = [last_timestamp] + [str(int(i)) for i in mean_across_arrays(sensor_readings_lst)]
                         line_to_log = ','.join(lst_to_log)
-                        logger.info(line_to_log)
+                        sensor_logger.log_row(line_to_log)
                     # Set/reset global variables
                     last_timestamp = curr_timestamp
                     sensor_readings_lst = []

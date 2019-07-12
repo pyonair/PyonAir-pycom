@@ -6,6 +6,7 @@ from ButtonPress import ButtonPress
 import _thread
 import os
 from LoggerFactory import LoggerFactory
+from SensorLogger import SensorLogger
 from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
 from configuration import read_configuration
 from EventScheduler import EventScheduler
@@ -28,8 +29,8 @@ os.mount(sd, '/sd')
 # Initialise LoggerFactory and loggers
 logger_factory = LoggerFactory()
 status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, filename='status_log.txt')
-PM1_logger = logger_factory.create_sensor_logger(sensor_name)
 status_logger.info('booted now')
+sensor_logger = SensorLogger(filename=path + sensor_name + '.csv.current')
 
 # Delete 'PM1.csv.processing' if it exists TODO: send the content over LoRa instead
 if PM1_processing in os.listdir():
@@ -40,7 +41,7 @@ if PM1_processing in os.listdir():
 interval_m = read_configuration(logger=status_logger)['interval']
 
 # Start 1st PM sensor thread with id: PM1
-_thread.start_new_thread(pm_thread, (sd, sensor_name, PM1_logger))
+_thread.start_new_thread(pm_thread, (sensor_name, sensor_logger, status_logger))
 
 # Start calculating averages and sending data over LoRa
 PM1_Events = EventScheduler(interval_m, rtc, logger=status_logger, sensor_name=sensor_name)
