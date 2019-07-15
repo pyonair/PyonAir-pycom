@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+import pycom
+pycom.heartbeat(False)  # disable the heartbeat LED
+pycom.rgbled(0x552000)  # flash orange until its loaded
+
 from machine import RTC, Timer, SD, Pin
 from PM_thread import pm_thread
 from ButtonPress import ButtonPress
@@ -10,6 +14,7 @@ from SensorLogger import SensorLogger
 from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
 from configuration import read_configuration
 from EventScheduler import EventScheduler
+import time
 
 # Provisional globals
 path = '/sd/'
@@ -49,3 +54,12 @@ PM1_Events = EventScheduler(interval_m, rtc, logger=status_logger, sensor_name=s
 user_button = ButtonPress(logger=status_logger)
 pin_14 = Pin("P14", mode=Pin.IN, pull=None)
 pin_14.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, user_button.press_handler)
+
+status_logger.info("Initialisation finished")
+# Blink green twice and put the heartbeat back to indetify that the device has been initialised
+for i in range(2):
+    pycom.rgbled(0x000000)
+    time.sleep(0.5)
+    pycom.rgbled(0x005500)
+    time.sleep(0.5)
+pycom.heartbeat(True)
