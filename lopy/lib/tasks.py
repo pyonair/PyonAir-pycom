@@ -53,8 +53,13 @@ def flash_pm_averages(sensor_name, logger):
     for line in lines:
         stripped_line = line[:-1]  # strip \n
         stripped_line_lst = str(stripped_line).split(',')
-        sensor_reading = [int(i) for i in stripped_line_lst[1:]]  # strip timestamp
-        lines_lst.append(sensor_reading)
+        sensor_reading = []
+        try:
+            for sen_read in stripped_line_lst[1:]:  # strip timestamp
+                sensor_reading.append(int(sen_read))
+            lines_lst.append(sensor_reading)
+        except Exception as e:
+            logger.warning(e)
 
     # Compute averages from sensor_name.csv.processing
     avg_readings_str = [str(int(i)) for i in mean_across_arrays(lines_lst)]
