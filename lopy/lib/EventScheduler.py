@@ -38,15 +38,14 @@ class EventScheduler:
 
     def periodic_event(self, arg):
         self.logger.info("Running flash_pm_averages task")
-
-        #  flash averages of data to sd card at the end of the interval
-        flash_pm_averages(sensor_name=self.sensor_name, logger=self.logger)
-
-        #  get random number of seconds within interval
-        self.s_to_next_lora = int(machine.rng() / (2**24) * self.interval_s)
-
-        #  set up an alarm with random delay to send data over LoRa
-        self.random_alarm = Timer.Alarm(self.random_event, s=self.s_to_next_lora, periodic=False)
-
+        try:
+            #  flash averages of data to sd card at the end of the interval
+            flash_pm_averages(sensor_name=self.sensor_name, logger=self.logger)
+            #  get random number of seconds within interval
+            self.s_to_next_lora = int(machine.rng() / (2**24) * self.interval_s)
+            #  set up an alarm with random delay to send data over LoRa
+            self.random_alarm = Timer.Alarm(self.random_event, s=self.s_to_next_lora, periodic=False)
+        except Exception as e:
+            self.logger.error(e)
     def random_event(self, arg):
         send_over_lora(sensor_name=self.sensor_name, logger=self.logger, timeout=60)

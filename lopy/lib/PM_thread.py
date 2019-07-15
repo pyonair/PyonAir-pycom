@@ -1,8 +1,5 @@
 from plantowerpycom import Plantower, PlantowerException
-from strings import timestamp_template
 from helper import mean_across_arrays
-import time
-
 
 def pm_thread(sensor_name, sensor_logger, status_logger):
 
@@ -35,8 +32,4 @@ def pm_thread(sensor_name, sensor_logger, status_logger):
                 sensor_readings_lst.append(sensor_reading)
 
         except PlantowerException as e:
-            status_line = ', '.join([timestamp_template.format(*time.gmtime()), str(e.__class__)])
-            print(status_line)
-            # TODO: log exception
-
-    # TODO: take mean of the messages if two or more readings per second
+            status_logger.error(e)
