@@ -1,5 +1,5 @@
 from machine import Timer
-from configuration import config_thread
+from new_config import config_thread
 import _thread
 
 
@@ -16,10 +16,10 @@ class ButtonPress:
         if self.debounce_timer.read_ms() >= 10:  # 10 ms software switch debounce
             self.debounce_timer.reset()
             if self.Press:
-                self.button_held = Timer.Alarm(self.start_config, 3, periodic=False)
+                self.button_held = Timer.Alarm(self.start_config, 2.5, periodic=False)
             else:
                 self.button_held.cancel()
             self.Press = not self.Press
 
-    def start_config(self, arg):  # this handler is called when button was held for 3 sec
+    def start_config(self, arg):  # this handler is called when button was held for 2.5 sec
         _thread.start_new_thread(config_thread, ('Config', self.logger, 300))

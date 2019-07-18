@@ -6,6 +6,7 @@ import uos
 from helper import mean_across_arrays, minutes_from_midnight
 import _thread
 from LoRa_thread import lora_thread
+from configuration import config
 
 
 def send_over_lora(sensor_name, logger, timeout):
@@ -14,8 +15,8 @@ def send_over_lora(sensor_name, logger, timeout):
     :param logger:  general status logger
     :param timeout:  timeout for LoRa connection given in seconds
     """
-    logger.info("Sending data over LoRaWAN")
-    _thread.start_new_thread(lora_thread, ('LoRa_send', "{}.csv.tosend".format(sensor_name), logger, timeout))
+    
+    _thread.start_new_thread(lora_thread, ('LoRa', sensor_name, "{}.csv.tosend".format(sensor_name), logger, timeout))
 
 
 def flash_pm_averages(sensor_name, logger):
@@ -31,6 +32,8 @@ def flash_pm_averages(sensor_name, logger):
     :param filename:
     :type filename: str
     """
+    logger.info("Calculating averages for {} sensor over {} minute interval".format(sensor_name, config[sensor_name + "_interval"]))
+
     path = '/sd/'
     current = path + sensor_name + '.csv.current'
     processing = path + sensor_name + '.csv.processing'
@@ -38,7 +41,7 @@ def flash_pm_averages(sensor_name, logger):
     dump = path + sensor_name + '.csv'
 
     # Rename sensor_name.csv.current to sensor_name.csv.processing
-    logger.info('renaming ' + current + ' to ' + processing)
+    # logger.info('renaming ' + current + ' to ' + processing)
     try:
         uos.remove(processing)  # TODO: instead of removing, find a better way to deal with this
     except Exception:
