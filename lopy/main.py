@@ -1,38 +1,38 @@
 #!/usr/bin/env python
-#
 import pycom
 pycom.heartbeat(False)  # disable the heartbeat LED
 pycom.rgbled(0x552000)  # flash orange until its loaded
 
-from machine import RTC, Timer, SD, Pin, unique_id
-from PM_thread import pm_thread
-from ButtonPress import ButtonPress
-import _thread
-import os
-from LoggerFactory import LoggerFactory
-from SensorLogger import SensorLogger
-from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
-from EventScheduler import EventScheduler
-from configuration import read_configuration, reset_configuration, config
-from new_config import config_thread
-from ubinascii import hexlify
-import time
-from keys import APP_EUI, APP_KEY
+try:
+    from machine import RTC, Timer, SD, Pin, unique_id
+    from PM_thread import pm_thread
+    from ButtonPress import ButtonPress
+    import _thread
+    import os
+    from LoggerFactory import LoggerFactory
+    from SensorLogger import SensorLogger
+    from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
+    from configuration import read_configuration, reset_configuration, config
+    from EventScheduler import EventScheduler
+    from new_config import config_thread
+    from ubinascii import hexlify
+    import time
+    from keys import APP_EUI, APP_KEY
 
 
-# Provisional globals
-path = '/sd/'
-sensor_name = 'PM1'
-PM1_processing = path + sensor_name + '.csv.processing'
+    # Provisional globals
+    path = '/sd/'
+    sensor_name = 'PM1'
+    PM1_processing = path + sensor_name + '.csv.processing'
 
-# Initialise the time
-rtc = RTC()
-rtc.init((2017, 2, 28, 10, 30, 0, 0, 0))  # TODO: if RTC has no time, set RTC time via Wifi and/or GPS
-now = rtc.now()
+    # Initialise the time
+    rtc = RTC()
+    rtc.init((2017, 2, 28, 10, 30, 0, 0, 0))  # TODO: if RTC has no time, set RTC time via Wifi and/or GPS
+    now = rtc.now()
 
-# Mount SD card
-sd = SD()
-os.mount(sd, '/sd')
+    # Mount SD card
+    sd = SD()
+    os.mount(sd, '/sd')
 
 # Initialise LoggerFactory and loggers
 logger_factory = LoggerFactory()
@@ -80,3 +80,6 @@ else:
         pycom.rgbled(0x005500)
         time.sleep(0.5)
     pycom.heartbeat(True)
+except Exception as e:
+    print(e)
+    pycom.rgbled(0x770000)
