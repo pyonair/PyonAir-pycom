@@ -2,14 +2,14 @@ import machine
 from machine import RTC, Timer
 from tasks import flash_pm_averages, send_over_lora
 from helper import seconds_to_first_event
+from configuration import config
 
 
 class EventScheduler:
-    def __init__(self, interval_m, rtc, sensor_name, logger):
+    def __init__(self, rtc, sensor_name, logger):
 
         #  Arguments
-        self.interval_m = interval_m
-        self.interval_s = interval_m * 60
+        self.interval_s = config[sensor_name + "_interval"] * 60
         self.rtc = rtc
         self.logger = logger
         self.sensor_name = sensor_name
@@ -47,5 +47,6 @@ class EventScheduler:
             self.random_alarm = Timer.Alarm(self.random_event, s=self.s_to_next_lora, periodic=False)
         except Exception as e:
             self.logger.error(e)
+
     def random_event(self, arg):
         send_over_lora(sensor_name=self.sensor_name, logger=self.logger, timeout=60)

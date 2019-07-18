@@ -1,9 +1,10 @@
 from plantowerpycom import Plantower, PlantowerException
 from helper import mean_across_arrays
 
+
 def pm_thread(sensor_name, sensor_logger, status_logger):
 
-    status_logger.info(sensor_name + " thread started")
+    status_logger.info("Thread: {} started".format(sensor_name))
 
     # variables for sensor reading and computing averages
     plantower = Plantower()
@@ -31,5 +32,8 @@ def pm_thread(sensor_name, sensor_logger, status_logger):
                 # Add the current reading to the list, which will be processed when the timestamp changes
                 sensor_readings_lst.append(sensor_reading)
 
-        except PlantowerException as e:
-            status_logger.error(e)
+        # ToDo: Logger fails to handle if PlantowerException is raised - program crashes
+        # except PlantowerException as e:
+        #     status_logger.error(e)
+        except PlantowerException:
+            status_logger.error("Failed to read from sensor {}".format(sensor_name))
