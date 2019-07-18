@@ -8,9 +8,10 @@ import ujson
 config = {}
 
 default_config = {"device_id": "", "device_name": "NewPmSensor", "password": "pmsensor", "region": "LoRa.EU868",
-                  "device_eui": "","application_eui": "", "app_key": "", "application_id": "",
+                  "device_eui": "", "application_eui": "", "app_key": "", "application_id": "",
                   "access_key": "", "raw_interval": "12", "PM1": True, "PM2": False, "TEMP": True,
-                  "GPS": False, "PM1_interval": 15, "PM2_interval": 15, "TEMP_interval": 15, "GPS_interval": 12,
+                  "GPS": False, "PM1_id": "PM1_ID", "PM2_id": "PM2_ID", "TEMP_id": "Temp&humid_ID", "GPS_id": "GPS_ID",
+                  "PM1_interval": 15, "PM2_interval": 15, "TEMP_interval": 15, "GPS_interval": 12,
                   "logging_lvl": "Warning"}
 
 

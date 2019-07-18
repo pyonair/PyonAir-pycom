@@ -19,88 +19,60 @@ def get_html_form():
     else:
         GPS_state = ""
 
+    isSelected = {"Critical":"", "Error":"", "Warning":"", "Info":"", "Debug":""}
+    for level in isSelected:
+        if level == config["logging_lvl"]:
+            isSelected[level] = " selected"
+
     html_form = '''<!DOCTYPE html>
     <html>
         <head>
+            <meta charset="UTF-8">
             <title>Configuration</title>
-        </head>
-        <style>
-            body { background-color: #1a9edb;
-             font-family: 'Open Sans', sans-serif;
-            font-size: 18px;
-            margin-top: 25;
-            margin-left: 20;}
-            h1 { color: white; }
-            .config_form { color: white;}
-            .config_form_input_text{
-              position: relative;
-              margin-bottom: 5px;
-              box-sizing: border-box;
-              padding: 2px 4px;
-              width: 300px;}
-            .config_form_label{
+            <style>
+                body { background-color: #1a9edb;
+                  font-family: 'Open Sans', sans-serif;
+                  font-size: 18px;
+                  margin: 20px 25px 70px 25px;}
+                h1 { color: white; }
+                id_section {
+                  float: left;
+                  width: 280px;}
+                interval_section {
+                  float: left;
+                  width: 130px;}
+                .config_form { color: white;}
+                .config_form_input_text{
+                  position: relative;
+                  margin-bottom: 5px;
+                  box-sizing: border-box;
+                  padding: 4px;
+                  width: 240px;
+                  height: 23px;}
+                .config_form_input_number{
+                  position: relative;
+                  margin-bottom: 5px;
+                  box-sizing: border-box;
+                  padding: 4px;
+                  width: 75px;
+                  height: 23px;}
+                .config_form_label{
                   display: block;
                   font-size: 75%;}
-            .config_form_label_checkbox{
+                .config_form_label_checkbox{
                   display: inline;
-                  font-size: 75%;}
-        </style>
-        <body>
-              <h1 class="heading">PM Sensor Configuration</h1>
-              <form class="config_form">
-                <p class="heading">General Settings:</p>
-                <label class="config_form_label">Device ID: ''' + str(config["device_id"]) + '''</label>
-                <br>
-                <label class="config_form_label" for="device_name">Device Name</label>
-                <input class="config_form_input_text" id="device_name" name="device_name" type="text" value="''' + str(config["device_name"]) + '''" required="required"/>
-                <label class="config_form_label" for="password">New Password</label>
-                <input class="config_form_input_text" id="password" name="password" type="password" value="''' + str(config["password"]) + '''" required="required"/>
-                <p class="heading">LoRaWAN Settings:</p>
-                <label class="config_form_label">Device EUI: ''' + str(config["device_eui"]) + '''</label>
-                <br>
-                <label class="config_form_label" for="region">Region</label>
-                <input class="config_form_input_text" id="region" name="region" type="text" value="''' + str(config["region"]) + '''" required="required"/>
-                <label class="config_form_label" for="application_eui">Application EUI</label>
-                <input class="config_form_input_text" id="application_eui" name="application_eui" type="text" value="''' + str(config["application_eui"]) + '''" required="required"/>
-                <label class="config_form_label" for="app_key">App Key</label>
-                <input class="config_form_input_text" id="app_key" name="app_key" type="password" value="''' + str(config["app_key"]) + '''" required="required"/>
-                <p class="heading">MQTT Settings:</p>
-                <label class="config_form_label" for="application_id">Application ID</label>
-                <input class="config_form_input_text" id="application_id" name="application_id" type="text" value="''' + str(config["application_id"]) + '''" required="required"/>
-                <label class="config_form_label" for="access_key">Access Key</label>
-                <input class="config_form_input_text" id="access_key" name="access_key" type="password" value="''' + str(config["access_key"]) + '''" required="required"/>
-                <label class="config_form_label" for="raw_interval">Raw Data Interval (hours)</label>
-                <input class="config_form_input_text" id="raw_interval" name="raw_interval" type="number" value="''' + str(config["raw_interval"]) + '''" required="required"/>
-                <p class="heading">Preferences:</p>
-                <input class="config_form_input_checkbox" id="PM1" name="PM1" type="checkbox" value="True" ''' + PM1_state + '''/>
-                <label class="config_form_label_checkbox" for="PM1">PM Sensor 1</label>
-                <input class="config_form_input_checkbox" id="PM2" name="PM2" type="checkbox" value="True" ''' + PM2_state + '''/>
-                <label class="config_form_label_checkbox" for="PM2">PM Sensor 2</label>
-                <input class="config_form_input_checkbox" id="TEMP" name="TEMP" type="checkbox" value="True" ''' + TEMP_state + '''/>
-                <label class="config_form_label_checkbox" for="TEMP">Temperature & Humidity</label>
-                <input class="config_form_input_checkbox" id="GPS" name="GPS" type="checkbox" value="True" ''' + GPS_state + '''/>
-                <label class="config_form_label_checkbox" for="GPS">GPS</label>
-                <br><br>
-                <label class="config_form_label" for="PM1_interval">PM Sensor 1 Interval (minutes)</label>
-                <input class="config_form_input_text" id="PM1_interval" name="PM1_interval" type="number" value="''' + str(config["PM1_interval"]) + '''" required="required"/>
-                <label class="config_form_label" for="PM2_interval">PM Sensor 2 Interval (minutes)</label>
-                <input class="config_form_input_text" id="PM2_interval" name="PM2_interval" type="number" value="''' + str(config["PM2_interval"]) + '''" required="required"/>
-                <label class="config_form_label" for="TEMP_interval">Temp & humidity Interval (minutes)</label>
-                <input class="config_form_input_text" id="TEMP_interval" name="TEMP_interval" type="number" value="''' + str(config["TEMP_interval"]) + '''" required="required"/>
-                <label class="config_form_label" for="GPS_interval">GPS Sync Interval (hours)</label>
-                <input class="config_form_input_text" id="GPS_interval" name="GPS_interval" type="number" value="''' + str(config["GPS_interval"]) + '''" required="required"/>
-                <br><br>
-                <label class="config_form_label" for="logging_lvl">Select Logging Level</label>
-                <select class="config_form_input_select" id="logging_lvl" name="logging_lvl">
-                  <option>Critical</option>
-                  <option>Error</option>
-                  <option selected>Warning</option>
-                  <option>Info</option>
-                  <option>Debug</option>
-                </select>
-                <br><br>
-                <button class="config_form_button" type="submit">Save</button>
-              </form>
+                  font-size: 85%;
+                  vertical-align: 30%;}
+                .config_form_input_checkbox{
+                  width: 20px;
+                  height: 20px;}
+                .config_form_input_select{
+                  width: 130px;
+                  height: 25px;}
+                .config_form_button{
+                  width: 130px;
+                  height: 35px;}
+            </style>
             <script>
 
                 const isValidElement = element => {
@@ -141,8 +113,76 @@ def get_html_form():
 
                 const form = document.getElementsByClassName('config_form')[0];
                 form.addEventListener('submit', handleFormSubmit);
-
             </script>
+        </head>
+        <body>
+              <h1 class="heading">PM Sensor Configuration</h1>
+              <form class="config_form">
+                <p class="heading">General Settings:</p>
+                <label class="config_form_label">Device ID: ''' + str(config["device_id"]) + '''</label>
+                <br>
+                <label class="config_form_label" for="device_name">Device Name</label>
+                <input class="config_form_input_text" id="device_name" name="device_name" type="text" value="''' + str(config["device_name"]) + '''" required="required" maxlength="32"/>
+                <label class="config_form_label" for="password">New Password</label>
+                <input class="config_form_input_text" id="password" name="password" type="password" value="''' + str(config["password"]) + '''" required="required" maxlength="32"/>
+                <p class="heading">LoRaWAN Configuration:</p>
+                <label class="config_form_label">Device EUI: ''' + str(config["device_eui"]) + '''</label>
+                <br>
+                <label class="config_form_label" for="region">Region</label>
+                <input class="config_form_input_text" id="region" name="region" type="text" value="''' + str(config["region"]) + '''" required="required" maxlength="32"/>
+                <label class="config_form_label" for="application_eui">Application EUI</label>
+                <input class="config_form_input_text" id="application_eui" name="application_eui" type="text" value="''' + str(config["application_eui"]) + '''" required="required" maxlength="16"/>
+                <label class="config_form_label" for="app_key">App Key</label>
+                <input class="config_form_input_text" id="app_key" name="app_key" type="password" value="''' + str(config["app_key"]) + '''" required="required" maxlength="32"/>
+                <p class="heading">MQTT Configuration:</p>
+                <label class="config_form_label" for="application_id">Application ID</label>
+                <input class="config_form_input_text" id="application_id" name="application_id" type="text" value="''' + str(config["application_id"]) + '''" required="required" maxlength="32"/>
+                <label class="config_form_label" for="access_key">Access Key</label>
+                <input class="config_form_input_text" id="access_key" name="access_key" type="password" value="''' + str(config["access_key"]) + '''" required="required" maxlength="128"/>
+                <label class="config_form_label" for="raw_interval">Raw Data Interval (hours)</label>
+                <input class="config_form_input_text" id="raw_interval" name="raw_interval" type="number" value="''' + str(config["raw_interval"]) + '''" required="required" maxlength="4"/>
+                <p class="heading">Preferences:</p>
+                <input class="config_form_input_checkbox" id="PM1" name="PM1" type="checkbox" value="True" ''' + PM1_state + '''/>
+                <label class="config_form_label_checkbox" for="PM1">PM Sensor 1</label>
+                <input class="config_form_input_checkbox" id="PM2" name="PM2" type="checkbox" value="True" ''' + PM2_state + '''/>
+                <label class="config_form_label_checkbox" for="PM2">PM Sensor 2</label>
+                <input class="config_form_input_checkbox" id="TEMP" name="TEMP" type="checkbox" value="True" ''' + TEMP_state + '''/>
+                <label class="config_form_label_checkbox" for="TEMP">Temperature &amp; Humidity</label>
+                <input class="config_form_input_checkbox" id="GPS" name="GPS" type="checkbox" value="True" ''' + GPS_state + '''/>
+                <label class="config_form_label_checkbox" for="GPS">GPS</label>
+                <br><br>
+                <id_section>
+                <label class="config_form_label" for="PM1_id">PM1 Sensor ID</label>
+                <input class="config_form_input_text" id="PM1_id" name="PM1_id" type="text" value="''' + str(config["PM1_id"]) + '''" required="required" maxlength="64"/>
+                <label class="config_form_label" for="PM2_id">PM2 Sensor ID</label>
+                <input class="config_form_input_text" id="PM2_id" name="PM2_id" type="text" value="''' + str(config["PM2_id"]) + '''" required="required" maxlength="64"/>
+                <label class="config_form_label" for="TEMP_id">Temp &amp; Humidity Sensor ID</label>
+                <input class="config_form_input_text" id="TEMP_id" name="TEMP_id" type="text" value="''' + str(config["TEMP_id"]) + '''" required="required" maxlength="64"/>
+                <label class="config_form_label" for="GPS_id">GPS Sensor ID</label>
+                <input class="config_form_input_text" id="GPS_id" name="GPS_id" type="text" value="''' + str(config["GPS_id"]) + '''" required="required" maxlength="64"/>
+                </id_section>
+                <interval_section>
+                <label class="config_form_label" for="PM1_interval">Interval (m)</label>
+                <input class="config_form_input_number" id="PM1_interval" name="PM1_interval" type="number" value="''' + str(config["PM1_interval"]) + '''" required="required" maxlength="5"/>
+                <label class="config_form_label" for="PM2_interval">Interval (m)</label>
+                <input class="config_form_input_number" id="PM2_interval" name="PM2_interval" type="number" value="''' + str(config["PM2_interval"]) + '''" required="required" maxlength="5"/>
+                <label class="config_form_label" for="TEMP_interval">Interval (m)</label>
+                <input class="config_form_input_number" id="TEMP_interval" name="TEMP_interval" type="number" value="''' + str(config["TEMP_interval"]) + '''" required="required" maxlength="5"/>
+                <label class="config_form_label" for="GPS_interval">Interval (h)</label>
+                <input class="config_form_input_number" id="GPS_interval" name="GPS_interval" type="number" value="''' + str(config["GPS_interval"]) + '''" required="required" maxlength="5"/>
+                </interval_section>
+                <br><br>
+                <label class="config_form_label" for="logging_lvl">Select Logging Level</label>
+                <select class="config_form_input_select" id="logging_lvl" name="logging_lvl">
+                  <option'''+str(isSelected["Critical"])+'''>Critical</option>
+                  <option'''+str(isSelected["Error"])+'''>Error</option>
+                  <option'''+str(isSelected["Warning"])+'''>Warning</option>
+                  <option'''+str(isSelected["Info"])+'''>Info</option>
+                  <option'''+str(isSelected["Debug"])+'''>Debug</option>
+                </select>
+                <br><br>
+                <button class="config_form_button" type="submit">Save</button>
+              </form>
         </body>
     </html>'''
 

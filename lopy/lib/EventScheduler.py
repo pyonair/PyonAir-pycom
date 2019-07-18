@@ -37,7 +37,6 @@ class EventScheduler:
         self.periodic_event(arg)
 
     def periodic_event(self, arg):
-        self.logger.info("Running flash_pm_averages task")
         try:
             #  flash averages of data to sd card at the end of the interval
             flash_pm_averages(sensor_name=self.sensor_name, logger=self.logger)
