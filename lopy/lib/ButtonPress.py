@@ -1,5 +1,5 @@
 from machine import Timer
-from configuration import config_thread
+from new_config import config_thread
 import _thread
 
 

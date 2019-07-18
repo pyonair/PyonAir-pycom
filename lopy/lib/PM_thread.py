@@ -32,8 +32,5 @@ def pm_thread(sensor_name, sensor_logger, status_logger):
                 # Add the current reading to the list, which will be processed when the timestamp changes
                 sensor_readings_lst.append(sensor_reading)
 
-        # ToDo: Logger fails to handle if PlantowerException is raised - program crashes
-        # except PlantowerException as e:
-        #     status_logger.error(e)
-        except PlantowerException:
-            status_logger.error("Failed to read from sensor {}".format(sensor_name))
+        except PlantowerException as e:
+            status_logger.error(e)
