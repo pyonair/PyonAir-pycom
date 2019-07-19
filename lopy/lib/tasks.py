@@ -15,7 +15,7 @@ def send_over_lora(sensor_name, logger, timeout):
     :param logger:  general status logger
     :param timeout:  timeout for LoRa connection given in seconds
     """
-    
+
     _thread.start_new_thread(lora_thread, ('LoRa', sensor_name, "{}.csv.tosend".format(sensor_name), logger, timeout))
 
 
@@ -40,6 +40,8 @@ def flash_pm_averages(sensor_name, logger):
     tosend = path + sensor_name + '.csv.tosend'
     dump = path + sensor_name + '.csv'
 
+    sensor_id = config[sensor_name + "_id"]
+
     # Rename sensor_name.csv.current to sensor_name.csv.processing
     # logger.info('renaming ' + current + ' to ' + processing)
     try:
@@ -58,7 +60,7 @@ def flash_pm_averages(sensor_name, logger):
         stripped_line_lst = str(stripped_line).split(',')
         sensor_reading = []
         try:
-            for sen_read in stripped_line_lst[1:]:  # strip timestamp
+            for sen_read in stripped_line_lst[2:]:  # strip timestamp and sensor id
                 sensor_reading.append(int(sen_read))
             lines_lst.append(sensor_reading)
         except Exception as e:
@@ -68,7 +70,7 @@ def flash_pm_averages(sensor_name, logger):
     avg_readings_str = [str(int(i)) for i in mean_across_arrays(lines_lst)]
 
     # Append computed averages to sensor_name.csv.tosend
-    line_to_append = str(minutes_from_midnight()) + ',' + ','.join(avg_readings_str) + '\n'
+    line_to_append = str(minutes_from_midnight()) + ',' + str(sensor_id) + ',' + ','.join(avg_readings_str) + '\n'
     with open(tosend, 'w') as f_tosend:  # TODO: change permission to 'a', hence make a queue for sending
         f_tosend.write(line_to_append)
 
