@@ -15,7 +15,7 @@ def uplink_callback(msg, client):
     print("msg:", msg)
     print("raw payload:", payload)
     # print("encoded payload:", int(base64.b64decode(msg.payload_raw).hex()))
-    print("decoded payload:", struct.unpack('HBB', base64.b64decode(payload)))
+    print("decoded payload:", struct.unpack('HHBB', base64.b64decode(payload)))
     print()
 
 

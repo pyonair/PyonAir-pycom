@@ -7,23 +7,18 @@ try:
     from machine import RTC, Timer, SD, Pin, unique_id
     from PM_thread import pm_thread
     from ButtonPress import ButtonPress
-    import _thread
-    import os
     from LoggerFactory import LoggerFactory
     from SensorLogger import SensorLogger
     from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
     from configuration import read_configuration, reset_configuration, config
     from EventScheduler import EventScheduler
+    from strings import PM1_processing, PM1_current, PM2_processing, PM2_current
     from new_config import config_thread
     from ubinascii import hexlify
+    import _thread
+    import os
     import time
-    from keys import APP_EUI, APP_KEY
-
-
-    # Provisional globals
-    path = '/sd/'
-    sensor_name = 'PM1'
-    PM1_processing = path + sensor_name + '.csv.processing'
+    from keys import APP_EUI, APP_KEY  # temporary - for key overwrite
 
     # Initialise the time
     rtc = RTC()
@@ -34,10 +29,9 @@ try:
     sd = SD()
     os.mount(sd, '/sd')
 
-    # Initialise LoggerFactory and loggers
+    # Initialise LoggerFactory and status logger
     logger_factory = LoggerFactory()
     status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, filename='status_log.txt')
-    sensor_logger = SensorLogger(filename=path + sensor_name + '.csv.current', terminal_out=True)
 
     # Read configuration file to get preferences
     read_configuration(status_logger)
@@ -57,23 +51,54 @@ try:
         config["app_eui"] = APP_EUI
         config["app_key"] = APP_KEY
 
-        # Delete 'PM1.csv.processing' if it exists TODO: send the content over LoRa instead
-        if PM1_processing in os.listdir():
-            status_logger.info(PM1_processing + 'already exists, removing it')
-            os.remove(PM1_processing)
+        if config["PM1"]:
+            try:
+                # Initialise logger for PM1 sensor
+                PM1_logger = SensorLogger(filename=PM1_current, terminal_out=True)
 
-        # Start 1st PM sensor thread with id: PM1
-        _thread.start_new_thread(pm_thread, (sensor_name, sensor_logger, status_logger))
+                # Delete 'PM1.csv.processing' if it exists TODO: send the content over LoRa instead
+                if PM1_processing in os.listdir():
+                    status_logger.info(PM2_processing + 'already exists, removing it')
+                    os.remove(PM2_processing)
 
-        # Start calculating averages and sending data over LoRa
-        PM1_Events = EventScheduler(rtc, logger=status_logger, sensor_name=sensor_name)
+                # Start 1st PM sensor thread with id: PM1
+                _thread.start_new_thread(pm_thread, ('PM1', PM1_logger, status_logger, ('P10', 'P17'), 1))
+
+                # Start calculating averages for PM1 readings, and send data over LoRa
+                PM1_Events = EventScheduler(rtc, logger=status_logger, sensor_name='PM1')
+
+                status_logger.info("Sensor PM1 initialized")
+
+            except:
+                status_logger.error("Failed to initialize sensor PM1")
+
+        if config["PM2"]:
+            try:
+                # Initialise logger for PM2 sensor
+                PM2_logger = SensorLogger(filename=PM2_current, terminal_out=True)
+
+                # Delete 'PM2.csv.processing' if it exists TODO: send the content over LoRa instead
+                if PM2_processing in os.listdir():
+                    status_logger.info(PM2_processing + 'already exists, removing it')
+                    os.remove(PM2_processing)
+
+                # Start 2nd PM sensor thread with id: PM2
+                _thread.start_new_thread(pm_thread, ('PM2', PM2_logger, status_logger, ('P11', 'P18'), 2))
+
+                # Start calculating averages  of PM2 readings, and send data over LoRa
+                PM2_Events = EventScheduler(rtc, logger=status_logger, sensor_name='PM2')
+
+                status_logger.info("Sensor PM2 initialized")
+
+            except:
+                status_logger.error("Failed to initialize sensor PM2")
 
         # Initialise interrupt on user button for configuration over wifi
         user_button = ButtonPress(logger=status_logger)
         pin_14 = Pin("P14", mode=Pin.IN, pull=None)
         pin_14.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, user_button.press_handler)
 
-        status_logger.info("Initialisation finished")
+        status_logger.info("Initialization finished")
         # Blink green twice and put the heartbeat back to identify that the device has been initialised
         for i in range(2):
             pycom.rgbled(0x000000)
