@@ -53,6 +53,7 @@ try:
     else:
         # Overwrite Preferences - DEVELOPER USE ONLY - keep all overwrites here
         config["PM1_interval"] = 2
+        config["PM2_interval"] = 2
         config["app_eui"] = APP_EUI
         config["app_key"] = APP_KEY
 
