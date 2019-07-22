@@ -6,6 +6,11 @@ import ubinascii
 import os
 from strings import headers_dict_v3
 from configuration import config
+import _thread
+
+
+#  Only one thread can use lora at a time
+lora_lock = _thread.allocate_lock()
 
 header = headers_dict_v3['PMS5003']
 
