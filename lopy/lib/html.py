@@ -175,10 +175,13 @@ def get_html_form():
 
                   json_data.replace(/\\n/g, '');
 
+                  var date = new Date();
+                  var now = 'time_begin'+date.getFullYear()+':'+(date.getMonth()+1)+':'+date.getDate()+':'+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+'time_end';
+
                   // ...this is where we’d actually do something with the form data...
                   var xhttp = new XMLHttpRequest();
                   xhttp.open("POST", "", true);
-                  xhttp.send(json_data);
+                  xhttp.send(json_data+now);
                 };
 
                 const form = document.getElementsByClassName('config_form')[0];

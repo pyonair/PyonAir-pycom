@@ -21,7 +21,7 @@ class RtcDS1307:
         self.month = None
         self.year = None
 
-    def set_time(self, h_sec, h_min, h_hr, h_day, h_mnth, h_yr):
+    def set_time(self, h_yr, h_mnth, h_day, h_hr, h_min, h_sec):
 
         # second, minute, hour, day of week, day of month, month, year
         data = bytearray([h_sec, h_min, h_hr, self.h_wkday, h_day, h_mnth, h_yr])
@@ -45,3 +45,6 @@ class RtcDS1307:
             (int('20' + str(self.year)), self.month, self.dayOfMonth, self.hour, self.minute, self.second, 0, 0))
 
         return self.rtc
+
+
+clock = RtcDS1307()

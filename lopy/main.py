@@ -5,7 +5,7 @@ pycom.rgbled(0x552000)  # flash orange until its loaded
 
 try:
     from machine import RTC, Timer, SD, Pin, unique_id
-    from RtcDS1307 import RtcDS1307
+    from RtcDS1307 import clock
     from PM_thread import pm_thread
     from ButtonPress import ButtonPress
     from LoggerFactory import LoggerFactory
@@ -21,13 +21,8 @@ try:
     import time
     from keys import APP_EUI, APP_KEY  # temporary - for key overwrite
 
-    # Initialise the time
 
     # Initialise clock
-    # Set date and time using 0x prefix + decimal number (i2c trys to autoconvert)
-    # h_sec, h_min, h_hr, h_day, h_mnth, h_yr = 0x55, 0x59, 0x23, 0x31, 0x12, 0x19
-    # clock.setTime(h_sec, h_min, h_hr, h_day, h_mnth, h_yr)
-    clock = RtcDS1307()
     rtc = clock.get_time()
 
     # Mount SD card
