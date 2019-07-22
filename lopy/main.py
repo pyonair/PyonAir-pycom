@@ -5,6 +5,7 @@ pycom.rgbled(0x552000)  # flash orange until its loaded
 
 try:
     from machine import RTC, Timer, SD, Pin, unique_id
+    from RtcDS1307 import RtcDS1307
     from PM_thread import pm_thread
     from ButtonPress import ButtonPress
     from LoggerFactory import LoggerFactory
@@ -21,9 +22,13 @@ try:
     from keys import APP_EUI, APP_KEY  # temporary - for key overwrite
 
     # Initialise the time
-    rtc = RTC()
-    rtc.init((2017, 2, 28, 10, 30, 0, 0, 0))  # TODO: if RTC has no time, set RTC time via Wifi and/or GPS
-    now = rtc.now()
+
+    # Initialise clock
+    # Set date and time using 0x prefix + decimal number (i2c trys to autoconvert)
+    # h_sec, h_min, h_hr, h_day, h_mnth, h_yr = 0x55, 0x59, 0x23, 0x31, 0x12, 0x19
+    # clock.setTime(h_sec, h_min, h_hr, h_day, h_mnth, h_yr)
+    clock = RtcDS1307()
+    rtc = clock.get_time()
 
     # Mount SD card
     sd = SD()
@@ -62,7 +67,7 @@ try:
                     os.remove(PM2_processing)
 
                 # Start 1st PM sensor thread with id: PM1
-                _thread.start_new_thread(pm_thread, ('PM1', PM1_logger, status_logger, ('P10', 'P17'), 1))
+                _thread.start_new_thread(pm_thread, ('PM1', PM1_logger, status_logger, ('P15', 'P11'), 1))
 
                 # Start calculating averages for PM1 readings, and send data over LoRa
                 PM1_Events = EventScheduler(rtc, logger=status_logger, sensor_name='PM1')
@@ -83,7 +88,7 @@ try:
                     os.remove(PM2_processing)
 
                 # Start 2nd PM sensor thread with id: PM2
-                _thread.start_new_thread(pm_thread, ('PM2', PM2_logger, status_logger, ('P11', 'P18'), 2))
+                _thread.start_new_thread(pm_thread, ('PM2', PM2_logger, status_logger, ('P13', 'P18'), 2))
 
                 # Start calculating averages  of PM2 readings, and send data over LoRa
                 PM2_Events = EventScheduler(rtc, logger=status_logger, sensor_name='PM2')
