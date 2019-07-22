@@ -209,7 +209,7 @@ class Formatter:
     def formatTime(self, record, datefmt=None):
         assert datefmt is None  # datefmt is not supported
         ct = utime.localtime(record.created)
-        return "{0}-{1}-{2} {3}:{4}:{5}".format(*ct)
+        return "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}".format(*ct)
 
     def formatException(self, exc_info):
         raise NotImplementedError()

@@ -7,6 +7,7 @@ import time
 import pycom
 import gc
 from configuration import save_configuration, config
+from RtcDS1307 import clock
 import _thread
 
 
@@ -73,7 +74,6 @@ def get_configuration(sct, logger):
             client.send(get_html_form())  # send html page with form to submit by the user
             pycom.rgbled(0x00FF00)  # Green LED - Connection successful
             received_data = str(client.recv(3000))  # wait for client response
-            print("received data:", received_data)
             client.close()  # socket has to be closed because of the loop
             status = process_data(received_data, logger)
             if status == "loop":
@@ -90,6 +90,18 @@ def get_configuration(sct, logger):
 
 
 def process_data(received_data, logger):
+
+    #  find json string in received message
+    first_index = received_data.rfind('time_begin')
+    last_index = received_data.rfind('time_end')
+
+    if first_index != -1 and last_index != -1:
+        config_time_str = received_data[(first_index+10):last_index]
+        config_time_lst = config_time_str.split(':')
+        config_time_lst[0] = config_time_lst[0][2:]
+        h_yr, h_mnth, h_day, h_hr, h_min, h_sec = int(config_time_lst[0], 16), int(config_time_lst[1], 16), int(config_time_lst[2], 16), int(config_time_lst[3], 16), int(config_time_lst[4], 16), int(config_time_lst[5], 16)
+        clock.set_time(h_yr, h_mnth, h_day, h_hr, h_min ,h_sec)
+        logger.info('RTC module calibrated via WiFi')
 
     #  find json string in received message
     first_index = received_data.rfind('json_str_begin')
