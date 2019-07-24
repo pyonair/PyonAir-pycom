@@ -21,7 +21,6 @@ try:
     import time
     from keys import APP_EUI, APP_KEY  # temporary - for key overwrite
 
-
     # Initialise clock
     rtc = clock.get_time()
 
@@ -64,9 +63,6 @@ try:
                 # Start 1st PM sensor thread with id: PM1
                 _thread.start_new_thread(pm_thread, ('PM1', PM1_logger, status_logger, ('P15', 'P11'), 1))
 
-                # Start calculating averages for PM1 readings, and send data over LoRa
-                PM1_Events = EventScheduler(rtc, logger=status_logger, sensor_name='PM1')
-
                 status_logger.info("Sensor PM1 initialized")
 
             except:
@@ -85,13 +81,17 @@ try:
                 # Start 2nd PM sensor thread with id: PM2
                 _thread.start_new_thread(pm_thread, ('PM2', PM2_logger, status_logger, ('P13', 'P18'), 2))
 
-                # Start calculating averages  of PM2 readings, and send data over LoRa
-                PM2_Events = EventScheduler(rtc, logger=status_logger, sensor_name='PM2')
-
                 status_logger.info("Sensor PM2 initialized")
 
             except:
                 status_logger.error("Failed to initialize sensor PM2")
+
+        try:
+            # Start calculating averages for PM1 readings, and send data over LoRa
+            PM1_Events = EventScheduler(rtc=rtc, logger=status_logger)
+            status_logger.info("Event scheduler initialized")
+        except:
+            status_logger.error("Failed to initialize event scheduler")
 
         # Initialise interrupt on user button for configuration over wifi
         user_button = ButtonPress(logger=status_logger)

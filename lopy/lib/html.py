@@ -121,10 +121,8 @@ def get_html_form():
                 <input class="config_form_input_number" id="GPS_id" name="GPS_id" type="number" value="''' + str(config["GPS_id"]) + '''" required="required" min="0" max="65535"/>
                 </div>
                 <div class="interval_section">
-                <label class="config_form_label" for="PM1_interval">Interval (m)</label>
-                <input class="config_form_input_number" id="PM1_interval" name="PM1_interval" type="number" value="''' + str(config["PM1_interval"]) + '''" required="required" min="1" max="120" step="0.01"/>
-                <label class="config_form_label" for="PM2_interval">Interval (m)</label>
-                <input class="config_form_input_number" id="PM2_interval" name="PM2_interval" type="number" value="''' + str(config["PM2_interval"]) + '''" required="required" min="1" max="120" step="0.01"/>
+                <label class="config_form_label" for="PM_interval">Interval (m)</label>
+                <input class="config_form_input_number" id="PM1_interval" name="PM_interval" type="number" value="''' + str(config["PM_interval"]) + '''" required="required" min="1" max="120" step="0.01"/>
                 <label class="config_form_label" for="TEMP_interval">Interval (m)</label>
                 <input class="config_form_input_number" id="TEMP_interval" name="TEMP_interval" type="number" value="''' + str(config["TEMP_interval"]) + '''" required="required" min="1" max="120" step="0.01"/>
                 <label class="config_form_label" for="GPS_interval">Interval (h)</label>

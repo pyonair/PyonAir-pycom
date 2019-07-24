@@ -6,13 +6,12 @@ from configuration import config
 
 
 class EventScheduler:
-    def __init__(self, rtc, sensor_name, logger):
+    def __init__(self, rtc, logger):
 
         #  Arguments
-        self.interval_s = config[sensor_name + "_interval"] * 60
+        self.interval_s = config["PM_interval"] * 60
         self.rtc = rtc
         self.logger = logger
-        self.sensor_name = sensor_name
 
         #  Attributes
         self.s_to_next_lora = None
@@ -26,8 +25,8 @@ class EventScheduler:
     #  Calculates time (s) until the first event, and sets up an alarm
     def set_event_queue(self):
         #  process and send previous data immediately upon boot
-        flash_pm_averages(sensor_name=self.sensor_name, logger=self.logger)
-        send_over_lora(sensor_name=self.sensor_name, logger=self.logger, timeout=60)
+        flash_pm_averages(logger=self.logger)
+        send_over_lora(logger=self.logger, timeout=60)
         first_event_s = seconds_to_first_event(self.rtc, self.interval_s)
         self.first_alarm = Timer.Alarm(self.first_event, s=first_event_s, periodic=False)
 
@@ -39,7 +38,7 @@ class EventScheduler:
     def periodic_event(self, arg):
         try:
             #  flash averages of data to sd card at the end of the interval
-            flash_pm_averages(sensor_name=self.sensor_name, logger=self.logger)
+            flash_pm_averages(logger=self.logger)
             #  get random number of seconds within interval
             self.s_to_next_lora = int(machine.rng() / (2**24) * self.interval_s)
             #  set up an alarm with random delay to send data over LoRa
@@ -48,4 +47,4 @@ class EventScheduler:
             self.logger.error(e)
 
     def random_event(self, arg):
-        send_over_lora(sensor_name=self.sensor_name, logger=self.logger, timeout=60)
+        send_over_lora(logger=self.logger, timeout=60)
