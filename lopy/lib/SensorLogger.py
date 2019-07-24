@@ -4,6 +4,7 @@ Replaces the functionality of the sensor logger that was previously produced by 
 """
 import sys
 
+
 class SensorLogger:
     def __init__(self, filename, terminal_out=True, terminator='\n'):
         """

@@ -4,7 +4,7 @@ import struct
 import time
 import ubinascii
 import os
-from strings import headers_dict_v3
+from strings import headers_dict_v4
 from configuration import config
 import _thread
 
@@ -12,7 +12,7 @@ import _thread
 #  Only one thread can use lora at a time
 lora_lock = _thread.allocate_lock()
 
-header = headers_dict_v3['PMS5003']
+header = headers_dict_v4['PMS5003']
 
 
 def lora_thread(thread_name, sensor_name, log_file_name, logger, timeout):
