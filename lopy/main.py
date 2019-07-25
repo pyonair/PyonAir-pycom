@@ -33,6 +33,9 @@ try:
     logger_factory = LoggerFactory()
     status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, filename='status_log.txt')
 
+    # Initialise interrupt on user button for configuration over wifi
+    user_button = ButtonPress(logger=status_logger)
+
     # Read configuration file to get preferences
     read_configuration(status_logger)
 
@@ -93,8 +96,6 @@ try:
             except:
                 status_logger.error("Failed to initialize sensor PM2")
 
-        # Initialise interrupt on user button for configuration over wifi
-        user_button = ButtonPress(logger=status_logger)
         pin_14 = Pin("P14", mode=Pin.IN, pull=None)
         pin_14.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, user_button.press_handler)
 
