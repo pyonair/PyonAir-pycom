@@ -7,7 +7,7 @@ from helper import mean_across_arrays, minutes_from_midnight
 import _thread
 from LoRa_thread import lora_thread
 from configuration import config
-
+from helper import pm_current_lock, pm_processing_lock, pm_dump_lock, pm_tosend_lock
 
 def send_over_lora(sensor_name, logger, timeout):
     """
@@ -43,41 +43,44 @@ def flash_pm_averages(sensor_name, logger):
     sensor_id = config[sensor_name + "_id"]
 
     # Rename sensor_name.csv.current to sensor_name.csv.processing
-    # logger.info('renaming ' + current + ' to ' + processing)
-    try:
-        uos.remove(processing)  # TODO: instead of removing, find a better way to deal with this
-    except Exception:
-        pass
-    uos.rename(current, processing)
+    with pm_processing_lock:
+        try:
+            uos.remove(processing)  # TODO: instead of removing, find a better way to deal with this
+        except Exception:
+            pass
+        with pm_current_lock:
+            uos.rename(current, processing)
 
     # Read all the lines from sensor_name.csv.current
-    f = open(processing, 'r')
-    lines = f.readlines()
-    f.close()
-    lines_lst = []  # list of lists that store sensor readings without timestamps [[readingA1, readingB1,..], [readingA2,..]]
-    for line in lines:
-        stripped_line = line[:-1]  # strip \n
-        stripped_line_lst = str(stripped_line).split(',')
-        sensor_reading = []
-        try:
-            for sen_read in stripped_line_lst[2:]:  # strip timestamp and sensor id
-                sensor_reading.append(int(sen_read))
-            lines_lst.append(sensor_reading)
-        except Exception as e:
-            logger.warning(e)
-
-    # Compute averages from sensor_name.csv.processing
-    avg_readings_str = [str(int(i)) for i in mean_across_arrays(lines_lst)]
-
-    # Append computed averages to sensor_name.csv.tosend
-    line_to_append = str(minutes_from_midnight()) + ',' + str(sensor_id) + ',' + ','.join(avg_readings_str) + '\n'
-    with open(tosend, 'w') as f_tosend:  # TODO: change permission to 'a', hence make a queue for sending
-        f_tosend.write(line_to_append)
-
-    # Append content of sensor_name.csv.processing into sensor_name.csv
-    with open(dump, 'a') as f:
+    with pm_processing_lock:
+        f = open(processing, 'r')
+        lines = f.readlines()
+        f.close()
+        lines_lst = []  # list of lists that store sensor readings without timestamps [[readingA1, readingB1,..], [readingA2,..]]
         for line in lines:
-            f.write(line)
-    f.close()
-    # Delete sensor_name.csv.processing
-    uos.remove(processing)
+            stripped_line = line[:-1]  # strip \n
+            stripped_line_lst = str(stripped_line).split(',')
+            sensor_reading = []
+            try:
+                for sen_read in stripped_line_lst[2:]:  # strip timestamp and sensor id
+                    sensor_reading.append(int(sen_read))
+                lines_lst.append(sensor_reading)
+            except Exception as e:
+                logger.warning(e)
+
+        # Compute averages from sensor_name.csv.processing
+        avg_readings_str = [str(int(i)) for i in mean_across_arrays(lines_lst)]
+
+        # Append computed averages to sensor_name.csv.tosend
+        line_to_append = str(minutes_from_midnight()) + ',' + str(sensor_id) + ',' + ','.join(avg_readings_str) + '\n'
+        with pm_tosend_lock:
+            with open(tosend, 'w') as f_tosend:  # TODO: change permission to 'a', hence make a queue for sending
+                f_tosend.write(line_to_append)
+
+        # Append content of sensor_name.csv.processing into sensor_name.csv
+        with pm_dump_lock:
+            with open(dump, 'a') as f:
+                for line in lines:
+                    f.write(line)
+        # Delete sensor_name.csv.processing
+        uos.remove(processing)
