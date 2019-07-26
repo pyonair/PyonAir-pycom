@@ -57,7 +57,7 @@ try:
                     os.remove(PM2_processing)
 
                 # Start 1st PM sensor thread with id: PM1
-                _thread.start_new_thread(pm_thread, ('PM1', PM1_logger, status_logger, ('P15', 'P17'), 1))
+                _thread.start_new_thread(pm_thread, ('PM1', PM1_logger, status_logger, ('P15', 'P11'), 1))
 
                 status_logger.info("Sensor PM1 initialized")
             except Exception as e:

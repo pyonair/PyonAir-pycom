@@ -57,7 +57,6 @@ def reset_configuration(logger):
         config.update(device_eui=hexlify(lora.mac()).upper().decode('utf-8'))  # set new device_EUI
         del lora
 
-        print(config)
         logger.info('Configurations were reset')
     except:
         logger.error('Failed to reset configurations')

@@ -52,13 +52,13 @@ def mean_across_arrays(arrays):
 
 
 def check_data_ready():
-    ready = {"PM1_ready": False, "PM2_ready": False}
+    is_def = {"PM1": False, "PM2": False}
 
     if config["PM1"]:
         if s.PM1_current[4:] in os.listdir('/sd'):
-            ready["PM1_ready"] = True
+            is_def["PM1"] = True
     if config["PM2"]:
         if s.PM2_current[4:] in os.listdir('/sd'):
-            ready["PM2_ready"] = True
+            is_def["PM2"] = True
 
-    return ready
+    return is_def
