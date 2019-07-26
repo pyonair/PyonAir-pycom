@@ -7,7 +7,7 @@ import ujson
 
 config = {}
 
-default_config = {"device_id": "", "device_name": "NewPmSensor", "password": "pmsensor", "region": "LoRa.EU868",
+default_config = {"device_id": "", "device_name": "NewPmSensor", "password": "pmsensor", "region": "EU868",
                   "device_eui": "", "application_eui": "", "app_key": "", "application_id": "",
                   "access_key": "", "raw_interval": 12, "PM1": True, "PM2": True, "TEMP": True,
                   "GPS": True, "PM1_id": "001", "PM2_id": "002", "TEMP_id": "001", "GPS_id": "001",

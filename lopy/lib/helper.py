@@ -1,5 +1,8 @@
 # Helper functions
 import time
+import strings as s
+from configuration import config
+import os
 
 
 def seconds_to_first_event(rtc, interval_s):
@@ -46,3 +49,16 @@ def mean_across_arrays(arrays):
             sm += array[i]
         out_arr.append(sm/n_arrays)
     return out_arr
+
+
+def check_data_ready():
+    ready = {"PM1_ready": False, "PM2_ready": False}
+
+    if config["PM1"]:
+        if s.PM1_current[4:] in os.listdir('/sd'):
+            ready["PM1_ready"] = True
+    if config["PM2"]:
+        if s.PM2_current[4:] in os.listdir('/sd'):
+            ready["PM2_ready"] = True
+
+    return ready
