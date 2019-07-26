@@ -1,24 +1,24 @@
 import machine
 from machine import RTC, Timer
 from tasks import flash_pm_averages, send_over_lora
-from helper import seconds_to_first_event
+from helper import seconds_to_first_event, check_data_ready
 from configuration import config
 
 
 class EventScheduler:
-    def __init__(self, rtc, sensor_name, logger):
+    def __init__(self, rtc, logger):
 
         #  Arguments
-        self.interval_s = config[sensor_name + "_interval"] * 60
+        self.interval_s = int(config["PM_interval"])*60
         self.rtc = rtc
         self.logger = logger
-        self.sensor_name = sensor_name
 
         #  Attributes
         self.s_to_next_lora = None
         self.first_alarm = None
         self.periodic_alarm = None
         self.random_alarm = None
+        self.is_def = None
 
         #  Start scheduling events
         self.set_event_queue()
@@ -26,8 +26,10 @@ class EventScheduler:
     #  Calculates time (s) until the first event, and sets up an alarm
     def set_event_queue(self):
         #  process and send previous data immediately upon boot
-        flash_pm_averages(sensor_name=self.sensor_name, logger=self.logger)
-        send_over_lora(sensor_name=self.sensor_name, logger=self.logger, timeout=60)
+        self.is_def = check_data_ready()  # check which sensors are defined (enabled, and have data)
+        flash_pm_averages(logger=self.logger, is_def=self.is_def)  # calculate averages for all defined sensors
+        send_over_lora(logger=self.logger, is_def=self.is_def, timeout=60)  # send averages of defined sensors over LoRa
+
         first_event_s = seconds_to_first_event(self.rtc, self.interval_s)
         self.first_alarm = Timer.Alarm(self.first_event, s=first_event_s, periodic=False)
 
@@ -37,15 +39,14 @@ class EventScheduler:
         self.periodic_event(arg)
 
     def periodic_event(self, arg):
-        try:
-            #  flash averages of data to sd card at the end of the interval
-            flash_pm_averages(sensor_name=self.sensor_name, logger=self.logger)
-            #  get random number of seconds within interval
-            self.s_to_next_lora = int(machine.rng() / (2**24) * self.interval_s)
-            #  set up an alarm with random delay to send data over LoRa
-            self.random_alarm = Timer.Alarm(self.random_event, s=self.s_to_next_lora, periodic=False)
-        except Exception as e:
-            self.logger.error(e)
+        #  Check which sensors are turned on and which ones have data to be sent over
+        self.is_def = check_data_ready()
+        #  flash averages of data to sd card at the end of the interval
+        flash_pm_averages(logger=self.logger, is_def=self.is_def)
+        #  get random number of seconds within interval
+        self.s_to_next_lora = int(machine.rng() / (2**24) * self.interval_s)
+        #  set up an alarm with random delay to send data over LoRa
+        self.random_alarm = Timer.Alarm(self.random_event, s=self.s_to_next_lora, periodic=False)
 
     def random_event(self, arg):
-        send_over_lora(sensor_name=self.sensor_name, logger=self.logger, timeout=60)
+        send_over_lora(logger=self.logger, is_def=self.is_def, timeout=60)

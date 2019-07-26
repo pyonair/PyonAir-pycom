@@ -19,8 +19,6 @@ try:
     import _thread
     import os
     import time
-    from keys import APP_EUI, APP_KEY  # temporary - for key overwrite
-
 
     # Initialise clock
     rtc = clock.get_time()
@@ -32,9 +30,6 @@ try:
     # Initialise LoggerFactory and status logger
     logger_factory = LoggerFactory()
     status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, filename='status_log.txt')
-
-    # Initialise interrupt on user button for configuration over wifi
-    user_button = ButtonPress(logger=status_logger)
 
     # Read configuration file to get preferences
     read_configuration(status_logger)
@@ -49,10 +44,7 @@ try:
     # If device is correctly configured continue execution
     else:
         # Overwrite Preferences - DEVELOPER USE ONLY - keep all overwrites here
-        config["PM1_interval"] = 2
-        config["PM2_interval"] = 2
-        config["app_eui"] = APP_EUI
-        config["app_key"] = APP_KEY
+        config["PM_interval"] = 1.5
 
         if config["PM1"]:
             try:
@@ -65,15 +57,12 @@ try:
                     os.remove(PM2_processing)
 
                 # Start 1st PM sensor thread with id: PM1
-                _thread.start_new_thread(pm_thread, ('PM1', PM1_logger, status_logger, ('P15', 'P17'), 1))
-
-                # Start calculating averages for PM1 readings, and send data over LoRa
-                PM1_Events = EventScheduler(rtc, logger=status_logger, sensor_name='PM1')
+                _thread.start_new_thread(pm_thread, ('PM1', PM1_logger, status_logger, ('P15', 'P11'), 1))
 
                 status_logger.info("Sensor PM1 initialized")
-
-            except:
+            except Exception as e:
                 status_logger.error("Failed to initialize sensor PM1")
+                status_logger.error(e)
 
         if config["PM2"]:
             try:
@@ -88,18 +77,21 @@ try:
                 # Start 2nd PM sensor thread with id: PM2
                 _thread.start_new_thread(pm_thread, ('PM2', PM2_logger, status_logger, ('P13', 'P18'), 2))
 
-                # Start calculating averages  of PM2 readings, and send data over LoRa
-                PM2_Events = EventScheduler(rtc, logger=status_logger, sensor_name='PM2')
-
                 status_logger.info("Sensor PM2 initialized")
-
-            except:
+            except Exception as e:
                 status_logger.error("Failed to initialize sensor PM2")
+                status_logger.error(e)
 
+        # Start calculating averages for PM1 readings, and send data over LoRa
+        PM_Events = EventScheduler(rtc=rtc, logger=status_logger)
+
+        # Initialise interrupt on user button for configuration over wifi
+        user_button = ButtonPress(logger=status_logger)
         pin_14 = Pin("P14", mode=Pin.IN, pull=None)
         pin_14.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, user_button.press_handler)
 
         status_logger.info("Initialization finished")
+
         # Blink green twice and put the heartbeat back to identify that the device has been initialised
         for i in range(2):
             pycom.rgbled(0x000000)

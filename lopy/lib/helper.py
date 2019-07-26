@@ -1,5 +1,8 @@
 # Helper functions
 import time
+import strings as s
+from configuration import config
+import os
 import _thread
 
 pm_current_lock = _thread.allocate_lock()
@@ -52,3 +55,16 @@ def mean_across_arrays(arrays):
             sm += array[i]
         out_arr.append(sm/n_arrays)
     return out_arr
+
+
+def check_data_ready():
+    is_def = {"PM1": False, "PM2": False}
+
+    if config["PM1"]:
+        if s.PM1_current[4:] in os.listdir('/sd'):
+            is_def["PM1"] = True
+    if config["PM2"]:
+        if s.PM2_current[4:] in os.listdir('/sd'):
+            is_def["PM2"] = True
+
+    return is_def

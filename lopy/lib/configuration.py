@@ -7,11 +7,11 @@ import ujson
 
 config = {}
 
-default_config = {"device_id": "", "device_name": "NewPmSensor", "password": "pmsensor", "region": "LoRa.EU868",
+default_config = {"device_id": "", "device_name": "NewPmSensor", "password": "pmsensor", "region": "EU868",
                   "device_eui": "", "application_eui": "", "app_key": "", "application_id": "",
-                  "access_key": "", "raw_interval": "12", "PM1": True, "PM2": True, "TEMP": True,
-                  "GPS": False, "PM1_id": "00001", "PM2_id": "00002", "TEMP_id": "00001", "GPS_id": "00001",
-                  "PM1_interval": 15, "PM2_interval": 15, "TEMP_interval": 15, "GPS_interval": 12,
+                  "access_key": "", "raw_interval": 12, "PM1": True, "PM2": True, "TEMP": True,
+                  "GPS": True, "PM1_id": "001", "PM2_id": "002", "TEMP_id": "001", "GPS_id": "001",
+                  "PM_interval": 15, "TEMP_interval": 15, "GPS_interval": 12,
                   "logging_lvl": "Warning"}
 
 
@@ -57,7 +57,6 @@ def reset_configuration(logger):
         config.update(device_eui=hexlify(lora.mac()).upper().decode('utf-8'))  # set new device_EUI
         del lora
 
-        print(config)
         logger.info('Configurations were reset')
     except:
         logger.error('Failed to reset configurations')
