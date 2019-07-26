@@ -1,7 +1,0 @@
-syntax = "proto3";
-
-package pycomtest;
-
-message Sensor{
-    int32 id = 1;
-}

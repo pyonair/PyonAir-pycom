@@ -8,6 +8,7 @@ import _thread
 from LoRa_thread import lora_thread
 from configuration import config
 import strings as s
+from helper import pm_current_lock, pm_processing_lock, pm_dump_lock, pm_tosend_lock
 
 
 def send_over_lora(logger, is_def, timeout):
@@ -83,41 +84,45 @@ def get_averages(processing, current, dump, header):
     """
 
     # Remove sensor_name.csv.processing if it exists
-    try:
-        uos.remove(processing)  # TODO: instead of removing, find a better way to deal with this
-    except Exception:
-        pass
+    with pm_processing_lock:
+        try:
+            uos.remove(processing)  # TODO: instead of removing, find a better way to deal with this
+        except Exception:
+            pass
 
-    # Rename sensor_name.csv.current to sensor_name.csv.processing
-    try:
-        uos.rename(current, processing)
-    except Exception:
-        pass
+        # Rename sensor_name.csv.current to sensor_name.csv.processing
+        try:
+            uos.rename(current, processing)
+        except Exception:
+            pass
 
-    with open(processing, 'r') as f:
-        # read all lines from processing
-        lines = f.readlines()
-        f.close()
-        lines_lst = []  # list of lists that store average sensor readings from specific columns
-        for line in lines:
-            stripped_line = line[:-1]  # strip \n
-            stripped_line_lst = str(stripped_line).split(',')  # split string to list at comas
-            named_line = dict(zip(header, stripped_line_lst))  # assign each value to its header
-            sensor_reading = []
-            sensor_reading.append(int(named_line["PM10"]))
-            sensor_reading.append(int(named_line["PM25"]))
-            # Append extra lines here for more readings - update version number and back-end to interpret data
-            lines_lst.append(sensor_reading)
+        with open(processing, 'r') as f:
+            # read all lines from processing
+            lines = f.readlines()
+            lines_lst = []  # list of lists that store average sensor readings from specific columns
+            for line in lines:
+                stripped_line = line[:-1]  # strip \n
+                stripped_line_lst = str(stripped_line).split(',')  # split string to list at comas
+                named_line = dict(zip(header, stripped_line_lst))  # assign each value to its header
+                sensor_reading = []
+                sensor_reading.append(int(named_line["PM10"]))
+                sensor_reading.append(int(named_line["PM25"]))
+                # Append extra lines here for more readings - update version number and back-end to interpret data
+                lines_lst.append(sensor_reading)
 
-    # Compute averages from sensor_name.csv.processing
-    avg_readings_str = [str(int(i)) for i in mean_across_arrays(lines_lst)]
+            # Compute averages from sensor_name.csv.processing
+            avg_readings_str = [str(int(i)) for i in mean_across_arrays(lines_lst)]
 
-    # Append content of sensor_name.csv.processing into sensor_name.csv
-    with open(dump, 'a') as f:
-        for line in lines:
-            f.write(line)
-    f.close()
-    # Delete sensor_name.csv.processing
-    uos.remove(processing)
+            # Delete sensor_name.csv.processing
+            try:
+                uos.remove(processing)
+            except Exception:
+                pass
 
-    return avg_readings_str
+            # Append content of sensor_name.csv.processing into sensor_name.csv
+            with pm_dump_lock:
+                with open(dump, 'a') as f:
+                    for line in lines:
+                        f.write(line)
+
+            return avg_readings_str

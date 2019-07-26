@@ -3,6 +3,12 @@ import time
 import strings as s
 from configuration import config
 import os
+import _thread
+
+pm_current_lock = _thread.allocate_lock()
+pm_processing_lock = _thread.allocate_lock()
+pm_dump_lock = _thread.allocate_lock()
+pm_tosend_lock = _thread.allocate_lock()
 
 
 def seconds_to_first_event(rtc, interval_s):
