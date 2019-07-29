@@ -93,9 +93,8 @@ def lora_thread(thread_name, logger, is_def, timeout):
                         s.send(payload)  # send payload to the connected socket
                         logger.info("Thread: {} sent payload".format(thread_name))
                     except Exception as e:
-                        logger.error(e)
-                        logger.error("Thread: {} failed to send data".format(thread_name))
+                        logger.exception("Thread: {} failed to send data".format(thread_name))
             except Exception as e:
-                logger.error(str(e))
+                logger.exception("Sending ove LoRa failed")
             finally:
                 logger.info("Thread: {} finished".format(thread_name))

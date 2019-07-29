@@ -23,7 +23,6 @@ def Temp_thread(thread_name, sensor_logger, status_logger):
             line_to_log = ','.join(lst_to_log)
             sensor_logger.log_row(line_to_log)
         except Exception as e:
-            status_logger.error("Failed to read from temperature and humidity sensor")
-            status_logger.error(str(e))
+            status_logger.exception("Failed to read from temperature and humidity sensor")
 
         time.sleep(int(config["TEMP_interval"]))

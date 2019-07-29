@@ -15,6 +15,12 @@ default_config = {"device_id": "", "device_name": "NewPmSensor", "password": "pm
                   "logging_lvl": "Warning"}
 
 
+class ConfigurationException(Exception):
+    """
+    Exception to be thrown if Exception occurs in configuration
+    """
+    pass
+
 #  Saves keys and preferences to sd card
 def save_configuration(logger, config_json_str):
 
@@ -59,5 +65,5 @@ def reset_configuration(logger):
 
         logger.info('Configurations were reset')
     except Exception as e:
-        logger.error('Failed to reset configurations')
-        logger.error(str(e))
+        logger.exception('Failed to reset configurations')
+        raise ConfigurationException(str(e))

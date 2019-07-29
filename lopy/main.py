@@ -63,9 +63,10 @@ try:
                 _thread.start_new_thread(pm_thread, (sensor_name, PM_logger, status_logger, pins, serial_id))
 
                 status_logger.info("Sensor " + sensor_name + " initialized")
+                aas = 1/0
+                print(aas)
             except Exception as e:
-                status_logger.error("Failed to initialize sensor " + sensor_name)
-                status_logger.error(e)
+                status_logger.exception("Failed to initialize sensor " + sensor_name)
 
         if config["PM1"]:
             initialize_pm_sensor(sensor_name=PM1, pins=('P15', 'P17'), serial_id=1)

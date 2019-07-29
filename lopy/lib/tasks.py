@@ -81,7 +81,7 @@ def flash_pm_averages(logger, is_def):
                     pass
 
         except Exception as e:
-            logger.error(str(e))
+            logger.exception("Failed to flash averages")
 
 
 def get_averages(type, processing, current, dump):
