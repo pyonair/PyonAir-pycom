@@ -1,6 +1,6 @@
 # Helper functions
 import time
-import strings as s
+from strings import file_name_temp, PM1, PM2, current_ext
 from configuration import config
 import os
 import _thread
@@ -58,13 +58,13 @@ def mean_across_arrays(arrays):
 
 
 def check_data_ready():
-    is_def = {"PM1": False, "PM2": False}
+    is_def = {PM1: False, PM2: False}
 
-    if config["PM1"]:
-        if s.PM1_current[4:] in os.listdir('/sd'):
-            is_def["PM1"] = True
-    if config["PM2"]:
-        if s.PM2_current[4:] in os.listdir('/sd'):
-            is_def["PM2"] = True
+    if config[PM1]:
+        if file_name_temp.format(PM1, current_ext)[4:] in os.listdir('/sd'):
+            is_def[PM1] = True
+    if config[PM2]:
+        if file_name_temp.format(PM2, current_ext)[4:] in os.listdir('/sd'):
+            is_def[PM2] = True
 
     return is_def

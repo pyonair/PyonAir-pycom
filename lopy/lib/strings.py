@@ -13,21 +13,25 @@ headers_dict_v4 = {
     "AM2302": ["timestamp", "humidity", "temperature"],
     "BME280": ["timestamp", "humidity", "temperature", "pressure"],
 }
-#
-# lora_headers_dict = {
-#     "PM1_PM2_TEMP": ["timestamp", "PM1_sensor_id", "PM1_PM10", "PM1_PM25", "PM2_sensor_id", "PM2_PM10", "PM2_PM25"],
-#     "PM1_TEMP": ["timestamp", "PM1_sensor_id", "PM1_PM10", "PM1_PM25"],
-#     "PM2_TEMP": ["timestamp", "PM2_sensor_id", "PM2_PM10", "PM2_PM25"]
-# }
 
 status_header = ['type', 'timestamp', 'message']
 
 config_filename = 'config.txt'
 
-PM1_processing = '/sd/PM1.csv.processing'
-PM1_current = '/sd/PM1.csv.current'
-PM1_dump = '/sd/PM1.csv'
-PM2_processing = '/sd/PM2.csv.processing'
-PM2_current = '/sd/PM2.csv.current'
-PM2_dump = '/sd/PM2.csv'
+# Sensor names
+PM1 = 'PM1'
+PM2 = 'PM2'
+
+# Extensions
+current_ext = '.current'
+processing_ext = '.processing'
+dump_ext = ''
+
+# Paths
+path = '/sd/'
+
+# Templates
+file_name_temp = path + '{}' + '.csv' + '{}'  # call this like: file_name_temp.format(sensor_name, extension)
+
+# Constants
 lora_tosend = '/sd/lora.csv.tosend'

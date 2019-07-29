@@ -7,7 +7,7 @@ from helper import mean_across_arrays, minutes_from_midnight
 import _thread
 from LoRa_thread import lora_thread
 from configuration import config
-import strings as s
+from strings import PM1, PM2, headers_dict_v4, file_name_temp, processing_ext, current_ext, dump_ext, lora_tosend
 from helper import pm_current_lock, pm_processing_lock, pm_dump_lock, pm_tosend_lock
 
 
@@ -34,32 +34,40 @@ def flash_pm_averages(logger, is_def):
     """
 
     # Only calculate averages if PM1 or PM2 or both sensors are enabled and have gathered data
-    if (is_def["PM1"] or is_def["PM2"]):
+    if (is_def[PM1] or is_def[PM2]):
 
         logger.info("Calculating averages over {} minute interval".format(config["PM_interval"]))
 
         try:
             # Header of current file for plantower sensors
-            header = s.headers_dict_v4["PMS5003"]
+            header = headers_dict_v4["PMS5003"]
 
-            if is_def["PM1"]:
+            if is_def[PM1]:
                 # Get averages for PM1 sensor
-                PM1_avg_readings_str = get_averages(s.PM1_processing, s.PM1_current, s.PM1_dump, header)
+                PM1_avg_readings_str = get_averages(
+                    file_name_temp(PM1, processing_ext),
+                    file_name_temp(PM1, current_ext),
+                    file_name_temp(PM1, dump_ext),
+                    header)
 
-            if is_def["PM2"]:
+            if is_def[PM2]:
                 # Get averages for PM2 sensor
-                PM2_avg_readings_str = get_averages(s.PM2_processing, s.PM2_current, s.PM2_dump, header)
+                PM2_avg_readings_str = get_averages(
+                    file_name_temp(PM2, processing_ext),
+                    file_name_temp(PM2, current_ext),
+                    file_name_temp(PM2, dump_ext),
+                    header)
 
             # Append averages to the line to be sent over LoRa according to which sensors are defined.
-            if (is_def["PM1"] and is_def["PM2"]):
+            if (is_def[PM1] and is_def[PM2]):
                 line_to_append = str(minutes_from_midnight()) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + '\n'
-            elif is_def["PM1"]:
+            elif is_def[PM1]:
                 line_to_append = str(minutes_from_midnight()) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + '\n'
-            elif is_def["PM2"]:
+            elif is_def[PM2]:
                 line_to_append = str(minutes_from_midnight()) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + '\n'
 
             # Append lines to sensor_name.csv.tosend
-            with open(s.lora_tosend, 'w') as f_tosend:  # TODO: change permission to 'a', hence make a queue for sending
+            with open(lora_tosend, 'w') as f_tosend:  # TODO: change permission to 'a', hence make a queue for sending
                 f_tosend.write(line_to_append)
 
         except Exception as e:

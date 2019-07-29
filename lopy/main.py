@@ -13,7 +13,7 @@ try:
     from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
     from configuration import read_configuration, reset_configuration, config
     from EventScheduler import EventScheduler
-    from strings import PM1_processing, PM1_current, PM2_processing, PM2_current
+    from strings import file_name_temp, current_ext, processing_ext, PM1, PM2
     from new_config import config_thread
     from ubinascii import hexlify
     import _thread
@@ -46,41 +46,32 @@ try:
         # Overwrite Preferences - DEVELOPER USE ONLY - keep all overwrites here
         config["PM_interval"] = 1.5
 
-        if config["PM1"]:
+        def initialize_pm_sensor(sensor_name, pins, serial_id):
             try:
-                # Initialise logger for PM1 sensor
-                PM1_logger = SensorLogger(filename=PM1_current, terminal_out=True)
+                filename_current = file_name_temp.format(sensor_name, current_ext)
+                filename_processing = file_name_temp.format(sensor_name, processing_ext)
+                # Initialise sensor logger
+
+                PM_logger = SensorLogger(filename=filename_current, terminal_out=True)
 
                 # Delete 'PM1.csv.processing' if it exists TODO: send the content over LoRa instead
-                if PM1_processing in os.listdir():
-                    status_logger.info(PM2_processing + 'already exists, removing it')
-                    os.remove(PM2_processing)
+                if filename_processing in os.listdir():  # TODO: This probably does not reach the necessary depth to check the file
+                    status_logger.info(filename_processing + 'already exists, removing it')
+                    os.remove(filename_processing)
 
                 # Start 1st PM sensor thread with id: PM1
-                _thread.start_new_thread(pm_thread, ('PM1', PM1_logger, status_logger, ('P15', 'P17'), 1))
+                _thread.start_new_thread(pm_thread, (sensor_name, PM_logger, status_logger, pins, serial_id))
 
-                status_logger.info("Sensor PM1 initialized")
+                status_logger.info("Sensor " + sensor_name + " initialized")
             except Exception as e:
-                status_logger.error("Failed to initialize sensor PM1")
+                status_logger.error("Failed to initialize sensor " + sensor_name)
                 status_logger.error(e)
+
+        if config["PM1"]:
+            initialize_pm_sensor(sensor_name=PM1, pins=('P15', 'P17'), serial_id=1)
 
         if config["PM2"]:
-            try:
-                # Initialise logger for PM2 sensor
-                PM2_logger = SensorLogger(filename=PM2_current, terminal_out=True)
-
-                # Delete 'PM2.csv.processing' if it exists TODO: send the content over LoRa instead
-                if PM2_processing in os.listdir():
-                    status_logger.info(PM2_processing + 'already exists, removing it')
-                    os.remove(PM2_processing)
-
-                # Start 2nd PM sensor thread with id: PM2
-                _thread.start_new_thread(pm_thread, ('PM2', PM2_logger, status_logger, ('P13', 'P18'), 2))
-
-                status_logger.info("Sensor PM2 initialized")
-            except Exception as e:
-                status_logger.error("Failed to initialize sensor PM2")
-                status_logger.error(e)
+            initialize_pm_sensor(sensor_name=PM2, pins=('P13', 'P18'), serial_id=2)
 
         # Start calculating averages for PM1 readings, and send data over LoRa
         PM_Events = EventScheduler(rtc=rtc, logger=status_logger)
