@@ -3,6 +3,7 @@ Tasks to be called by event scheduler
 """
 
 import uos
+import os
 from helper import mean_across_arrays, minutes_from_midnight
 import _thread
 from LoRa_thread import lora_thread
@@ -39,38 +40,46 @@ def flash_pm_averages(logger, is_def):
         logger.info("Calculating averages over {} minute interval".format(config["PM_interval"]))
 
         try:
-            # Header of current file for plantower sensors
-            header = s.headers_dict_v4["PMS5003"]
+            TEMP_avg_readings_str = get_averages('SHT35', s.TEMP_processing, s.TEMP_current, s.TEMP_dump)
 
             if is_def["PM1"]:
                 # Get averages for PM1 sensor
-                PM1_avg_readings_str = get_averages(s.PM1_processing, s.PM1_current, s.PM1_dump, header)
+                PM1_avg_readings_str = get_averages('PMS5003', s.PM1_processing, s.PM1_current, s.PM1_dump)
 
             if is_def["PM2"]:
                 # Get averages for PM2 sensor
-                PM2_avg_readings_str = get_averages(s.PM2_processing, s.PM2_current, s.PM2_dump, header)
+                PM2_avg_readings_str = get_averages('PMS5003', s.PM2_processing, s.PM2_current, s.PM2_dump)
 
+            # ToDo: minutes_from_midnight gets current time - if we are sending previous data upon cleanup we don't get the timestamp corresponding to the data
             # Append averages to the line to be sent over LoRa according to which sensors are defined.
             if (is_def["PM1"] and is_def["PM2"]):
-                line_to_append = str(minutes_from_midnight()) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + '\n'
+                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + '\n'
             elif is_def["PM1"]:
-                line_to_append = str(minutes_from_midnight()) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + '\n'
+                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + '\n'
             elif is_def["PM2"]:
-                line_to_append = str(minutes_from_midnight()) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + '\n'
+                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + '\n'
 
             # Append lines to sensor_name.csv.tosend
             with open(s.lora_tosend, 'w') as f_tosend:  # TODO: change permission to 'a', hence make a queue for sending
                 f_tosend.write(line_to_append)
 
+            # If raw data was processed, saved and dumped, processing files can be deleted
+            with pm_processing_lock:
+                try:
+                    uos.remove(s.PM1_processing)
+                    uos.remove(s.PM2_processing)
+                except Exception:
+                    pass
+
         except Exception as e:
-            logger.error(e)
+            logger.error(str(e))
 
 
-def get_averages(processing, current, dump, header):
+def get_averages(type, processing, current, dump):
     """
     Calculates averages for specific columns of a sensor log data to be sent over LoRa.
     Renames current file to processing, calculates averages and returns them to flash_pm_averages to get saved to
-    the tosend file, finally it appends raw data to the dump file and removes processing.
+    the tosend file, finally it appends raw data to the dump file.
     :param processing: sensor processing file name
     :type processing: str
     :param current: sensor current file name
@@ -85,16 +94,24 @@ def get_averages(processing, current, dump, header):
 
     # Remove sensor_name.csv.processing if it exists
     with pm_processing_lock:
-        try:
-            uos.remove(processing)  # TODO: instead of removing, find a better way to deal with this
-        except Exception:
-            pass
 
-        # Rename sensor_name.csv.current to sensor_name.csv.processing
-        try:
-            uos.rename(current, processing)
-        except Exception:
-            pass
+        # Only process current readings if previous processing file was dealt with - if device is rebooted while
+        # processing the data (processing file was not deleted) then process it again and send it over LoRa. In this
+        # case current file has little to no data, so can be deleted - see else statement
+        if processing[4:] not in os.listdir('/sd'):
+            # Rename sensor_name.csv.current to sensor_name.csv.processing
+            try:
+                uos.rename(current, processing)
+            except Exception:
+                pass
+        else:
+            try:
+                uos.remove(current)
+            except Exception:
+                pass
+
+        # Header of current file
+        header = s.headers_dict_v4[type]
 
         with open(processing, 'r') as f:
             # read all lines from processing
@@ -105,8 +122,12 @@ def get_averages(processing, current, dump, header):
                 stripped_line_lst = str(stripped_line).split(',')  # split string to list at comas
                 named_line = dict(zip(header, stripped_line_lst))  # assign each value to its header
                 sensor_reading = []
-                sensor_reading.append(int(named_line["PM10"]))
-                sensor_reading.append(int(named_line["PM25"]))
+                if type == 'PMS5003':
+                    sensor_reading.append(int(named_line["PM10"]))
+                    sensor_reading.append(int(named_line["PM25"]))
+                elif type == 'SHT35':
+                    sensor_reading.append(int(float(named_line["temperature"])*10))  # shift left and cast to int
+                    sensor_reading.append(int(float(named_line["humidity"])*10))  # shift left and cast to int
                 # Append extra lines here for more readings - update version number and back-end to interpret data
                 lines_lst.append(sensor_reading)
 

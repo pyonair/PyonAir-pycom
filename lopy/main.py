@@ -13,7 +13,10 @@ try:
     from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
     from configuration import read_configuration, reset_configuration, config
     from EventScheduler import EventScheduler
-    from strings import PM1_processing, PM1_current, PM2_processing, PM2_current
+    import strings as s
+    from helper import check_data_ready
+    from tasks import send_over_lora, flash_pm_averages
+    from Temp_thread import Temp_thread
     from new_config import config_thread
     from ubinascii import hexlify
     import _thread
@@ -44,35 +47,44 @@ try:
     # If device is correctly configured continue execution
     else:
         # Overwrite Preferences - DEVELOPER USE ONLY - keep all overwrites here
-        config["PM_interval"] = 1.5
+        config["PM_interval"] = 2  # minutes
+        config["TEMP_interval"] = 5  # seconds
+
+        # ToDo: get is_def having both sensors enabled
+        # Clean up - process current file from previous boot or re-process process file if rebooted while processing
+        is_def = check_data_ready()  # check which sensors are defined (enabled, and have data)
+        flash_pm_averages(logger=status_logger, is_def=is_def)  # calculate averages for all defined sensors
+        send_over_lora(logger=status_logger, is_def=is_def, timeout=60)  # send averages of defined sensors over LoRa
+
+        try:
+            # Initialise logger for temperature and humidity sensor
+            TEMP_logger = SensorLogger(filename=s.TEMP_current, terminal_out=True)
+
+            # Start temperature and humidity sensor thread with id: TEMP
+            _thread.start_new_thread(Temp_thread, ('TEMP', TEMP_logger, status_logger))
+
+            status_logger.info("Temperature and humidity sensor initialized")
+        except Exception as e:
+            status_logger.error("Failed to initialize temperature and humidity sensor")
+            status_logger.error(str(e))
 
         if config["PM1"]:
             try:
                 # Initialise logger for PM1 sensor
-                PM1_logger = SensorLogger(filename=PM1_current, terminal_out=True)
-
-                # Delete 'PM1.csv.processing' if it exists TODO: send the content over LoRa instead
-                if PM1_processing in os.listdir():
-                    status_logger.info(PM2_processing + 'already exists, removing it')
-                    os.remove(PM2_processing)
+                PM1_logger = SensorLogger(filename=s.PM1_current, terminal_out=True)
 
                 # Start 1st PM sensor thread with id: PM1
-                _thread.start_new_thread(pm_thread, ('PM1', PM1_logger, status_logger, ('P15', 'P11'), 1))
+                _thread.start_new_thread(pm_thread, ('PM1', PM1_logger, status_logger, ('P15', 'P17'), 1))
 
                 status_logger.info("Sensor PM1 initialized")
             except Exception as e:
                 status_logger.error("Failed to initialize sensor PM1")
-                status_logger.error(e)
+                status_logger.error(str(e))
 
         if config["PM2"]:
             try:
                 # Initialise logger for PM2 sensor
-                PM2_logger = SensorLogger(filename=PM2_current, terminal_out=True)
-
-                # Delete 'PM2.csv.processing' if it exists TODO: send the content over LoRa instead
-                if PM2_processing in os.listdir():
-                    status_logger.info(PM2_processing + 'already exists, removing it')
-                    os.remove(PM2_processing)
+                PM2_logger = SensorLogger(filename=s.PM2_current, terminal_out=True)
 
                 # Start 2nd PM sensor thread with id: PM2
                 _thread.start_new_thread(pm_thread, ('PM2', PM2_logger, status_logger, ('P13', 'P18'), 2))
@@ -80,7 +92,7 @@ try:
                 status_logger.info("Sensor PM2 initialized")
             except Exception as e:
                 status_logger.error("Failed to initialize sensor PM2")
-                status_logger.error(e)
+                status_logger.error(str(e))
 
         # Start calculating averages for PM1 readings, and send data over LoRa
         PM_Events = EventScheduler(rtc=rtc, logger=status_logger)

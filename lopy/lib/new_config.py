@@ -82,9 +82,9 @@ def get_configuration(sct, logger):
                 return
             elif status == "error":
                 raise Exception('Could not save config file')
-    except:
+    except Exception as e:
         pycom.rgbled(0xFF0000)  # Red LED - Connection timeout
-        logger.warning('Wifi configuration session timed out')
+        logger.warning(str(e))
         time.sleep(3)
         return
 
