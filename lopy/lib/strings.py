@@ -10,15 +10,10 @@ headers_dict_v4 = {
     "OPCR1": ["timestamp", "sensor_id", "PM1", "PM25", "PM10", "Bin0", "Bin1", "Bin1MToF", "Bin2", "Bin3", "Bin3MToF", "Bin4", "Bin5", "Bin5MToF", "Bin6", "Bin7", "Bin7MToF", "Bin8", "Bin9", "Bin10", "Bin11", "Bin12", "Bin13", "Bin14", "Bin15", "SFR", "Checksum", "SamplingPeriod", "Temperature", "Humidity"],
     "SPS030": ["timestamp", "sensor_id", "PM1", "PM25", "PM4", "PM10", "n05", "n1", "n25", "n4", "n10", "tps"],
     "SDS018": ["timestamp", "sensor_id", "PM10", "PM25"],
-    "AM2302": ["timestamp", "humidity", "temperature"],
-    "BME280": ["timestamp", "humidity", "temperature", "pressure"],
+    "AM2302": ["timestamp", "sensor_id", "humidity", "temperature"],
+    "BME280": ["timestamp", "sensor_id", "humidity", "temperature", "pressure"],
+    "SHT35": ["timestamp", "sensor_id", "temperature", "humidity"]
 }
-#
-# lora_headers_dict = {
-#     "PM1_PM2_TEMP": ["timestamp", "PM1_sensor_id", "PM1_PM10", "PM1_PM25", "PM2_sensor_id", "PM2_PM10", "PM2_PM25"],
-#     "PM1_TEMP": ["timestamp", "PM1_sensor_id", "PM1_PM10", "PM1_PM25"],
-#     "PM2_TEMP": ["timestamp", "PM2_sensor_id", "PM2_PM10", "PM2_PM25"]
-# }
 
 status_header = ['type', 'timestamp', 'message']
 
@@ -30,4 +25,7 @@ PM1_dump = '/sd/PM1.csv'
 PM2_processing = '/sd/PM2.csv.processing'
 PM2_current = '/sd/PM2.csv.current'
 PM2_dump = '/sd/PM2.csv'
+TEMP_processing = '/sd/TEMP.csv.processing'
+TEMP_current = '/sd/TEMP.csv.current'
+TEMP_dump = '/sd/TEMP.csv'
 lora_tosend = '/sd/lora.csv.tosend'
