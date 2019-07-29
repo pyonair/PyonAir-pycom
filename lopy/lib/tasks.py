@@ -8,7 +8,7 @@ from helper import mean_across_arrays, minutes_from_midnight
 import _thread
 from LoRa_thread import lora_thread
 from configuration import config
-from strings import PM1, PM2, headers_dict_v4, file_name_temp, processing_ext, current_ext, dump_ext, lora_tosend
+from strings import PM1, PM2, headers_dict_v4, file_name_temp, processing_ext, current_ext, dump_ext, lora_tosend, TEMP_current, TEMP_dump, TEMP_processing
 from helper import pm_current_lock, pm_processing_lock, pm_dump_lock, pm_tosend_lock
 
 
@@ -41,7 +41,7 @@ def flash_pm_averages(logger, is_def):
 
         try:
             # Header of current file for plantower sensors
-            TEMP_avg_readings_str = get_averages('SHT35', s.TEMP_processing, s.TEMP_current, s.TEMP_dump)
+            TEMP_avg_readings_str = get_averages('SHT35', TEMP_processing, TEMP_current, TEMP_dump)
 
             if is_def[PM1]:
                 # Get averages for PM1 sensor
@@ -75,8 +75,8 @@ def flash_pm_averages(logger, is_def):
             # If raw data was processed, saved and dumped, processing files can be deleted
             with pm_processing_lock:
                 try:
-                    uos.remove(s.PM1_processing)
-                    uos.remove(s.PM2_processing)
+                    uos.remove(file_name_temp.format(PM1, processing_ext))
+                    uos.remove(file_name_temp.format(PM2, processing_ext))
                 except Exception:
                     pass
 
@@ -120,7 +120,7 @@ def get_averages(type, processing, current, dump):
                 pass
 
         # Header of current file
-        header = s.headers_dict_v4[type]
+        header = headers_dict_v4[type]
 
         with open(processing, 'r') as f:
             # read all lines from processing
