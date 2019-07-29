@@ -33,15 +33,6 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pin_assignment, id_assi
                     sensor_readings_lst = []
                 # Add the current reading to the list, which will be processed when the timestamp changes
                 sensor_readings_lst.append(sensor_reading)
-        #   ToDo: Logger cannot handle certain exceptions (like the one below) - it crashes
-        #   File "/flash/lib/loggingpycom/__init__.py", line 61, in error
-        #   File "/flash/lib/loggingpycom/__init__.py", line 49, in log
-        #   File "/flash/lib/loggingpycom/__init__.py", line 132, in emit
-        #   File "/flash/lib/loggingpycom/__init__.py", line 184, in format
-        #   TypeError: unsupported types for : 'OSError', 'tuple'
-        #   Program crashes (because of logger) when we fail to read from pmsensor (relatively often)
-        # except PlantowerException as e:
-        #     status_logger.error(e)
-        #  Replace except temporarily:
-        except PlantowerException:
+        except PlantowerException as e:
             status_logger.error("Failed to read from sensor {}".format(sensor_name))
+            status_logger.error(str(e))

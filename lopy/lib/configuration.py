@@ -58,5 +58,6 @@ def reset_configuration(logger):
         del lora
 
         logger.info('Configurations were reset')
-    except:
+    except Exception as e:
         logger.error('Failed to reset configurations')
+        logger.error(str(e))

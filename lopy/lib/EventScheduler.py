@@ -25,11 +25,6 @@ class EventScheduler:
 
     #  Calculates time (s) until the first event, and sets up an alarm
     def set_event_queue(self):
-        #  process and send previous data immediately upon boot
-        self.is_def = check_data_ready()  # check which sensors are defined (enabled, and have data)
-        flash_pm_averages(logger=self.logger, is_def=self.is_def)  # calculate averages for all defined sensors
-        send_over_lora(logger=self.logger, is_def=self.is_def, timeout=60)  # send averages of defined sensors over LoRa
-
         first_event_s = seconds_to_first_event(self.rtc, self.interval_s)
         self.first_alarm = Timer.Alarm(self.first_event, s=first_event_s, periodic=False)
 
