@@ -1,0 +1,6 @@
+Links for MQTT over WiFi:
+
+https://docs.pycom.io/tutorials/all/mqtt/
+https://github.com/gloveboxes/Azure-IoT-Hub-with-Python-and-MQTT/blob/master/weather_mqtt/weather_mqtt.py
+https://github.com/pycom/pycom-libraries/tree/master/examples/mqtt
+https://github.com/pycom/pycom-libraries/blob/master/lib/mqtt/mqtt.py
