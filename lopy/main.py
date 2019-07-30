@@ -56,16 +56,12 @@ try:
         flash_pm_averages(logger=status_logger, is_def=is_def)  # calculate averages for all defined sensors
         send_over_lora(logger=status_logger, is_def=is_def, timeout=60)  # send averages of defined sensors over LoRa
 
-        try:
-            # Initialise logger for temperature and humidity sensor
-            TEMP_logger = SensorLogger(filename=s.TEMP_current, terminal_out=True)
+        # Initialise logger for temperature and humidity sensor
+        TEMP_logger = SensorLogger(filename=s.TEMP_current, terminal_out=True)
 
-            # Start temperature and humidity sensor thread with id: TEMP
-            _thread.start_new_thread(Temp_thread, ('TEMP', TEMP_logger, status_logger))
-            status_logger.info("Temperature and humidity sensor initialized")
-        except Exception as e:
-            status_logger.exception("Temperature and humidity sensort cannot be initialized")
-            # TODO: raise exception
+        # Start temperature and humidity sensor thread with id: TEMP
+        _thread.start_new_thread(Temp_thread, ('TEMP', TEMP_logger, status_logger))
+        status_logger.info("Temperature and humidity sensor initialized")
 
 
         def initialize_pm_sensor(sensor_name, pins, serial_id):
