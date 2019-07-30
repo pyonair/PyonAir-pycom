@@ -13,7 +13,7 @@ try:
     from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
     from configuration import read_configuration, reset_configuration, config
     from EventScheduler import EventScheduler
-    import strings as s
+    from strings import PM1, PM2, TEMP_current
     from helper import check_data_ready
     from tasks import send_over_lora, flash_pm_averages
     from Temp_thread import Temp_thread
@@ -57,7 +57,7 @@ try:
         send_over_lora(logger=status_logger, is_def=is_def, timeout=60)  # send averages of defined sensors over LoRa
 
         # Initialise logger for temperature and humidity sensor
-        TEMP_logger = SensorLogger(filename=s.TEMP_current, terminal_out=True)
+        TEMP_logger = SensorLogger(filename=TEMP_current, terminal_out=True)
 
         # Start temperature and humidity sensor thread with id: TEMP
         _thread.start_new_thread(Temp_thread, ('TEMP', TEMP_logger, status_logger))
