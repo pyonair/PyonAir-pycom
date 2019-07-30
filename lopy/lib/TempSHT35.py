@@ -52,7 +52,7 @@ class TempSHT35(object):
             self.sensor_logger.log_row(line_to_log)
         except Exception as e:
             self.status_logger.exception("Failed to read from temperature and humidity sensor")
-            blink_led(colour=0x770000, delay=2, count=1)
+            blink_led(colour=0x770000, delay=0.5, count=1)
 
 
 #  Cycling redundancy check

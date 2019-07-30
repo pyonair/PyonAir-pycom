@@ -4,7 +4,7 @@ Tasks to be called by event scheduler
 
 import uos
 import os
-from helper import mean_across_arrays, minutes_from_midnight
+from helper import mean_across_arrays, minutes_from_midnight, blink_led
 import _thread
 from LoRa_thread import lora_thread
 from configuration import config
@@ -86,6 +86,7 @@ def flash_pm_averages(logger, is_def):
 
         except Exception as e:
             logger.exception("Failed to flash averages")
+            blink_led(colour=0x770000, delay=0.5, count=1)
 
 
 def get_averages(type, processing, current, dump):
