@@ -77,6 +77,7 @@ def flash_pm_averages(logger, is_def):
                 try:
                     uos.remove(s.file_name_temp.format(s.PM1, s.processing_ext))
                     uos.remove(s.file_name_temp.format(s.PM2, s.processing_ext))
+                    uos.remove(s.file_name_temp.format(s.TEMP, s.processing_ext))
                 except Exception:
                     pass
 
@@ -141,12 +142,6 @@ def get_averages(type, processing, current, dump):
 
             # Compute averages from sensor_name.csv.processing
             avg_readings_str = [str(int(i)) for i in mean_across_arrays(lines_lst)]
-
-            # Delete sensor_name.csv.processing
-            try:
-                uos.remove(processing)
-            except Exception:
-                pass
 
             # Append content of sensor_name.csv.processing into sensor_name.csv
             with pm_dump_lock:
