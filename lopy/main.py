@@ -47,7 +47,7 @@ try:
     # If device is correctly configured continue execution
     else:
         # Overwrite Preferences - DEVELOPER USE ONLY - keep all overwrites here
-        config["PM_interval"] = 1  # minutes
+        config["PM_interval"] = 1.5  # minutes
         config["TEMP_interval"] = 5  # seconds
 
         # ToDo: get is_def having both sensors enabled
@@ -56,28 +56,21 @@ try:
         flash_pm_averages(logger=status_logger, is_def=is_def)  # calculate averages for all defined sensors
         send_over_lora(logger=status_logger, is_def=is_def, timeout=60)  # send averages of defined sensors over LoRa
 
-        # Initialise logger for temperature and humidity sensor
-        TEMP_logger = SensorLogger(filename=s.TEMP_current, terminal_out=True)
+        TEMP_current = s.file_name_temp.format(s.TEMP, s.current_ext)
+        TEMP_logger = SensorLogger(filename=TEMP_current, terminal_out=True)
 
         # Start temperature and humidity sensor thread with id: TEMP
-        _thread.start_new_thread(Temp_thread, ('TEMP', TEMP_logger, status_logger))
+        temp_sensor = TempSHT35(TEMP_logger, status_logger)
         status_logger.info("Temperature and humidity sensor initialized")
-
 
         def initialize_pm_sensor(sensor_name, pins, serial_id):
             try:
                 filename_current = s.file_name_temp.format(sensor_name, s.current_ext)
-                filename_processing = s.file_name_temp.format(sensor_name, s.processing_ext)
-                # Initialise sensor logger
 
+                # Initialise sensor logger
                 PM_logger = SensorLogger(filename=filename_current, terminal_out=True)
 
-                # Delete 's.PM1.csv.processing' if it exists TODO: send the content over LoRa instead
-                if filename_processing in os.listdir():  # TODO: This probably does not reach the necessary depth to check the file
-                    status_logger.info(filename_processing + 'already exists, removing it')
-                    os.remove(filename_processing)
-
-                # Start 1st PM sensor thread with id: s.PM1
+                # Start PM sensor thread
                 _thread.start_new_thread(pm_thread, (sensor_name, PM_logger, status_logger, pins, serial_id))
 
                 status_logger.info("Sensor " + sensor_name + " initialized")

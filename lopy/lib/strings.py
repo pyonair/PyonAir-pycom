@@ -22,6 +22,7 @@ config_filename = 'config.txt'
 # Sensor names
 PM1 = 'PM1'
 PM2 = 'PM2'
+TEMP = 'TEMP'
 
 # Extensions
 current_ext = '.current'
@@ -36,6 +37,3 @@ file_name_temp = path + '{}' + '.csv' + '{}'  # call this like: file_name_temp.f
 
 # Constants
 lora_tosend = '/sd/lora.csv.tosend'
-TEMP_processing = '/sd/TEMP.csv.processing'
-TEMP_current = '/sd/TEMP.csv.current'
-TEMP_dump = '/sd/TEMP.csv'
