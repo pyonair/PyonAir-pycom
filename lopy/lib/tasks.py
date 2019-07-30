@@ -47,17 +47,17 @@ def flash_pm_averages(logger, is_def):
                 # Get averages for PM1 sensor
                 PM1_avg_readings_str = get_averages(
                     'PMS5003',
-                    file_name_temp(PM1, processing_ext),
-                    file_name_temp(PM1, current_ext),
-                    file_name_temp(PM1, dump_ext))
+                    file_name_temp.format(PM1, processing_ext),
+                    file_name_temp.format(PM1, current_ext),
+                    file_name_temp.format(PM1, dump_ext))
 
             if is_def[PM2]:
                 # Get averages for PM2 sensor
                 PM2_avg_readings_str = get_averages(
                     'PMS5003',
-                    file_name_temp(PM2, processing_ext),
-                    file_name_temp(PM2, current_ext),
-                    file_name_temp(PM2, dump_ext))
+                    file_name_temp.format(PM2, processing_ext),
+                    file_name_temp.format(PM2, current_ext),
+                    file_name_temp.format(PM2, dump_ext))
 
             # ToDo: minutes_from_midnight gets current time - if we are sending previous data upon cleanup we don't get the timestamp corresponding to the data
             # Append averages to the line to be sent over LoRa according to which sensors are defined.
