@@ -25,7 +25,7 @@ def lora_thread(thread_name, logger, is_def, timeout):
     """
 
     # Only send averages if PM1 or PM2 or both sensors are enabled and have gathered data
-    if (is_def["PM1"] or is_def["PM2"]):
+    if is_def["PM1"] or is_def["PM2"]:
 
         if lora_lock.locked():
             logger.info("Waiting for other lora thread to finish")

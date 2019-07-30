@@ -9,7 +9,7 @@ class EventScheduler:
     def __init__(self, rtc, logger):
 
         #  Arguments
-        self.interval_s = int(config["PM_interval"])*60
+        self.interval_s = int(float(config["PM_interval"])*60)
         self.rtc = rtc
         self.logger = logger
 
