@@ -4,6 +4,7 @@ from strings import file_name_temp, PM1, PM2, current_ext
 from configuration import config
 import os
 import _thread
+import pycom
 
 pm_current_lock = _thread.allocate_lock()
 pm_processing_lock = _thread.allocate_lock()
@@ -68,3 +69,22 @@ def check_data_ready():
             is_def[PM2] = True
 
     return is_def
+
+
+def blink_led(colour=0x770000, count=1, delay=0.5):
+    """
+    Blink with the inbuilt LED
+    :param colour: colour in format like 0x770000, which is red
+    :type colour: int
+    :param count: number of blinks
+    :type count: int
+    :param delay: delay in between blinks
+    :type delay: int
+    """
+    pycom.heartbeat(False)
+    for i in range(count):
+        pycom.rgbled(colour)
+        time.sleep(delay)
+        pycom.rgbled(0x000000)
+        time.sleep(delay)
+    pycom.heartbeat(True)

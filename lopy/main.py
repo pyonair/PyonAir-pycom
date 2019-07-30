@@ -14,7 +14,7 @@ try:
     from configuration import read_configuration, reset_configuration, config
     from EventScheduler import EventScheduler
     import strings as s
-    from helper import check_data_ready
+    from helper import check_data_ready, blink_led
     from tasks import send_over_lora, flash_pm_averages
     from Temp_thread import Temp_thread
     from new_config import config_thread
@@ -101,12 +101,7 @@ try:
         status_logger.info("Initialization finished")
 
         # Blink green twice and put the heartbeat back to identify that the device has been initialised
-        for i in range(2):
-            pycom.rgbled(0x000000)
-            time.sleep(0.5)
-            pycom.rgbled(0x005500)
-            time.sleep(0.5)
-        pycom.heartbeat(True)
+        blink_led(colour=0x005500, count=2)
 except Exception as e:
     print(e)
     pycom.rgbled(0x770000)
