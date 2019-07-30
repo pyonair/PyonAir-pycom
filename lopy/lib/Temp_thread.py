@@ -23,13 +23,14 @@ def Temp_thread(thread_name, sensor_logger, status_logger):
         timestamp = timestamp_template.format(*time.gmtime())  # get current time in desired format
         try:
             read_lst = sensor.read()  # read SHT35 sensor - [celsius, humidity] to ~5 significant figures
+            round_lst = [round(x, 1) for x in read_lst]  # round readings to 1 significant figure
+            str_round_lst = list(map(str, round_lst))  # cast float to string
+            lst_to_log = [timestamp] + [sensor_id] + str_round_lst
+            line_to_log = ','.join(lst_to_log)
+            sensor_logger.log_row(line_to_log)
         except Exception as e:
             status_logger.exception(str(e))
             status_logger.critical("Failed to read from temperature and humidity sensor")
             continue
-        round_lst = [round(x, 1) for x in read_lst]  # round readings to 1 significant figure
-        str_round_lst = list(map(str, round_lst))  # cast float to string
-        lst_to_log = [timestamp] + [sensor_id] + str_round_lst
-        line_to_log = ','.join(lst_to_log)
-        sensor_logger.log_row(line_to_log)
-        time.sleep(int(config["TEMP_interval"]))
+        finally:
+            time.sleep(int(config["TEMP_interval"]))
