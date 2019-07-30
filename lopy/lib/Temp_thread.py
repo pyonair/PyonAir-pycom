@@ -1,6 +1,7 @@
 import time
 from TempSHT35 import TempSHT35
 from configuration import config
+from helper import blink_led
 
 
 class TempException(Exception):
@@ -31,6 +32,7 @@ def Temp_thread(thread_name, sensor_logger, status_logger):
         except Exception as e:
             status_logger.exception(str(e))
             status_logger.critical("Failed to read from temperature and humidity sensor")
+            blink_led(colour=0x770000, delay=2, count=1)
             continue
         finally:
             time.sleep(int(config["TEMP_interval"]))
