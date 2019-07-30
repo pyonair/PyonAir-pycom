@@ -1,5 +1,5 @@
 from plantowerpycom import Plantower, PlantowerException
-from helper import mean_across_arrays
+from helper import mean_across_arrays, blink_led
 from configuration import config
 
 
@@ -35,3 +35,4 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pin_assignment, id_assi
                 sensor_readings_lst.append(sensor_reading)
         except PlantowerException as e:
             status_logger.exception("Failed to read from sensor {}".format(sensor_name))
+            blink_led(colour=0x770000, delay=2, count=1)
