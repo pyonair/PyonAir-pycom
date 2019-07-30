@@ -24,8 +24,9 @@ def Temp_thread(thread_name, sensor_logger, status_logger):
         try:
             read_lst = sensor.read()  # read SHT35 sensor - [celsius, humidity] to ~5 significant figures
         except Exception as e:
-            status_logger.exception("Failed to read from temperature and humidity sensor")
-            raise TempException("Temperature and humidity reading failed")
+            status_logger.exception(str(e))
+            status_logger.critical("Failed to read from temperature and humidity sensor")
+            continue
         round_lst = [round(x, 1) for x in read_lst]  # round readings to 1 significant figure
         str_round_lst = list(map(str, round_lst))  # cast float to string
         lst_to_log = [timestamp] + [sensor_id] + str_round_lst
