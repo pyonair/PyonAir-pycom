@@ -74,9 +74,9 @@ def lora_thread(thread_name, logger, is_def, timeout):
                 log_file_name = "lora.csv.tosend"
 
                 # Set the structure of the bytes to send over lora according to which sensors are defined
-                structure = 'HHhhHBBHBB'
+                structure = 'HHhhHHBBHHBBH'
                 if not (is_def["PM1"] and is_def["PM2"]):
-                    structure = 'HHhhHBB'
+                    structure = 'HHhhHHBBH'
 
                 if log_file_name not in os.listdir('/sd'):
                     logger.error('Thread: {} - {} does not exist, failed to read data to be sent over LoRaWAN'.format(thread_name, log_file_name))

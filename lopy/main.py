@@ -16,7 +16,7 @@ try:
     import strings as s
     from helper import check_data_ready, blink_led
     from tasks import send_over_lora, flash_pm_averages
-    from Temp_thread import Temp_thread
+    from TempSHT35 import TempSHT35
     from new_config import config_thread
     from ubinascii import hexlify
     import _thread
