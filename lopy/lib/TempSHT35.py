@@ -1,16 +1,25 @@
-from machine import I2C
+from machine import I2C, Timer
+from configuration import config
+from helper import blink_led
 import time
 
 
 # Temp Res: 0.01C, Temp Acc: +/-0.1C, Humid Res: 0.01%, Humid Acc: +/-1.5%
 class TempSHT35(object):
 
-    def __init__(self):
+    def __init__(self, sensor_logger, status_logger):
+
+        self.sensor_logger = sensor_logger
+        self.status_logger = status_logger
+
+        self.sensor_id = config["TEMP_id"]
+        self.timestamp_template = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}"  # yyyy-mm-dd hh-mm-ss
 
         # Initialise i2c - bus no., type, baudrate, i2c pins
         self.i2c = I2C(0, I2C.MASTER, baudrate=9600, pins=('P9', 'P10'))
-
         self.address = 0x45
+
+        self.processing_alarm = Timer.Alarm(self.process_readings, s=int(config["TEMP_interval"]), periodic=True)
 
     def read(self):
         # high repeatability, clock stretching disabled
@@ -20,7 +29,7 @@ class TempSHT35(object):
         time.sleep(0.016)
 
         # read 6 bytes back
-        # Temp MSB, Temp LSB, Temp CRC, Humididty MSB, Humidity LSB, Humidity CRC
+        # Temp MSB, Temp LSB, Temp CRC, Humidity MSB, Humidity LSB, Humidity CRC
         data = self.i2c.readfrom_mem(self.address, 0x00, 6)
         temperature = data[0] * 256 + data[1]
         celsius = -45 + (175 * temperature / 65535.0)
@@ -30,6 +39,20 @@ class TempSHT35(object):
         if data[5] != CRC(data[3:5]):
             raise RuntimeError("humidity CRC mismatch")
         return [celsius, humidity]
+
+    def process_readings(self, arg):
+        # read and log pm sensor data
+        try:
+            timestamp = self.timestamp_template.format(*time.gmtime())  # get current time in desired format
+            read_lst = self.read()  # read SHT35 sensor - [celsius, humidity] to ~5 significant figures
+            round_lst = [round(x, 1) for x in read_lst]  # round readings to 1 significant figure
+            str_round_lst = list(map(str, round_lst))  # cast float to string
+            lst_to_log = [timestamp] + [self.sensor_id] + str_round_lst
+            line_to_log = ','.join(lst_to_log)
+            self.sensor_logger.log_row(line_to_log)
+        except Exception as e:
+            self.status_logger.exception("Failed to read from temperature and humidity sensor")
+            blink_led(colour=0x770000, delay=0.5, count=1)
 
 
 #  Cycling redundancy check

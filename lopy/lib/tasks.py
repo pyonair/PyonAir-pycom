@@ -4,7 +4,7 @@ Tasks to be called by event scheduler
 
 import uos
 import os
-from helper import mean_across_arrays, minutes_from_midnight
+from helper import mean_across_arrays, minutes_from_midnight, blink_led
 import _thread
 from LoRa_thread import lora_thread
 from configuration import config
@@ -37,15 +37,18 @@ def flash_pm_averages(logger, is_def):
     # Only calculate averages if PM1 or PM2 or both sensors are enabled and have gathered data
     if is_def[s.PM1] or is_def[s.PM2]:
 
-        logger.info("Calculating averages over {} minute interval".format(config["PM_interval"]))
+        logger.info("Calculating averages")
 
         try:
-            # Header of current file for plantower sensors
-            TEMP_avg_readings_str = get_averages('SHT35', s.TEMP_processing, s.TEMP_current, s.TEMP_dump)
+            TEMP_avg_readings_str, TEMP_count = get_averages(
+                'SHT35',
+                s.file_name_temp.format(s.TEMP, s.processing_ext),
+                s.file_name_temp.format(s.TEMP, s.current_ext),
+                s.file_name_temp.format(s.TEMP, s.dump_ext))
 
             if is_def[s.PM1]:
                 # Get averages for PM1 sensor
-                PM1_avg_readings_str = get_averages(
+                PM1_avg_readings_str, PM1_count = get_averages(
                     'PMS5003',
                     s.file_name_temp.format(s.PM1, s.processing_ext),
                     s.file_name_temp.format(s.PM1, s.current_ext),
@@ -53,7 +56,7 @@ def flash_pm_averages(logger, is_def):
 
             if is_def[s.PM2]:
                 # Get averages for PM2 sensor
-                PM2_avg_readings_str = get_averages(
+                PM2_avg_readings_str, PM2_count = get_averages(
                     'PMS5003',
                     s.file_name_temp.format(s.PM2, s.processing_ext),
                     s.file_name_temp.format(s.PM2, s.current_ext),
@@ -62,11 +65,11 @@ def flash_pm_averages(logger, is_def):
             # ToDo: minutes_from_midnight gets current time - if we are sending previous data upon cleanup we don't get the timestamp corresponding to the data
             # Append averages to the line to be sent over LoRa according to which sensors are defined.
             if is_def[s.PM1] and is_def[s.PM2]:
-                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + '\n'
+                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
             elif is_def[s.PM1]:
-                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + '\n'
+                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + '\n'
             elif is_def[s.PM2]:
-                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + '\n'
+                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
 
             # Append lines to sensor_name.csv.tosend
             with open(s.lora_tosend, 'w') as f_tosend:  # TODO: change permission to 'a', hence make a queue for sending
@@ -83,6 +86,7 @@ def flash_pm_averages(logger, is_def):
 
         except Exception as e:
             logger.exception("Failed to flash averages")
+            blink_led(colour=0x770000, delay=0.5, count=1)
 
 
 def get_averages(type, processing, current, dump):
@@ -121,6 +125,7 @@ def get_averages(type, processing, current, dump):
 
         # Header of current file
         header = s.headers_dict_v4[type]
+        count = 0
 
         with open(processing, 'r') as f:
             # read all lines from processing
@@ -139,6 +144,7 @@ def get_averages(type, processing, current, dump):
                     sensor_reading.append(int(float(named_line["humidity"])*10))  # shift left and cast to int
                 # Append extra lines here for more readings - update version number and back-end to interpret data
                 lines_lst.append(sensor_reading)
+                count += 1
 
             # Compute averages from sensor_name.csv.processing
             avg_readings_str = [str(int(i)) for i in mean_across_arrays(lines_lst)]
@@ -149,4 +155,4 @@ def get_averages(type, processing, current, dump):
                     for line in lines:
                         f.write(line)
 
-            return avg_readings_str
+            return avg_readings_str, count

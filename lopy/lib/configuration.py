@@ -2,6 +2,7 @@ from strings import config_filename
 from ubinascii import hexlify
 from machine import unique_id
 from network import LoRa
+from helper import blink_led
 import os
 import ujson
 
@@ -66,4 +67,5 @@ def reset_configuration(logger):
         logger.info('Configurations were reset')
     except Exception as e:
         logger.exception('Failed to reset configurations')
+        blink_led(colour=0x770000, delay=0.5, count=1)
         raise ConfigurationException(str(e))

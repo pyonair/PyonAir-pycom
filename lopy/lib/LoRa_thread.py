@@ -1,10 +1,10 @@
 from network import LoRa
 import socket
 import struct
-import time
 import ubinascii
 import os
 from configuration import config
+from helper import blink_led
 import _thread
 
 # Having a lock is necessary, because it is possible to have two lora threads running at the same time
@@ -74,14 +74,15 @@ def lora_thread(thread_name, logger, is_def, timeout):
                 log_file_name = "lora.csv.tosend"
 
                 # Set the structure of the bytes to send over lora according to which sensors are defined
-                structure = 'HHhhHBBHBB'
+                structure = 'HHhhHHBBHHBBH'
                 if not (is_def["PM1"] and is_def["PM2"]):
-                    structure = 'HHhhHBB'
+                    structure = 'HHhhHHBBH'
 
                 if log_file_name not in os.listdir('/sd'):
-                    logger.error('Thread: {} - {} does not exist, failed to read data to be sent over LoRaWAN'.format(thread_name, log_file_name))
+                    raise Exception('Thread: {} - {} does not exist'.format(thread_name, log_file_name))
                 else:
                     with open('/sd/' + log_file_name, 'r') as f:
+
                         # read all lines from lora.csv.tosend
                         lines = f.readlines()
                         for line in lines:
@@ -89,12 +90,12 @@ def lora_thread(thread_name, logger, is_def, timeout):
                             split_line_lst = stripped_line.split(',')  # split line to a list of values
                             int_line = list(map(int, split_line_lst))  # cast str list to int list
                             payload = struct.pack(structure, *int_line)  # define payload with given structure and list of averages
-                    try:
+
                         s.send(payload)  # send payload to the connected socket
                         logger.info("Thread: {} sent payload".format(thread_name))
-                    except Exception as e:
-                        logger.exception("Thread: {} failed to send data".format(thread_name))
+
             except Exception as e:
-                logger.exception("Sending ove LoRa failed")
+                logger.exception("Sending averages over LoRaWAN failed")
+                blink_led(colour=0x770000, delay=0.5, count=1)
             finally:
                 logger.info("Thread: {} finished".format(thread_name))
