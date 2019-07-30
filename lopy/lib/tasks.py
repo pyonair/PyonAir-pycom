@@ -101,7 +101,6 @@ def get_averages(type, processing, current, dump):
     :rtype: str
     """
 
-    # Remove sensor_name.csv.processing if it exists
     with pm_processing_lock:
 
         # Only process current readings if previous processing file was dealt with - if device is rebooted while

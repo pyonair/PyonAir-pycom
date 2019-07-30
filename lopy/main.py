@@ -13,7 +13,10 @@ try:
     from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
     from configuration import read_configuration, reset_configuration, config
     from EventScheduler import EventScheduler
-    from strings import file_name_temp, current_ext, processing_ext, PM1, PM2
+    import strings as s
+    from helper import check_data_ready
+    from tasks import send_over_lora, flash_pm_averages
+    from Temp_thread import Temp_thread
     from new_config import config_thread
     from ubinascii import hexlify
     import _thread
@@ -44,7 +47,26 @@ try:
     # If device is correctly configured continue execution
     else:
         # Overwrite Preferences - DEVELOPER USE ONLY - keep all overwrites here
-        config["PM_interval"] = 1.5
+        config["PM_interval"] = 1  # minutes
+        config["TEMP_interval"] = 5  # seconds
+
+        # ToDo: get is_def having both sensors enabled
+        # Clean up - process current file from previous boot or re-process process file if rebooted while processing
+        is_def = check_data_ready()  # check which sensors are defined (enabled, and have data)
+        flash_pm_averages(logger=status_logger, is_def=is_def)  # calculate averages for all defined sensors
+        send_over_lora(logger=status_logger, is_def=is_def, timeout=60)  # send averages of defined sensors over LoRa
+
+        try:
+            # Initialise logger for temperature and humidity sensor
+            TEMP_logger = SensorLogger(filename=s.TEMP_current, terminal_out=True)
+
+            # Start temperature and humidity sensor thread with id: TEMP
+            _thread.start_new_thread(Temp_thread, ('TEMP', TEMP_logger, status_logger))
+            status_logger.info("Temperature and humidity sensor initialized")
+        except Exception as e:
+            status_logger.exception("Temperature and humidity sensort cannot be initialized")
+            # TODO: raise exception
+
 
         def initialize_pm_sensor(sensor_name, pins, serial_id):
             try:
