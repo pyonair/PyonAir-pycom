@@ -51,7 +51,7 @@ def flash_pm_averages(logger, is_def):
                     s.file_name_temp.format(s.PM1, s.current_ext),
                     s.file_name_temp.format(s.PM1, s.dump_ext))
 
-            if is_def[PM2]:
+            if is_def[s.PM2]:
                 # Get averages for PM2 sensor
                 PM2_avg_readings_str = get_averages(
                     'PMS5003',
