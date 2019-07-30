@@ -8,7 +8,7 @@ from helper import mean_across_arrays, minutes_from_midnight
 import _thread
 from LoRa_thread import lora_thread
 from configuration import config
-from strings import PM1, PM2, headers_dict_v4, file_name_temp, processing_ext, current_ext, dump_ext, lora_tosend, TEMP_current, TEMP_dump, TEMP_processing
+import strings as s
 from helper import pm_current_lock, pm_processing_lock, pm_dump_lock, pm_tosend_lock
 
 
@@ -35,48 +35,48 @@ def flash_pm_averages(logger, is_def):
     """
 
     # Only calculate averages if PM1 or PM2 or both sensors are enabled and have gathered data
-    if (is_def[PM1] or is_def[PM2]):
+    if is_def[s.PM1] or is_def[s.PM2]:
 
         logger.info("Calculating averages over {} minute interval".format(config["PM_interval"]))
 
         try:
             # Header of current file for plantower sensors
-            TEMP_avg_readings_str = get_averages('SHT35', TEMP_processing, TEMP_current, TEMP_dump)
+            TEMP_avg_readings_str = get_averages('SHT35', s.TEMP_processing, s.TEMP_current, s.TEMP_dump)
 
-            if is_def[PM1]:
+            if is_def[s.PM1]:
                 # Get averages for PM1 sensor
                 PM1_avg_readings_str = get_averages(
                     'PMS5003',
-                    file_name_temp.format(PM1, processing_ext),
-                    file_name_temp.format(PM1, current_ext),
-                    file_name_temp.format(PM1, dump_ext))
+                    s.file_name_temp.format(s.PM1, s.processing_ext),
+                    s.file_name_temp.format(s.PM1, s.current_ext),
+                    s.file_name_temp.format(s.PM1, s.dump_ext))
 
             if is_def[PM2]:
                 # Get averages for PM2 sensor
                 PM2_avg_readings_str = get_averages(
                     'PMS5003',
-                    file_name_temp.format(PM2, processing_ext),
-                    file_name_temp.format(PM2, current_ext),
-                    file_name_temp.format(PM2, dump_ext))
+                    s.file_name_temp.format(s.PM2, s.processing_ext),
+                    s.file_name_temp.format(s.PM2, s.current_ext),
+                    s.file_name_temp.format(s.PM2, s.dump_ext))
 
             # ToDo: minutes_from_midnight gets current time - if we are sending previous data upon cleanup we don't get the timestamp corresponding to the data
             # Append averages to the line to be sent over LoRa according to which sensors are defined.
-            if (is_def[PM1] and is_def[PM2]):
+            if is_def[s.PM1] and is_def[s.PM2]:
                 line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + '\n'
-            elif is_def[PM1]:
+            elif is_def[s.PM1]:
                 line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + '\n'
-            elif is_def[PM2]:
+            elif is_def[s.PM2]:
                 line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + '\n'
 
             # Append lines to sensor_name.csv.tosend
-            with open(lora_tosend, 'w') as f_tosend:  # TODO: change permission to 'a', hence make a queue for sending
+            with open(s.lora_tosend, 'w') as f_tosend:  # TODO: change permission to 'a', hence make a queue for sending
                 f_tosend.write(line_to_append)
 
             # If raw data was processed, saved and dumped, processing files can be deleted
             with pm_processing_lock:
                 try:
-                    uos.remove(file_name_temp.format(PM1, processing_ext))
-                    uos.remove(file_name_temp.format(PM2, processing_ext))
+                    uos.remove(s.file_name_temp.format(s.PM1, s.processing_ext))
+                    uos.remove(s.file_name_temp.format(s.PM2, s.processing_ext))
                 except Exception:
                     pass
 
@@ -119,7 +119,7 @@ def get_averages(type, processing, current, dump):
                 pass
 
         # Header of current file
-        header = headers_dict_v4[type]
+        header = s.headers_dict_v4[type]
 
         with open(processing, 'r') as f:
             # read all lines from processing

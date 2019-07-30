@@ -13,7 +13,7 @@ try:
     from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
     from configuration import read_configuration, reset_configuration, config
     from EventScheduler import EventScheduler
-    from strings import PM1, PM2, TEMP_current, file_name_temp, current_ext, processing_ext
+    import strings as s
     from helper import check_data_ready
     from tasks import send_over_lora, flash_pm_averages
     from Temp_thread import Temp_thread
@@ -57,7 +57,7 @@ try:
         send_over_lora(logger=status_logger, is_def=is_def, timeout=60)  # send averages of defined sensors over LoRa
 
         # Initialise logger for temperature and humidity sensor
-        TEMP_logger = SensorLogger(filename=TEMP_current, terminal_out=True)
+        TEMP_logger = SensorLogger(filename=s.TEMP_current, terminal_out=True)
 
         # Start temperature and humidity sensor thread with id: TEMP
         _thread.start_new_thread(Temp_thread, ('TEMP', TEMP_logger, status_logger))
@@ -66,18 +66,18 @@ try:
 
         def initialize_pm_sensor(sensor_name, pins, serial_id):
             try:
-                filename_current = file_name_temp.format(sensor_name, current_ext)
-                filename_processing = file_name_temp.format(sensor_name, processing_ext)
+                filename_current = s.file_name_temp.format(sensor_name, s.current_ext)
+                filename_processing = s.file_name_temp.format(sensor_name, s.processing_ext)
                 # Initialise sensor logger
 
                 PM_logger = SensorLogger(filename=filename_current, terminal_out=True)
 
-                # Delete 'PM1.csv.processing' if it exists TODO: send the content over LoRa instead
+                # Delete 's.PM1.csv.processing' if it exists TODO: send the content over LoRa instead
                 if filename_processing in os.listdir():  # TODO: This probably does not reach the necessary depth to check the file
                     status_logger.info(filename_processing + 'already exists, removing it')
                     os.remove(filename_processing)
 
-                # Start 1st PM sensor thread with id: PM1
+                # Start 1st PM sensor thread with id: s.PM1
                 _thread.start_new_thread(pm_thread, (sensor_name, PM_logger, status_logger, pins, serial_id))
 
                 status_logger.info("Sensor " + sensor_name + " initialized")
@@ -86,13 +86,13 @@ try:
             except Exception as e:
                 status_logger.exception("Failed to initialize sensor " + sensor_name)
 
-        if config["PM1"]:
-            initialize_pm_sensor(sensor_name=PM1, pins=('P15', 'P17'), serial_id=1)
+        if config[s.PM1]:
+            initialize_pm_sensor(sensor_name=s.PM1, pins=('P15', 'P17'), serial_id=1)
 
-        if config["PM2"]:
-            initialize_pm_sensor(sensor_name=PM2, pins=('P13', 'P18'), serial_id=2)
+        if config[s.PM2]:
+            initialize_pm_sensor(sensor_name=s.PM2, pins=('P13', 'P18'), serial_id=2)
 
-        # Start calculating averages for PM1 readings, and send data over LoRa
+        # Start calculating averages for s.PM1 readings, and send data over LoRa
         PM_Events = EventScheduler(rtc=rtc, logger=status_logger)
 
         # Initialise interrupt on user button for configuration over wifi
