@@ -6,7 +6,6 @@ pycom.rgbled(0x552000)  # flash orange until its loaded
 try:
     from machine import RTC, Timer, SD, Pin, unique_id
     from RtcDS1307 import clock
-    from PM_thread import pm_thread
     from ButtonPress import ButtonPress
     from LoggerFactory import LoggerFactory
     from SensorLogger import SensorLogger
@@ -22,6 +21,7 @@ try:
     import _thread
     import os
     import time
+    from initialisation import initialize_pm_sensor
 
     # Initialise clock
     rtc = clock.get_time()
@@ -36,6 +36,10 @@ try:
 
     # Read configuration file to get preferences
     read_configuration(status_logger)
+
+    user_button = ButtonPress(logger=status_logger)
+    pin_14 = Pin("P14", mode=Pin.IN, pull=None)
+    pin_14.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, user_button.press_handler)
 
     # Check if device is configured, or SD card has been moved to another device
     device_id = hexlify(unique_id()).upper().decode("utf-8")
@@ -59,37 +63,18 @@ try:
         TEMP_current = s.file_name_temp.format(s.TEMP, s.current_ext)
         TEMP_logger = SensorLogger(filename=TEMP_current, terminal_out=True)
 
-        # Start temperature and humidity sensor thread with id: TEMP
+        # Initialise temperature and humidity sensor thread with id: TEMP
         temp_sensor = TempSHT35(TEMP_logger, status_logger)
         status_logger.info("Temperature and humidity sensor initialized")
 
-        def initialize_pm_sensor(sensor_name, pins, serial_id):
-            try:
-                filename_current = s.file_name_temp.format(sensor_name, s.current_ext)
-
-                # Initialise sensor logger
-                PM_logger = SensorLogger(filename=filename_current, terminal_out=True)
-
-                # Start PM sensor thread
-                _thread.start_new_thread(pm_thread, (sensor_name, PM_logger, status_logger, pins, serial_id))
-
-                status_logger.info("Sensor " + sensor_name + " initialized")
-            except Exception as e:
-                status_logger.exception("Failed to initialize sensor " + sensor_name)
-
+        # Initialise PM sensor threads
         if config[s.PM1]:
-            initialize_pm_sensor(sensor_name=s.PM1, pins=('P15', 'P17'), serial_id=1)
-
+            initialize_pm_sensor(sensor_name=s.PM1, pins=('P15', 'P17'), serial_id=1, status_logger=status_logger)
         if config[s.PM2]:
-            initialize_pm_sensor(sensor_name=s.PM2, pins=('P13', 'P18'), serial_id=2)
+            initialize_pm_sensor(sensor_name=s.PM2, pins=('P13', 'P18'), serial_id=2, status_logger=status_logger)
 
         # Start calculating averages for s.PM1 readings, and send data over LoRa
         PM_Events = EventScheduler(rtc=rtc, logger=status_logger)
-
-        # Initialise interrupt on user button for configuration over wifi
-        user_button = ButtonPress(logger=status_logger)
-        pin_14 = Pin("P14", mode=Pin.IN, pull=None)
-        pin_14.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, user_button.press_handler)
 
         status_logger.info("Initialization finished")
 
