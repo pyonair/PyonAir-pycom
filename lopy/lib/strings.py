@@ -31,6 +31,7 @@ dump_ext = ''
 
 # Paths
 path = '/sd/'
+current_path = '/sd/current/'
 
 # Templates
 file_name_temp = path + '{}' + '.csv' + '{}'  # call this like: file_name_temp.format(sensor_name, extension)

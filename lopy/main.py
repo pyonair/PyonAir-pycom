@@ -71,7 +71,7 @@ try:
         send_over_lora(logger=status_logger, is_def=is_def, timeout=60)  # send averages of defined sensors over LoRa
 
         TEMP_current = s.file_name_temp.format(s.TEMP, s.current_ext)
-        TEMP_logger = SensorLogger(filename=TEMP_current, terminal_out=True)
+        TEMP_logger = SensorLogger(sensor_name=s.TEMP, terminal_out=True)
 
         # Initialise temperature and humidity sensor thread with id: TEMP
         temp_sensor = TempSHT35(TEMP_logger, status_logger)

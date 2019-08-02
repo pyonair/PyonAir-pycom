@@ -39,7 +39,7 @@ class LoggerFactory:
         :type name: str
         :param fmt: format string for the logger
         :type fmt: str
-        :param filename: filename for logging, if None, then does not log into file
+        :param filename: sensor_name for logging, if None, then does not log into file
         :type filename: str
         :param maxBytes: maximum size of log file
         :type maxBytes: int
