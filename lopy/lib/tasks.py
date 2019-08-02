@@ -2,7 +2,6 @@
 Tasks to be called by event scheduler
 """
 
-import uos
 import os
 from helper import mean_across_arrays, minutes_from_midnight, blink_led
 import _thread
@@ -10,6 +9,11 @@ from LoRa_thread import lora_thread
 from configuration import config
 import strings as s
 from helper import pm_current_lock, pm_processing_lock, pm_dump_lock, pm_tosend_lock
+import time
+
+
+class FlashPMAveragesException(Exception):
+    pass
 
 
 def send_over_lora(logger, is_def, timeout):
@@ -33,36 +37,23 @@ def flash_pm_averages(logger, is_def):
     :param is_def: Stores which sensors are defined in the form "sensor_name" : True/False
     :type is_def: dict
     """
-
+    logger.info("Flashing averages")
     # Only calculate averages if PM1 or PM2 or both sensors are enabled and have gathered data
     if is_def[s.PM1] or is_def[s.PM2]:
 
         logger.info("Calculating averages")
 
         try:
-            TEMP_avg_readings_str, TEMP_count = get_averages(
-                'SHT35',
-                s.file_name_temp.format(s.TEMP, s.processing_ext),
-                s.file_name_temp.format(s.TEMP, s.current_ext),
-                s.file_name_temp.format(s.TEMP, s.dump_ext))
+            TEMP_avg_readings_str, TEMP_count = get_averages('SHT35', s.TEMP)
 
             if is_def[s.PM1]:
                 # Get averages for PM1 sensor
-                PM1_avg_readings_str, PM1_count = get_averages(
-                    'PMS5003',
-                    s.file_name_temp.format(s.PM1, s.processing_ext),
-                    s.file_name_temp.format(s.PM1, s.current_ext),
-                    s.file_name_temp.format(s.PM1, s.dump_ext))
+                PM1_avg_readings_str, PM1_count = get_averages('PMS5003', s.PM1)
 
             if is_def[s.PM2]:
                 # Get averages for PM2 sensor
-                PM2_avg_readings_str, PM2_count = get_averages(
-                    'PMS5003',
-                    s.file_name_temp.format(s.PM2, s.processing_ext),
-                    s.file_name_temp.format(s.PM2, s.current_ext),
-                    s.file_name_temp.format(s.PM2, s.dump_ext))
+                PM2_avg_readings_str, PM2_count = get_averages('PMS5003', s.PM2)
 
-            # ToDo: minutes_from_midnight gets current time - if we are sending previous data upon cleanup we don't get the timestamp corresponding to the data
             # Append averages to the line to be sent over LoRa according to which sensors are defined.
             if is_def[s.PM1] and is_def[s.PM2]:
                 line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
@@ -72,62 +63,58 @@ def flash_pm_averages(logger, is_def):
                 line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
 
             # Append lines to sensor_name.csv.tosend
-            with open(s.lora_tosend, 'w') as f_tosend:  # TODO: change permission to 'a', hence make a queue for sending
+            lora_filename = s.lora_path + s.csv_timestamp_template.format(*time.gmtime())
+            with open(lora_filename, 'w') as f_tosend:
                 f_tosend.write(line_to_append)
 
             # If raw data was processed, saved and dumped, processing files can be deleted
             with pm_processing_lock:
-                try:
-                    uos.remove(s.file_name_temp.format(s.PM1, s.processing_ext))
-                    uos.remove(s.file_name_temp.format(s.PM2, s.processing_ext))
-                    uos.remove(s.file_name_temp.format(s.TEMP, s.processing_ext))
-                except Exception:
-                    pass
+                path = s.processing_path
+                for sensor_name in [s.TEMP, s.PM1, s.PM2]:
+                    if is_def[sensor_name]:
+                        filename = sensor_name + '.csv'
+                        try:
+                            os.remove(path + filename)
+                        except Exception as e:
+                            logger.exception("Failed to remove " + filename + " in " + path)
 
         except Exception as e:
             logger.exception("Failed to flash averages")
             blink_led(colour=0x770000, delay=0.5, count=1)
 
 
-def get_averages(type, processing, current, dump):
+def get_averages(type, sensor_name):
     """
     Calculates averages for specific columns of a sensor log data to be sent over LoRa.
-    Renames current file to processing, calculates averages and returns them to flash_pm_averages to get saved to
-    the tosend file, finally it appends raw data to the dump file.
-    :param processing: sensor processing file name
-    :type processing: str
-    :param current: sensor current file name
-    :type current: str
-    :param dump: sensor dump file name
-    :type dump: str
-    :param header: sensor current file headers
-    :type header: dict
+    :param type: sensor type
+    :type type: str
+    :param sensor_name: sensor name
+    :type sensor_name: str
     :return: average readings of specific columns
     :rtype: str
     """
 
     with pm_processing_lock:
-
+        filename = sensor_name + '.csv'
         # Only process current readings if previous processing file was dealt with - if device is rebooted while
         # processing the data (processing file was not deleted) then process it again and send it over LoRa. In this
         # case current file has little to no data, so can be deleted - see else statement
-        if processing[4:] not in os.listdir('/sd'):
-            # Rename sensor_name.csv.current to sensor_name.csv.processing
-            try:
-                uos.rename(current, processing)
-            except Exception:
-                pass
-        else:
-            try:
-                uos.remove(current)
-            except Exception:
-                pass
+
+        # If there is NO sensor_name.csv file in the PROCESSING dir
+        if filename not in os.listdir(s.processing_path[:-1]):  # Strip '/' from the end of path
+            # If there IS sensor_name.csv in the CURRENT dir
+            if filename in os.listdir(s.current_path[:-1]):  # Strip '/' from the end of path
+                # Move sensor_name.csv from current dir to processing dir
+                os.rename(s.current_path + filename, s.processing_path + filename)
+            # If there is no sensor_name.csv file in the current dir, then return (because there is nothing to process)
+            else:
+                raise FlashPMAveragesException("Cannot flash averages because there is no " + filename + " in " + s.current_path)
 
         # Header of current file
         header = s.headers_dict_v4[type]
         count = 0
 
-        with open(processing, 'r') as f:
+        with open(s.processing_path + filename, 'r') as f:
             # read all lines from processing
             lines = f.readlines()
             lines_lst = []  # list of lists that store average sensor readings from specific columns
@@ -151,7 +138,7 @@ def get_averages(type, processing, current, dump):
 
             # Append content of sensor_name.csv.processing into sensor_name.csv
             with pm_dump_lock:
-                with open(dump, 'a') as f:
+                with open(s.archive_path + filename, 'a') as f:
                     for line in lines:
                         f.write(line)
 

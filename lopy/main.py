@@ -67,14 +67,12 @@ try:
     # If device is correctly configured continue execution
     else:
         # Overwrite Preferences - DEVELOPER USE ONLY - keep all overwrites here
-        config["PM_interval"] = 1.5  # minutes
+        config["PM_interval"] = 0.5  # minutes
         config["TEMP_interval"] = 5  # seconds
 
         # ToDo: get is_def having both sensors enabled
         # Clean up - process current file from previous boot or re-process process file if rebooted while processing
         is_def = check_data_ready()  # check which sensors are defined (enabled, and have data)
-        flash_pm_averages(logger=status_logger, is_def=is_def)  # calculate averages for all defined sensors
-        send_over_lora(logger=status_logger, is_def=is_def, timeout=60)  # send averages of defined sensors over LoRa
 
         TEMP_current = s.file_name_temp.format(s.TEMP, s.current_ext)
         TEMP_logger = SensorLogger(sensor_name=s.TEMP, terminal_out=True)

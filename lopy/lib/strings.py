@@ -1,5 +1,4 @@
-timestamp_template = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}"  # yyyy-mm-dd hh-mm-ss
-sensor_logfile_template = "{:04d}-{:02d}-{:02d}.csv"  # yyyy-mm-dd
+csv_timestamp_template = "{:04d}-{:02d}-{:02d}_{:02d}-{:02d}-{:02d}.csv"  # yyyy-mm-dd hh-mm-ss
 
 headers_dict_v4 = {
     "PMS5003": ["timestamp", "sensor_id", "pm10_cf1", "PM1", "pm25_cf1", "PM25", "pm100_cf1", "PM10", "gr03um", "gr05um", "gr10um", "gr25um", "gr50um", "gr100um", ""],
@@ -29,10 +28,20 @@ current_ext = '.current'
 processing_ext = '.processing'
 dump_ext = ''
 
+# Directories
+current = 'current'
+processing = 'processing'
+lora = 'lora'
+wifi = 'wifi'
+archive = 'archive'
+
 # Paths
 root_path = '/sd/'
-current_path = '/sd/current/'
-filesystem_dirs = ['current', 'processing', 'lora', 'wifi', 'archive']
+current_path = root_path + current + '/'
+processing_path = root_path + processing + '/'
+archive_path = root_path + archive + '/'
+lora_path = root_path + lora + '/'
+filesystem_dirs = [current, processing, lora, wifi, archive]
 
 # Templates
 file_name_temp = root_path + '{}' + '.csv' + '{}'  # call this like: file_name_temp.format(sensor_name, extension)
