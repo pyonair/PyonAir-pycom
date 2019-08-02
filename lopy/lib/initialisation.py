@@ -32,5 +32,5 @@ def remove_residual_files():
     Removes residual files from the last boot in the current and processing dirs
     """
     for path in [s.current_path, s.processing_path]:
-        for file in os.listdir(path):
+        for file in os.listdir(path[:-1]):  # Strip '/' from the end of path
             os.remove(path + file)
