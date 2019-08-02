@@ -91,5 +91,5 @@ try:
         # Blink green twice and put the heartbeat back to identify that the device has been initialised
         blink_led(colour=0x005500, count=2)
 except Exception as e:
-    print(e)
+    status_logger.exception("Exception in the main")
     pycom.rgbled(0x770000)
