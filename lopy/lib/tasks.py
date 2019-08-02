@@ -63,7 +63,7 @@ def flash_pm_averages(logger, is_def):
                 line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
 
             # Append lines to sensor_name.csv.tosend
-            lora_filename = s.lora_path + s.csv_timestamp_template.format(*time.gmtime())
+            lora_filename = s.lora_tosend  # TODO: replace s.lora_tosend path by s.lora_path + s.csv_timestamp_template.format(*time.gmtime()) to implement lora queue
             with open(lora_filename, 'w') as f_tosend:
                 f_tosend.write(line_to_append)
 
