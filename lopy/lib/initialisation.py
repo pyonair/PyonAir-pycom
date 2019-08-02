@@ -25,3 +25,12 @@ def initialize_file_system():
     for directory in s.filesystem_dirs:
         if directory not in os.listdir(s.root_path):
             os.mkdir(s.root_path + directory)
+
+
+def remove_residual_files():
+    """
+    Removes residual files from the last boot in the current and processing dirs
+    """
+    for path in [s.current_path, s.processing_path]:
+        for file in os.listdir(path):
+            os.remove(path + file)

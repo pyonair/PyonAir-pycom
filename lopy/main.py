@@ -42,10 +42,13 @@ try:
     from ubinascii import hexlify
     import _thread
     import time
-    from initialisation import initialize_pm_sensor, initialize_file_system
+    from initialisation import initialize_pm_sensor, initialize_file_system, remove_residual_files
 
     # Initialize file system
     initialize_file_system()
+
+    # Remove residual files from the previous run (removes all files in the current and processing dir)
+    remove_residual_files()
 
     # Read configuration file to get preferences
     read_configuration(status_logger)
