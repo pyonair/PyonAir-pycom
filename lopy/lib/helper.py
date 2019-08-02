@@ -2,7 +2,6 @@
 import time
 import strings as s
 from configuration import config
-import os
 import _thread
 import pycom
 
@@ -59,14 +58,12 @@ def mean_across_arrays(arrays):
 
 
 def check_data_ready():
-    is_def = {s.PM1: False, s.PM2: False}
+    is_def = {s.PM1: False, s.PM2: False, s.TEMP: True}
 
     if config[s.PM1]:
-        if s.file_name_temp.format(s.PM1, s.current_ext)[4:] in os.listdir('/sd'):
-            is_def[s.PM1] = True
+        is_def[s.PM1] = True
     if config[s.PM2]:
-        if s.file_name_temp.format(s.PM2, s.current_ext)[4:] in os.listdir('/sd'):
-            is_def[s.PM2] = True
+        is_def[s.PM2] = True
 
     return is_def
 
