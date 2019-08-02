@@ -78,8 +78,8 @@ def blink_led(colour=0x770000, count=1, delay=0.5):
     :type colour: int
     :param count: number of blinks
     :type count: int
-    :param delay: delay in between blinks
-    :type delay: int
+    :param delay: delay in between blinks in seconds
+    :type delay: float
     """
     pycom.heartbeat(False)
     for i in range(count):
