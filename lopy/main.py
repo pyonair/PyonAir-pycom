@@ -1,28 +1,13 @@
 #!/usr/bin/env python
 import pycom
-pycom.heartbeat(False)  # disable the heartbeat LED
-pycom.rgbled(0x552000)  # flash orange until its loaded
+from helper import blink_led
 
 try:
-    from machine import RTC, Timer, SD, Pin, unique_id
     from RtcDS1307 import clock
-    from ButtonPress import ButtonPress
-    from LoggerFactory import LoggerFactory
-    from SensorLogger import SensorLogger
-    from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
-    from configuration import read_configuration, reset_configuration, config
-    from EventScheduler import EventScheduler
-    import strings as s
-    from helper import check_data_ready, blink_led
-    from tasks import send_over_lora, flash_pm_averages
-    from TempSHT35 import TempSHT35
-    from new_config import config_thread
-    from ubinascii import hexlify
-    import _thread
+    from machine import SD
     import os
-    import time
-    from initialisation import initialize_pm_sensor
-
+    from LoggerFactory import LoggerFactory
+    from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
     # Initialise clock
     rtc = clock.get_time()
 
@@ -33,6 +18,29 @@ try:
     # Initialise LoggerFactory and status logger
     logger_factory = LoggerFactory()
     status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, filename='status_log.txt')
+except Exception as e:
+    print(e)
+    while True:
+        blink_led(colour=0x770000, delay=0.5, count=1000)
+
+pycom.heartbeat(False)  # disable the heartbeat LED
+pycom.rgbled(0x552000)  # flash orange until its loaded
+
+try:
+    from machine import RTC, Timer, SD, Pin, unique_id
+    from ButtonPress import ButtonPress
+    from SensorLogger import SensorLogger
+    from configuration import read_configuration, reset_configuration, config
+    from EventScheduler import EventScheduler
+    import strings as s
+    from helper import check_data_ready
+    from tasks import send_over_lora, flash_pm_averages
+    from TempSHT35 import TempSHT35
+    from new_config import config_thread
+    from ubinascii import hexlify
+    import _thread
+    import time
+    from initialisation import initialize_pm_sensor
 
     # Read configuration file to get preferences
     read_configuration(status_logger)
