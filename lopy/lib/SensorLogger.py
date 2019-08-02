@@ -20,10 +20,10 @@ class SensorLogger:
         self.terminal_out = terminal_out
         self.terminator = terminator
 
-    def log_row(self, row):
+    def log_row(self, row, sensor_name):
         row_to_log = row + self.terminator
         if self.terminal_out:
-            sys.stdout.write(row_to_log)
+            sys.stdout.write(sensor_name + " - " + row_to_log)
         with pm_current_lock:
             with open(self.filename, 'a') as f:
                 f.write(row_to_log)

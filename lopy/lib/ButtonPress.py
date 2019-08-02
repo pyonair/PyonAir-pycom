@@ -1,5 +1,5 @@
 from machine import Timer
-from new_config import config_thread
+from new_config import new_config_thread
 import _thread
 
 
@@ -22,4 +22,4 @@ class ButtonPress:
             self.Press = not self.Press
 
     def start_config(self, arg):  # this handler is called when button was held for 2.5 sec
-        _thread.start_new_thread(config_thread, ('Config', self.logger, 300))
+        _thread.start_new_thread(new_config_thread, ('New_Config', self.logger, 300))
