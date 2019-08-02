@@ -2,14 +2,14 @@ import machine
 from machine import RTC, Timer
 from tasks import flash_pm_averages, send_over_lora
 from helper import seconds_to_first_event, check_data_ready
-from configuration import config
+from Configuration import config
 
 
 class EventScheduler:
     def __init__(self, rtc, logger):
 
         #  Arguments
-        self.interval_s = int(float(config["PM_interval"])*60)
+        self.interval_s = int(float(config.get_config("PM_interval"))*60)
         self.rtc = rtc
         self.logger = logger
 

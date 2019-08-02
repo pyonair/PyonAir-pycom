@@ -7,7 +7,7 @@ import os
 from helper import mean_across_arrays, minutes_from_midnight, blink_led
 import _thread
 from LoRa_thread import lora_thread
-from configuration import config
+from Configuration import config
 import strings as s
 from helper import pm_current_lock, pm_processing_lock, pm_dump_lock, pm_tosend_lock
 
@@ -40,11 +40,16 @@ def flash_pm_averages(logger, is_def):
         logger.info("Calculating averages")
 
         try:
-            TEMP_avg_readings_str, TEMP_count = get_averages(
-                'SHT35',
-                s.file_name_temp.format(s.TEMP, s.processing_ext),
-                s.file_name_temp.format(s.TEMP, s.current_ext),
-                s.file_name_temp.format(s.TEMP, s.dump_ext))
+            try:
+                TEMP_avg_readings_str, TEMP_count = get_averages(
+                    'SHT35',
+                    s.file_name_temp.format(s.TEMP, s.processing_ext),
+                    s.file_name_temp.format(s.TEMP, s.current_ext),
+                    s.file_name_temp.format(s.TEMP, s.dump_ext))
+            except:
+                TEMP_avg_readings_str = ["9999", "9999"]  # data to send if no temperature is available
+                TEMP_count = 0
+                logger.error("")
 
             if is_def[s.PM1]:
                 # Get averages for PM1 sensor
@@ -65,16 +70,16 @@ def flash_pm_averages(logger, is_def):
             # ToDo: minutes_from_midnight gets current time - if we are sending previous data upon cleanup we don't get the timestamp corresponding to the data
             # Append averages to the line to be sent over LoRa according to which sensors are defined.
             if is_def[s.PM1] and is_def[s.PM2]:
-                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
+                line_to_append = str(config.get_config("version")) + ',' + str(minutes_from_midnight()) + ',' + str(config.get_config("TEMP_id")) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config.get_config("PM1_id")) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + ',' + str(config.get_config("PM2_id")) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
             elif is_def[s.PM1]:
-                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + '\n'
+                line_to_append = str(config.get_config("version")) + ',' + str(minutes_from_midnight()) + ',' + str(config.get_config("TEMP_id")) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config.get_config("PM1_id")) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + '\n'
             elif is_def[s.PM2]:
-                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
+                line_to_append = str(config.get_config("version")) + ',' + str(minutes_from_midnight()) + ',' + str(config.get_config("TEMP_id")) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config.get_config("PM2_id")) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
 
             # Append lines to sensor_name.csv.tosend
             with open(s.lora_tosend, 'w') as f_tosend:  # TODO: change permission to 'a', hence make a queue for sending
                 f_tosend.write(line_to_append)
-
+            print(line_to_append)
             # If raw data was processed, saved and dumped, processing files can be deleted
             with pm_processing_lock:
                 try:

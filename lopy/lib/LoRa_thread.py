@@ -3,7 +3,7 @@ import socket
 import struct
 import ubinascii
 import os
-from configuration import config
+from Configuration import config
 from helper import blink_led
 import _thread
 
@@ -37,18 +37,18 @@ def lora_thread(thread_name, logger, is_def, timeout):
                 region = LoRa.EU868
 
                 # set region according to configuration - using either region name, or region code
-                if config["region"] == "AS923" or config["region"] == "Asia":
+                if config.get_config("region") == "AS923" or config.get_config("region") == "Asia" or config.get_config("region") == "asia":
                     region = LoRa.AS923
-                elif config["region"] == "AU915" or config["region"] == "Australia":
+                elif config.get_config("region") == "AU915" or config.get_config("region") == "Australia" or config.get_config("region") == "australia":
                     region = LoRa.AU915
-                elif config["region"] == "US915" or config["region"] == "United States":
+                elif config.get_config("region") == "US915" or config.get_config("region") == "United States" or config.get_config("region") == "united states":
                     region = LoRa.US915
 
                 lora = LoRa(mode=LoRa.LORAWAN, region=region, adr=True)
 
                 # create an OTAA authentication parameters
-                app_eui = ubinascii.unhexlify(config["application_eui"])
-                app_key = ubinascii.unhexlify(config["app_key"])
+                app_eui = ubinascii.unhexlify(config.get_config("application_eui"))
+                app_key = ubinascii.unhexlify(config.get_config("app_key"))
 
                 # join a network using OTAA (Over the Air Activation)
                 lora.join(activation=LoRa.OTAA, auth=(app_eui, app_key), timeout=timeout*1000)
@@ -74,9 +74,11 @@ def lora_thread(thread_name, logger, is_def, timeout):
                 log_file_name = "lora.csv.tosend"
 
                 # Set the structure of the bytes to send over lora according to which sensors are defined
-                structure = 'HHhhHHBBHHBBH'
+                # version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-B / TEMP_count-H /
+                # / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H / PM2_id-H / PM2_ PM10-B / PM2_PM25-B / PM2_count-H
+                structure = 'BHHhBHHBBHHBBH'
                 if not (is_def["PM1"] and is_def["PM2"]):
-                    structure = 'HHhhHHBBH'
+                    structure = 'BHHhBHHBBH'
 
                 if log_file_name not in os.listdir('/sd'):
                     raise Exception('Thread: {} - {} does not exist'.format(thread_name, log_file_name))

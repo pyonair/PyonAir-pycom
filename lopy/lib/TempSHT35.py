@@ -1,5 +1,5 @@
 from machine import I2C, Timer
-from configuration import config
+from Configuration import config
 from helper import blink_led
 import time
 
@@ -12,14 +12,14 @@ class TempSHT35(object):
         self.sensor_logger = sensor_logger
         self.status_logger = status_logger
 
-        self.sensor_id = config["TEMP_id"]
+        self.sensor_id = config.get_config("TEMP_id")
         self.timestamp_template = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}"  # yyyy-mm-dd hh-mm-ss
 
         # Initialise i2c - bus no., type, baudrate, i2c pins
         self.i2c = I2C(0, I2C.MASTER, baudrate=9600, pins=('P9', 'P10'))
         self.address = 0x45
 
-        self.processing_alarm = Timer.Alarm(self.process_readings, s=int(config["TEMP_interval"]), periodic=True)
+        self.processing_alarm = Timer.Alarm(self.process_readings, s=int(config.get_config("TEMP_interval")), periodic=True)
 
     def read(self):
         # high repeatability, clock stretching disabled

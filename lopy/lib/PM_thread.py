@@ -1,6 +1,5 @@
 from plantowerpycom import Plantower, PlantowerException
 from helper import mean_across_arrays, blink_led
-from configuration import config
 
 
 def pm_thread(sensor_name, sensor_logger, status_logger, pin_assignment, id_assigned):
@@ -11,7 +10,6 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pin_assignment, id_assi
     plantower = Plantower(pin_assignment=pin_assignment, id_assigned=id_assigned)
     last_timestamp = None
     sensor_readings_lst = []
-    sensor_id = config[sensor_name + "_id"]
 
     # read and log pm sensor data
     while True:
@@ -25,9 +23,9 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pin_assignment, id_assi
                 if curr_timestamp != last_timestamp:
                     # If there are any readings with the previous timestamps, process them
                     if len(sensor_readings_lst) > 0:
-                        lst_to_log = [last_timestamp] + [sensor_id] + [str(int(i)) for i in mean_across_arrays(sensor_readings_lst)]
+                        lst_to_log = [last_timestamp] + [str(int(i)) for i in mean_across_arrays(sensor_readings_lst)]
                         line_to_log = ','.join(lst_to_log)
-                        sensor_logger.log_row(line_to_log)
+                        sensor_logger.log_row(line_to_log, sensor_name)
                     # Set/reset global variables
                     last_timestamp = curr_timestamp
                     sensor_readings_lst = []

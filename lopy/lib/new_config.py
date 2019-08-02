@@ -3,10 +3,10 @@ from network import WLAN
 import usocket as socket
 from html import get_html_form
 import machine
-import time
 import pycom
 import gc
-from configuration import save_configuration, config
+from Configuration import config
+from helper import led_lock, blink_led
 from RtcDS1307 import clock
 import _thread
 
@@ -14,7 +14,7 @@ import _thread
 config_lock = _thread.allocate_lock()
 
 
-def config_thread(thread_name, logger, timeout):
+def new_config_thread(thread_name, logger, timeout):
     """
     Thread that turns on access point on the device to modify configurations. Name of access point: PmSensor
     Password: pmsensor Enter 192.168.4.10 on device browser to get configuration form. Indicator LEDs:
@@ -35,15 +35,18 @@ def config_thread(thread_name, logger, timeout):
 
             logger.info("Thread: {} started".format(thread_name))
 
+            # Config uses LED colours to indicate the state of the connection - lock is necessary to disable error pings
+            led_lock.acquire(1)
+
             # set pycom up as access point
-            wlan = network.WLAN(mode=WLAN.AP, ssid=config["device_name"])
+            wlan = network.WLAN(mode=WLAN.AP, ssid=config.get_config("device_name"))
             # Connect to PmSensor using password set by the user (default password: pmsensor)
-            wlan.init(mode=WLAN.AP, ssid=config["device_name"], auth=(WLAN.WPA2, config["password"]), channel=1,
+            wlan.init(mode=WLAN.AP, ssid=config.get_config("device_name"), auth=(WLAN.WPA2, config.get_config("password")), channel=1,
                       antenna=WLAN.INT_ANT)
             # Load HTML via entering 192,168.4.10 to your browser
             wlan.ifconfig(id=1, config=('192.168.4.10', '255.255.255.0', '192.168.4.1', '192.168.4.1'))
 
-            logger.info('Access point turned on as {}'.format(config["device_name"]))
+            logger.info('Access point turned on as {}'.format(config.get_config("device_name")))
             logger.info('Configuration website can be accessed at 192.168.4.10')
 
             address = socket.getaddrinfo('0.0.0.0', 80)[0][-1]  # Accept stations from all addresses
@@ -53,13 +56,11 @@ def config_thread(thread_name, logger, timeout):
             sct.bind(address)  # Bind address to socket
             sct.listen(1)  # Allow one station to connect to socket
 
-            pycom.heartbeat(False)
-            pycom.rgbled(0x0000FF)  # Blue LED - Initialized, waiting for connection
+            pycom.rgbled(0x0000FF)  # Blue LED - waiting for connection
 
-            get_configuration(sct, logger)
+            get_new_config(sct, logger)
 
             wlan.deinit()  # turn off wifi
-            pycom.heartbeat(True)  # disable indicator LEDs
             gc.collect()
 
             logger.info('rebooting...')
@@ -67,7 +68,7 @@ def config_thread(thread_name, logger, timeout):
 
 
 #  Sends html form over wifi and receives data from the user
-def get_configuration(sct, logger):
+def get_new_config(sct, logger):
     try:
         while True:
             client, address = sct.accept()  # wait for new connection
@@ -75,17 +76,13 @@ def get_configuration(sct, logger):
             pycom.rgbled(0x00FF00)  # Green LED - Connection successful
             received_data = str(client.recv(3000))  # wait for client response
             client.close()  # socket has to be closed because of the loop
-            status = process_data(received_data, logger)
-            if status == "loop":
-                continue
-            elif status == "done":
+            if process_data(received_data, logger):
                 return
-            elif status == "error":
-                raise Exception('Could not save config file')
     except Exception as e:
-        pycom.rgbled(0xFF0000)  # Red LED - Connection timeout
-        logger.warning(str(e))
-        time.sleep(3)
+        logger.exception(str(e))
+        logger.error("Failed to configure the device")
+        led_lock.release()
+        blink_led(colour=0xFF0000, count=1, delay=3, blocking=True)  # Red LED - Error
         return
 
 
@@ -100,7 +97,7 @@ def process_data(received_data, logger):
         config_time_lst = config_time_str.split(':')
         config_time_lst[0] = config_time_lst[0][2:]
         h_yr, h_mnth, h_day, h_hr, h_min, h_sec = int(config_time_lst[0], 16), int(config_time_lst[1], 16), int(config_time_lst[2], 16), int(config_time_lst[3], 16), int(config_time_lst[4], 16), int(config_time_lst[5], 16)
-        clock.set_time(h_yr, h_mnth, h_day, h_hr, h_min ,h_sec)
+        clock.set_time(h_yr, h_mnth, h_day, h_hr, h_min, h_sec)
         logger.info('RTC module calibrated via WiFi')
 
     #  find json string in received message
@@ -112,14 +109,11 @@ def process_data(received_data, logger):
 
         if len(config_json_str) >= 700:
             logger.error('Received configurations are too long')
-            return "loop"
+            return False  # keep looping - wait for new message from client
 
         logger.info('Configuration data received from user')
-        if save_configuration(logger, config_json_str):
-            return "done"
-        else:
-            logger.error('Could not save config file')
-            return "error"
+        config.save_configuration(logger, config_json_str)
+        return True
 
-    # client.send(html_acknowledgement.format(APP_KEY, APP_EUI, interval))  # sends acknowledgement to user
-    return "loop"
+    return False  # keep looping - wait for new message from client
+
