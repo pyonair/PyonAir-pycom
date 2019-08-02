@@ -2,6 +2,7 @@
 import pycom
 from helper import blink_led
 
+# Try to initialize the RTC and mount SD card, if this fails, keep blinking red and do not proceed
 try:
     from RtcDS1307 import clock
     from machine import SD
@@ -26,8 +27,9 @@ except Exception as e:
 pycom.heartbeat(False)  # disable the heartbeat LED
 pycom.rgbled(0x552000)  # flash orange until its loaded
 
+# Initialize the rest
 try:
-    from machine import RTC, Timer, SD, Pin, unique_id
+    from machine import Pin, unique_id
     from ButtonPress import ButtonPress
     from SensorLogger import SensorLogger
     from configuration import read_configuration, reset_configuration, config
