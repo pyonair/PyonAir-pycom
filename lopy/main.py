@@ -42,7 +42,10 @@ try:
     from ubinascii import hexlify
     import _thread
     import time
-    from initialisation import initialize_pm_sensor
+    from initialisation import initialize_pm_sensor, initialize_file_system
+
+    # Initialize file system
+    initialize_file_system()
 
     # Read configuration file to get preferences
     read_configuration(status_logger)

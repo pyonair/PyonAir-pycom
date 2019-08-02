@@ -30,11 +30,12 @@ processing_ext = '.processing'
 dump_ext = ''
 
 # Paths
-path = '/sd/'
+root_path = '/sd/'
 current_path = '/sd/current/'
+filesystem_dirs = ['current', 'processing', 'lora', 'wifi', 'archive']
 
 # Templates
-file_name_temp = path + '{}' + '.csv' + '{}'  # call this like: file_name_temp.format(sensor_name, extension)
+file_name_temp = root_path + '{}' + '.csv' + '{}'  # call this like: file_name_temp.format(sensor_name, extension)
 
 # Constants
 lora_tosend = '/sd/lora.csv.tosend'
