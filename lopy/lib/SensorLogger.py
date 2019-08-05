@@ -20,11 +20,12 @@ class SensorLogger:
         self.filename = s.current_path + sensor_name + '.csv'
         self.terminal_out = terminal_out
         self.terminator = terminator
+        self.sensor_name = sensor_name
 
-    def log_row(self, row, sensor_name):
+    def log_row(self, row):
         row_to_log = row + self.terminator
         if self.terminal_out:
-            sys.stdout.write(sensor_name + " - " + row_to_log)
+            sys.stdout.write(self.sensor_name + " - " + row_to_log)
         with pm_current_lock:
             with open(self.filename, 'a') as f:
                 f.write(row_to_log)

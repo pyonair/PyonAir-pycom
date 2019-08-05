@@ -25,7 +25,7 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pin_assignment, id_assi
                     if len(sensor_readings_lst) > 0:
                         lst_to_log = [last_timestamp] + [str(int(i)) for i in mean_across_arrays(sensor_readings_lst)]
                         line_to_log = ','.join(lst_to_log)
-                        sensor_logger.log_row(line_to_log, sensor_name)
+                        sensor_logger.log_row(line_to_log)
                     # Set/reset global variables
                     last_timestamp = curr_timestamp
                     sensor_readings_lst = []
