@@ -94,6 +94,8 @@ def lora_thread(thread_name, logger, is_def, timeout):
 
                         soc.send(payload)  # send payload to the connected socket
                         logger.info("Thread: {} sent payload".format(thread_name))
+                        logger.info("Thread: {} removing file: {}".format(thread_name, log_file_name))
+                        os.remove(s.lora_path + log_file_name)
 
             except Exception as e:
                 logger.exception("Sending averages over LoRaWAN failed")
