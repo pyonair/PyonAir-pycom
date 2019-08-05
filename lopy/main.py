@@ -61,12 +61,18 @@ try:
 
     # If device is correctly configured continue execution
     else:
-        """SET VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in the 
-        back end. If the structure of the LoRa message is changed upon an update, increment the version number and 
+        """SET VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in the
+        back end. If the structure of the LoRa message is changed upon an update, increment the version number and
         add a corresponding decoder to the back-end."""
         config.set_config({"version": 1})
         # Overwrite Preferences - DEVELOPER USE ONLY - keep all overwrites here
         config.set_config({"PM_interval": 1.5, "TEMP_interval": 5})
+
+        # Turn on transistors to control the pm sensors
+        pin_19 = Pin("P19", mode=Pin.OUT)
+        pin_19.value(1)
+        pin_20 = Pin("P20", mode=Pin.OUT)
+        pin_20.value(1)
 
         # ToDo: get is_def having both sensors enabled
         # Clean up - process current file from previous boot or re-process process file if rebooted while processing
@@ -83,7 +89,7 @@ try:
 
         # Initialise PM sensor threads
         if config.get_config(s.PM1):
-            initialize_pm_sensor(sensor_name=s.PM1, pins=('P15', 'P11'), serial_id=1, status_logger=status_logger)
+            initialize_pm_sensor(sensor_name=s.PM1, pins=('P15', 'P17'), serial_id=1, status_logger=status_logger)
         if config.get_config(s.PM2):
             initialize_pm_sensor(sensor_name=s.PM2, pins=('P13', 'P18'), serial_id=2, status_logger=status_logger)
 

@@ -49,7 +49,7 @@ class TempSHT35(object):
             str_round_lst = list(map(str, round_lst))  # cast float to string
             lst_to_log = [timestamp] + [self.sensor_id] + str_round_lst
             line_to_log = ','.join(lst_to_log)
-            self.sensor_logger.log_row(line_to_log)
+            self.sensor_logger.log_row(line_to_log, sensor_name="TEMP")
         except Exception as e:
             self.status_logger.exception("Failed to read from temperature and humidity sensor")
             blink_led(colour=0x770000, delay=0.5, count=1)
