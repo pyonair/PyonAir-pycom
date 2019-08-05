@@ -72,7 +72,7 @@ try:
         add a corresponding decoder to the back-end."""
         config.set_config({"version": 1})
         # Overwrite Preferences - DEVELOPER USE ONLY - keep all overwrites here
-        config.set_config({"PM_interval": 0.5, "TEMP_interval": 5})
+        # config.set_config({"PM_interval": 0.5, "TEMP_interval": 5})
 
         # Turn on transistors to control the pm sensors
         pin_19 = Pin("P19", mode=Pin.OUT)
