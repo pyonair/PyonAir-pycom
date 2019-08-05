@@ -6,6 +6,7 @@ import os
 from configuration import config
 from helper import blink_led
 import _thread
+import strings as s
 
 # Having a lock is necessary, because it is possible to have two lora threads running at the same time
 lora_lock = _thread.allocate_lock()
@@ -71,7 +72,7 @@ def lora_thread(thread_name, logger, is_def, timeout):
                 logger.info('bandwidth:' + str(lora.bandwidth()))
                 logger.info('spreading factor:' + str(lora.sf()))
 
-                log_file_name = "lora.csv.tosend"
+                log_file_name = s.lora_file
 
                 # Set the structure of the bytes to send over lora according to which sensors are defined
                 structure = 'HHhhHHBBHHBBH'
@@ -81,7 +82,7 @@ def lora_thread(thread_name, logger, is_def, timeout):
                 if log_file_name not in os.listdir('/sd'):
                     raise Exception('Thread: {} - {} does not exist'.format(thread_name, log_file_name))
                 else:
-                    with open('/sd/' + log_file_name, 'r') as f:
+                    with open(s.lora_path + log_file_name, 'r') as f:
 
                         # read all lines from lora.csv.tosend
                         lines = f.readlines()
