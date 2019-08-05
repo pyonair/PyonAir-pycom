@@ -6,7 +6,7 @@ import os
 from helper import mean_across_arrays, minutes_from_midnight, blink_led
 import _thread
 from LoRa_thread import lora_thread
-from configuration import config
+from Configuration import config
 import strings as s
 from helper import pm_current_lock, pm_processing_lock, pm_dump_lock, pm_tosend_lock
 import time
@@ -37,14 +37,19 @@ def flash_pm_averages(logger, is_def):
     :param is_def: Stores which sensors are defined in the form "sensor_name" : True/False
     :type is_def: dict
     """
-    logger.info("Flashing averages")
     # Only calculate averages if PM1 or PM2 or both sensors are enabled and have gathered data
     if is_def[s.PM1] or is_def[s.PM2]:
 
         logger.info("Calculating averages")
 
         try:
-            TEMP_avg_readings_str, TEMP_count = get_averages('SHT35', s.TEMP)
+            try:
+                TEMP_avg_readings_str, TEMP_count = get_averages('SHT35', s.TEMP)
+            except Exception as e:
+                logger.exception("No readings from temperature sensor")
+                logger.critical("Setting 9999 for both temperature and humidity as a place holder")
+                TEMP_avg_readings_str = ["9999", "9999"]  # data to send if no temperature is available
+                TEMP_count = 0
 
             if is_def[s.PM1]:
                 # Get averages for PM1 sensor
@@ -56,11 +61,11 @@ def flash_pm_averages(logger, is_def):
 
             # Append averages to the line to be sent over LoRa according to which sensors are defined.
             if is_def[s.PM1] and is_def[s.PM2]:
-                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
+                line_to_append = str(config.get_config("version")) + ',' + str(minutes_from_midnight()) + ',' + str(config.get_config("TEMP_id")) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config.get_config("PM1_id")) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + ',' + str(config.get_config("PM2_id")) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
             elif is_def[s.PM1]:
-                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config["PM1_id"]) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + '\n'
+                line_to_append = str(config.get_config("version")) + ',' + str(minutes_from_midnight()) + ',' + str(config.get_config("TEMP_id")) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config.get_config("PM1_id")) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + '\n'
             elif is_def[s.PM2]:
-                line_to_append = str(minutes_from_midnight()) + ',' + str(config["TEMP_id"]) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config["PM2_id"]) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
+                line_to_append = str(config.get_config("version")) + ',' + str(minutes_from_midnight()) + ',' + str(config.get_config("TEMP_id")) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config.get_config("PM2_id")) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
 
             # Append lines to sensor_name.csv.tosend
             lora_filepath = s.lora_path + s.lora_file

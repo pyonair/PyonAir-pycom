@@ -2,6 +2,8 @@
 import pycom
 from helper import blink_led
 
+pycom.heartbeat(False)  # disable the heartbeat LED
+
 # Try to initialize the RTC and mount SD card, if this fails, keep blinking red and do not proceed
 try:
     from RtcDS1307 import clock
@@ -24,21 +26,20 @@ except Exception as e:
     while True:
         blink_led(colour=0x770000, delay=0.5, count=1000)
 
-pycom.heartbeat(False)  # disable the heartbeat LED
 pycom.rgbled(0x552000)  # flash orange until its loaded
 
 # Initialize the rest
 try:
-    from machine import Pin, unique_id
+    from machine import Pin, unique_id, Timer
     from ButtonPress import ButtonPress
     from SensorLogger import SensorLogger
-    from configuration import read_configuration, reset_configuration, config
+    from Configuration import config
     from EventScheduler import EventScheduler
     import strings as s
-    from helper import check_data_ready
+    from helper import check_data_ready, blink_led, heartbeat
     from tasks import send_over_lora, flash_pm_averages
     from TempSHT35 import TempSHT35
-    from new_config import config_thread
+    from new_config import new_config_thread
     from ubinascii import hexlify
     import _thread
     import time
@@ -51,7 +52,7 @@ try:
     remove_residual_files()
 
     # Read configuration file to get preferences
-    read_configuration(status_logger)
+    config.read_configuration(status_logger)
 
     user_button = ButtonPress(logger=status_logger)
     pin_14 = Pin("P14", mode=Pin.IN, pull=None)
@@ -59,16 +60,25 @@ try:
 
     # Check if device is configured, or SD card has been moved to another device
     device_id = hexlify(unique_id()).upper().decode("utf-8")
-    if "" in config.values() or config["device_id"] != device_id:
-        reset_configuration(status_logger)
+    if not config.is_complete() or config.get_config("device_id") != device_id:
+        config.reset_configuration(status_logger)
         #  Forces user to configure device, then reboot
-        _thread.start_new_thread(config_thread, ('Config', status_logger, 300))
+        _thread.start_new_thread(new_config_thread, ('New_Config', status_logger, 300))
 
     # If device is correctly configured continue execution
     else:
+        """SET VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in the
+        back end. If the structure of the LoRa message is changed upon an update, increment the version number and
+        add a corresponding decoder to the back-end."""
+        config.set_config({"version": 1})
         # Overwrite Preferences - DEVELOPER USE ONLY - keep all overwrites here
-        config["PM_interval"] = 0.5  # minutes
-        config["TEMP_interval"] = 5  # seconds
+        config.set_config({"PM_interval": 0.5, "TEMP_interval": 5})
+
+        # Turn on transistors to control the pm sensors
+        pin_19 = Pin("P19", mode=Pin.OUT)
+        pin_19.value(1)
+        pin_20 = Pin("P20", mode=Pin.OUT)
+        pin_20.value(1)
 
         # ToDo: get is_def having both sensors enabled
         # Clean up - process current file from previous boot or re-process process file if rebooted while processing
@@ -82,9 +92,9 @@ try:
         status_logger.info("Temperature and humidity sensor initialized")
 
         # Initialise PM sensor threads
-        if config[s.PM1]:
+        if config.get_config(s.PM1):
             initialize_pm_sensor(sensor_name=s.PM1, pins=('P15', 'P17'), serial_id=1, status_logger=status_logger)
-        if config[s.PM2]:
+        if config.get_config(s.PM2):
             initialize_pm_sensor(sensor_name=s.PM2, pins=('P13', 'P18'), serial_id=2, status_logger=status_logger)
 
         # Start calculating averages for s.PM1 readings, and send data over LoRa
@@ -92,8 +102,11 @@ try:
 
         status_logger.info("Initialization finished")
 
-        # Blink green twice and put the heartbeat back to identify that the device has been initialised
+        # Initialize custom yellow heartbeat that triggers every 6 seconds
+        heartbeat = Timer.Alarm(heartbeat, s=6, periodic=True)
+        # Blink green twice to identify that the device has been initialised
         blink_led(colour=0x005500, count=2)
+
 except Exception as e:
     status_logger.exception("Exception in the main")
     pycom.rgbled(0x770000)

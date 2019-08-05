@@ -1,5 +1,5 @@
 from machine import I2C, Timer
-from configuration import config
+from Configuration import config
 from helper import blink_led
 import time
 
@@ -12,14 +12,14 @@ class TempSHT35(object):
         self.sensor_logger = sensor_logger
         self.status_logger = status_logger
 
-        self.sensor_id = config["TEMP_id"]
+        self.sensor_id = config.get_config("TEMP_id")
         self.timestamp_template = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}"  # yyyy-mm-dd hh-mm-ss
 
         # Initialise i2c - bus no., type, baudrate, i2c pins
         self.i2c = I2C(0, I2C.MASTER, baudrate=9600, pins=('P9', 'P10'))
         self.address = 0x45
 
-        self.processing_alarm = Timer.Alarm(self.process_readings, s=int(config["TEMP_interval"]), periodic=True)
+        self.processing_alarm = Timer.Alarm(self.process_readings, s=int(config.get_config("TEMP_interval")), periodic=True)
 
     def read(self):
         # high repeatability, clock stretching disabled
@@ -49,7 +49,7 @@ class TempSHT35(object):
             str_round_lst = list(map(str, round_lst))  # cast float to string
             lst_to_log = [timestamp] + [self.sensor_id] + str_round_lst
             line_to_log = ','.join(lst_to_log)
-            self.sensor_logger.log_row(line_to_log)
+            self.sensor_logger.log_row(line_to_log, sensor_name="TEMP")
         except Exception as e:
             self.status_logger.exception("Failed to read from temperature and humidity sensor")
             blink_led(colour=0x770000, delay=0.5, count=1)

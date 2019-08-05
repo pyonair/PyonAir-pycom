@@ -1,7 +1,8 @@
 # Helper functions
 import time
 import strings as s
-from configuration import config
+from Configuration import config
+import os
 import _thread
 import pycom
 
@@ -9,6 +10,7 @@ pm_current_lock = _thread.allocate_lock()
 pm_processing_lock = _thread.allocate_lock()
 pm_dump_lock = _thread.allocate_lock()
 pm_tosend_lock = _thread.allocate_lock()
+led_lock = _thread.allocate_lock()
 
 
 def seconds_to_first_event(rtc, interval_s):
@@ -60,15 +62,15 @@ def mean_across_arrays(arrays):
 def check_data_ready():
     is_def = {s.PM1: False, s.PM2: False, s.TEMP: True}
 
-    if config[s.PM1]:
+    if config.get_config(s.PM1):
         is_def[s.PM1] = True
-    if config[s.PM2]:
+    if config.get_config(s.PM2):
         is_def[s.PM2] = True
 
     return is_def
 
 
-def blink_led(colour=0x770000, count=1, delay=0.5):
+def blink_led(colour=0x770000, count=1, delay=0.4, blocking=False):
     """
     Blink with the inbuilt LED
     :param colour: colour in format like 0x770000, which is red
@@ -77,11 +79,33 @@ def blink_led(colour=0x770000, count=1, delay=0.5):
     :type count: int
     :param delay: delay in between blinks in seconds
     :type delay: float
+    :param blocking: True - will execute even if it has to wait, False - does not execute if LED is already in use
+    :type blocking: bool
     """
-    pycom.heartbeat(False)
-    for i in range(count):
-        pycom.rgbled(colour)
-        time.sleep(delay)
-        pycom.rgbled(0x000000)
-        time.sleep(delay)
-    pycom.heartbeat(True)
+
+    if blocking:
+        acquired = False
+        re_tries = 0
+        while not acquired:  # pycom has not yet implemented the timeout feature
+            acquired = led_lock.acquire(0)
+            time.sleep(0.2)
+            re_tries += 1
+            if re_tries >= 7:
+                break
+    else:
+        acquired = led_lock.acquire(0)
+
+    if acquired:
+        for i in range(count):
+            pycom.rgbled(colour)
+            time.sleep(delay)
+            pycom.rgbled(0x000000)
+            time.sleep(delay)
+
+        led_lock.release()
+
+
+# yellow blink to simulate heartbeat
+def heartbeat(arg):
+    blink_led(colour=0x555500, count=1, delay=0.1, blocking=True)
+
