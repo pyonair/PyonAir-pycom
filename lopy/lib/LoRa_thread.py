@@ -58,14 +58,14 @@ def lora_thread(thread_name, logger, is_def, timeout):
                     pass
 
                 # create a LoRa socket
-                s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
+                soc = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
 
                 # set the LoRaWAN data rate
-                s.setsockopt(socket.SOL_LORA, socket.SO_DR, 5)
+                soc.setsockopt(socket.SOL_LORA, socket.SO_DR, 5)
 
                 # make the socket blocking
                 # (waits for the data to be sent and for the 2 receive windows to expire)
-                s.setblocking(True)
+                soc.setblocking(True)
 
                 logger.info("Thread: {} - joined LoRa network".format(thread_name))
                 logger.info('bandwidth:' + str(lora.bandwidth()))
@@ -91,7 +91,7 @@ def lora_thread(thread_name, logger, is_def, timeout):
                             int_line = list(map(int, split_line_lst))  # cast str list to int list
                             payload = struct.pack(structure, *int_line)  # define payload with given structure and list of averages
 
-                        s.send(payload)  # send payload to the connected socket
+                        soc.send(payload)  # send payload to the connected socket
                         logger.info("Thread: {} sent payload".format(thread_name))
 
             except Exception as e:
