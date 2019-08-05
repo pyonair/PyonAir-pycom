@@ -31,8 +31,8 @@ dump_ext = ''
 # Directories
 current = 'current'
 processing = 'processing'
-lora = 'lora'
-wifi = 'wifi'
+lora = 'lora_tosend'
+wifi = 'wifi_tosend'
 archive = 'archive'
 
 # Paths
@@ -46,5 +46,5 @@ filesystem_dirs = [current, processing, lora, wifi, archive]
 # Templates
 file_name_temp = root_path + '{}' + '.csv' + '{}'  # call this like: file_name_temp.format(sensor_name, extension)
 
-# Constants
-lora_tosend = '/sd/lora.csv.tosend'
+# Temporary constant files before message queueing implemented
+lora_file = 'lora.csv'

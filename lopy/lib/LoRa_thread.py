@@ -79,7 +79,7 @@ def lora_thread(thread_name, logger, is_def, timeout):
                 if not (is_def["PM1"] and is_def["PM2"]):
                     structure = 'HHhhHHBBH'
 
-                if log_file_name not in os.listdir('/sd'):
+                if log_file_name not in os.listdir(s.lora_path[:-1]):  # Strip '/' from the end of path
                     raise Exception('Thread: {} - {} does not exist'.format(thread_name, log_file_name))
                 else:
                     with open(s.lora_path + log_file_name, 'r') as f:
