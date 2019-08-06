@@ -4,5 +4,8 @@
 # Keys
 keys.py
 
+# Config overrides for dev use only
+debug_config.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/

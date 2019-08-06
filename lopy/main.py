@@ -44,6 +44,7 @@ try:
     import _thread
     import time
     from initialisation import initialize_pm_sensor, initialize_file_system, remove_residual_files
+    import ujson
 
     # Initialize file system
     initialize_file_system()
@@ -71,8 +72,12 @@ try:
         back end. If the structure of the LoRa message is changed upon an update, increment the version number and
         add a corresponding decoder to the back-end."""
         config.set_config({"version": 1})
-        # Overwrite Preferences - DEVELOPER USE ONLY - keep all overwrites here
-        # config.set_config({"PM_interval": 0.5, "TEMP_interval": 5})
+        # Override Preferences - DEVELOPER USE ONLY - keep all overwrites here
+        if 'debug_config.json' in os.listdir('/flash'):
+            status_logger.warning("Overriding configuration with the content of debug_config.json")
+            with open('/flash/debug_config.json', 'r') as f:
+                config.set_config(ujson.loads(f.read()))
+                status_logger.warning("Configuration changed to: " + str(config.get_config()))
 
         # Turn on transistors to control the pm sensors
         pin_19 = Pin("P19", mode=Pin.OUT)
