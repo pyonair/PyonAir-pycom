@@ -75,11 +75,11 @@ def lora_thread(thread_name, logger, is_def, timeout):
                 log_file_name = s.lora_file
 
                 # Set the structure of the bytes to send over lora according to which sensors are defined
-                # version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-B / TEMP_count-H /
+                # version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H /
                 # / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H / PM2_id-H / PM2_ PM10-B / PM2_PM25-B / PM2_count-H
-                structure = 'BHHhBHHBBHHBBH'
+                structure = '<BHHhhHHBBHHBBH'
                 if not (is_def["PM1"] and is_def["PM2"]):
-                    structure = 'BHHhBHHBBH'
+                    structure = '<BHHhhHHBBH'
 
                 if log_file_name not in os.listdir(s.lora_path[:-1]):  # Strip '/' from the end of path
                     raise Exception('Thread: {} - {} does not exist'.format(thread_name, log_file_name))
@@ -92,6 +92,7 @@ def lora_thread(thread_name, logger, is_def, timeout):
                             stripped_line = line[:-1]  # strip /n
                             split_line_lst = stripped_line.split(',')  # split line to a list of values
                             int_line = list(map(int, split_line_lst))  # cast str list to int list
+                            logger.debug("Sending over lora: " + str(int_line))
                             payload = struct.pack(structure, *int_line)  # define payload with given structure and list of averages
 
                         soc.send(payload)  # send payload to the connected socket
