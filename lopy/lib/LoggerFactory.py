@@ -31,10 +31,13 @@ class LoggerFactory:
             fmt=STATUS_FMT_DEFAULT,
             filename=None,
             maxBytes=STATUS_MAX_FILE_SIZE_DEFAULT,
-            backupCount=STATUS_ARCHIVE_COUNT_DEFAULT
+            backupCount=STATUS_ARCHIVE_COUNT_DEFAULT,
+            terminal_out=True
     ):
         """
         Create status logger and add it to the self.loggers dictionary
+        :param terminal_out: output status logger to terminal
+        :type terminal_out: bool
         :param name: logger name
         :type name: str
         :param fmt: format string for the logger
@@ -51,9 +54,10 @@ class LoggerFactory:
         status_logger = logging.getLogger(name)
         status_logger.setLevel(level)
         formatter = logging.Formatter(fmt=fmt)
-        sh = logging.StreamHandler()  # handler for printing to terminal
-        sh.setFormatter(formatter)
-        status_logger.addHandler(sh)
+        if terminal_out:
+            sh = logging.StreamHandler()  # handler for printing to terminal
+            sh.setFormatter(formatter)
+            status_logger.addHandler(sh)
         if filename:
             file_handler = handlers.RotatingFileHandler(self.path + filename, maxBytes=maxBytes, backupCount=backupCount)
             file_handler.setFormatter(formatter)

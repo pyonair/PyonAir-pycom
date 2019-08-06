@@ -20,7 +20,7 @@ try:
 
     # Initialise LoggerFactory and status logger
     logger_factory = LoggerFactory()
-    status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, filename='status_log.txt')
+    status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, terminal_out=True, filename='status_log.txt')
 except Exception as e:
     print(e)
     while True:
