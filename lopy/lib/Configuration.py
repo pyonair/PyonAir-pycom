@@ -27,7 +27,9 @@ class Configuration:
                                       "TEMP_interval": 15, "GPS_interval": 12, "logging_lvl": "Warning"}
 
     # Configuration Accessor/Getter
-    def get_config(self, keys):
+    def get_config(self, keys=None):
+        if keys is None:
+            return self.configuration
         if isinstance(keys, list):
             return list(self.configuration[k] for k in keys if k in self.configuration)
         else:
