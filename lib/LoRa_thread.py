@@ -12,7 +12,7 @@ import strings as s
 lora_lock = _thread.allocate_lock()
 
 
-def lora_thread(thread_name, logger, is_def, timeout):
+def lora_thread(thread_name, logger, is_def):
     """
     Function that connects to the LoRaWAN network using OTAA and sends sensor averages from the tosend file.
      It is run as a thread by the send_over_lora method defined in tasks.py
@@ -38,11 +38,11 @@ def lora_thread(thread_name, logger, is_def, timeout):
                 region = LoRa.EU868
 
                 # set region according to configuration - using either region name, or region code
-                if config.get_config("region") == "AS923" or config.get_config("region") == "Asia" or config.get_config("region") == "asia":
+                if config.get_config("region") == "Asia":
                     region = LoRa.AS923
-                elif config.get_config("region") == "AU915" or config.get_config("region") == "Australia" or config.get_config("region") == "australia":
+                elif config.get_config("region") == "Australia":
                     region = LoRa.AU915
-                elif config.get_config("region") == "US915" or config.get_config("region") == "United States" or config.get_config("region") == "united states":
+                elif config.get_config("region") == "United States":
                     region = LoRa.US915
 
                 lora = LoRa(mode=LoRa.LORAWAN, region=region, adr=True)
@@ -52,7 +52,7 @@ def lora_thread(thread_name, logger, is_def, timeout):
                 app_key = ubinascii.unhexlify(config.get_config("app_key"))
 
                 # join a network using OTAA (Over the Air Activation)
-                lora.join(activation=LoRa.OTAA, auth=(app_eui, app_key), timeout=timeout*1000)
+                lora.join(activation=LoRa.OTAA, auth=(app_eui, app_key), timeout=int(config.get_config("lora_timeout"))*1000)
 
                 # wait until the module has joined the network
                 while not lora.has_joined():

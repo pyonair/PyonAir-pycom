@@ -64,3 +64,8 @@ class LoggerFactory:
             status_logger.addHandler(file_handler)
         self.loggers[name] = status_logger
         return self.loggers[name]
+
+    def set_level(self, name, level):
+
+        self.loggers[name].setLevel(level)
+        return self.loggers[name]

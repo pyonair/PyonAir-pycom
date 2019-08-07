@@ -19,12 +19,12 @@ class Configuration:
 
         self.configuration = {}
 
-        self.default_configuration = {"device_id": "", "device_name": "NewPmSensor", "password": "pmsensor",
-                                      "region": "EU868", "device_eui": "", "application_eui": "",
-                                      "app_key": "", "application_id": "", "access_key": "", "raw_interval": 12,
-                                      "PM1": True, "PM2": True, "TEMP": True, "GPS": True, "PM1_id": "001",
-                                      "PM2_id": "002", "TEMP_id": "001", "GPS_id": "001", "PM_interval": 15,
-                                      "TEMP_interval": 15, "GPS_interval": 12, "logging_lvl": "Warning"}
+        self.default_configuration = {"device_id": "", "device_name": "NewPyonAir", "password": "newpyonair",
+                                      "region": "Europe", "device_eui": "", "application_eui": "",
+                                      "app_key": "", "SSID": "", "wifi_password": "", "raw_freq": 15,
+                                      "PM1": "PMS5003", "PM2": "SPS030", "GPS": "OFF", "PM1_id": "002",
+                                      "PM2_id": "003", "TEMP_id": "001", "GPS_id": "004", "PM_interval": 15,
+                                      "TEMP_freq": 5, "GPS_freq": 12, "logging_lvl": "Warning", "lora_timeout": 60}
 
     # Configuration Accessor/Getter
     def get_config(self, keys=None):
@@ -48,8 +48,6 @@ class Configuration:
 
     #  Saves keys and preferences to sd card
     def save_configuration(self, logger, config_json_str):
-
-        self.set_config({"PM1": False, "PM2": False, "TEMP": False, "GPS": False})
 
         self.set_config(ujson.loads(config_json_str))
 
