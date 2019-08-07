@@ -6,7 +6,7 @@ import time
 
 
 # ToDo: Use interrupts and unify the two sensor processing by polling only one reading from the plantower in a second.
-def pm_thread(sensor_name, sensor_logger, status_logger, pin_assignment, id_assigned):
+def pm_thread(sensor_name, sensor_logger, status_logger, pins, serial_id):
 
     status_logger.info("Thread PM sensor: {} started".format(sensor_name))
 
@@ -15,7 +15,7 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pin_assignment, id_assi
     # variables for sensor reading and computing averages
     if sensor_type == "PMS5003":
 
-        plantower = Plantower(pin_assignment=pin_assignment, id_assigned=id_assigned)
+        plantower = Plantower(pins=pins, id=serial_id)
         last_timestamp = None
         sensor_readings_lst = []
 
@@ -49,7 +49,7 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pin_assignment, id_assi
 
         while True:
             try:
-                SPS030 = Sensirion(pins=pin_assignment, id=id_assigned)  # automatically starts measurement
+                SPS030 = Sensirion(pins=pins, id=serial_id)  # automatically starts measurement
                 break
             except SensirionException as e:
                 status_logger.exception("Failed to read from sensor {}".format(sensor_name))
