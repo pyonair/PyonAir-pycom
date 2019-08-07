@@ -2,6 +2,8 @@
 
 PyonAir is a low-cost open-source air pollution monitor developed at the University of Southampton. The monitor measures particulate matter (PM), temperature, and humidity. It also associates the readings with location pulled from GPS.
 
+![PyonAir](https://blobscdn.gitbook.com/v0/b/gitbook-28427.appspot.com/o/assets%2F-LheWV6hCRaax90oq84D%2F-LixJBNfaAPa5rYwP1p_%2F-LixJEjxsWOdrSaRS4OQ%2FCAD%20pic%202.jpg?alt=media&token=b29deb3e-967f-48d5-8073-85b7d377e322)
+
 ## Hardware
 
 All the hardware components used for the air monitor are listed [here](https://s-u-pm-sensor.gitbook.io/instructions/hardware/hardware-overview).
