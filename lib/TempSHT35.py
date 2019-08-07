@@ -19,7 +19,7 @@ class TempSHT35(object):
         self.i2c = I2C(0, I2C.MASTER, baudrate=9600, pins=('P9', 'P10'))
         self.address = 0x45
 
-        self.processing_alarm = Timer.Alarm(self.process_readings, s=int(config.get_config("TEMP_interval")), periodic=True)
+        self.processing_alarm = Timer.Alarm(self.process_readings, s=int(config.get_config("TEMP_freq")), periodic=True)
 
     def read(self):
         # high repeatability, clock stretching disabled

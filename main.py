@@ -11,6 +11,7 @@ try:
     import os
     from LoggerFactory import LoggerFactory
     from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
+
     # Initialise clock
     rtc = clock.get_time()
 
@@ -78,12 +79,6 @@ try:
             with open('/flash/debug_config.json', 'r') as f:
                 config.set_config(ujson.loads(f.read()))
                 status_logger.warning("Configuration changed to: " + str(config.get_config()))
-
-        # Turn on transistors to control the pm sensors
-        pin_19 = Pin("P19", mode=Pin.OUT)
-        pin_19.value(1)
-        pin_20 = Pin("P20", mode=Pin.OUT)
-        pin_20.value(1)
 
         # ToDo: get is_def having both sensors enabled
         # Clean up - process current file from previous boot or re-process process file if rebooted while processing

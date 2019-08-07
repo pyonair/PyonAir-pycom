@@ -16,7 +16,7 @@ class FlashPMAveragesException(Exception):
     pass
 
 
-def send_over_lora(logger, is_def, timeout):
+def send_over_lora(logger, is_def):
     """
     Starts a thread that connects to LoRa and sends averages of the raw data
     :type logger: LoggerFactory object (status_logger)
@@ -25,7 +25,7 @@ def send_over_lora(logger, is_def, timeout):
     :param timeout: Timeout for LoRa to send over data seconds
     :type timeout: int
     """
-    _thread.start_new_thread(lora_thread, ('LoRa', logger, is_def, timeout))
+    _thread.start_new_thread(lora_thread, ('LoRa', logger, is_def))
 
 
 def flash_pm_averages(logger, is_def):

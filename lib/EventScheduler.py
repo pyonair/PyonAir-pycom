@@ -44,4 +44,4 @@ class EventScheduler:
         self.random_alarm = Timer.Alarm(self.random_event, s=self.s_to_next_lora, periodic=False)
 
     def random_event(self, arg):
-        send_over_lora(logger=self.logger, is_def=self.is_def, timeout=60)
+        send_over_lora(logger=self.logger, is_def=self.is_def)
