@@ -9,8 +9,9 @@ try:
     from RtcDS1307 import clock
     from machine import SD
     import os
+    from loggingpycom import DEBUG
     from LoggerFactory import LoggerFactory
-    from loggingpycom import INFO, WARNING, CRITICAL, DEBUG
+    from helper import get_logging_level
 
     # Initialise clock
     rtc = clock.get_time()
@@ -73,28 +74,34 @@ try:
         back end. If the structure of the LoRa message is changed upon an update, increment the version number and
         add a corresponding decoder to the back-end."""
         config.set_config({"version": 1})
+
+        """SET DEBUG LEVEL"""
+        logger_factory.set_level('status_logger', get_logging_level())
+
         # Override Preferences - DEVELOPER USE ONLY - keep all overwrites here
         if 'debug_config.json' in os.listdir('/flash'):
             status_logger.warning("Overriding configuration with the content of debug_config.json")
             with open('/flash/debug_config.json', 'r') as f:
                 config.set_config(ujson.loads(f.read()))
                 status_logger.warning("Configuration changed to: " + str(config.get_config()))
+        config.set_config({"PM_interval": 1.2})
 
         # ToDo: get is_def having both sensors enabled
         # Clean up - process current file from previous boot or re-process process file if rebooted while processing
         is_def = check_data_ready()  # check which sensors are defined (enabled, and have data)
 
-        TEMP_current = s.file_name_temp.format(s.TEMP, s.current_ext)
-        TEMP_logger = SensorLogger(sensor_name=s.TEMP, terminal_out=True)
-
         # Initialise temperature and humidity sensor thread with id: TEMP
-        temp_sensor = TempSHT35(TEMP_logger, status_logger)
+        if config.get_config(s.TEMP) != "OFF":
+            TEMP_current = s.file_name_temp.format(s.TEMP, s.current_ext)
+            TEMP_logger = SensorLogger(sensor_name=s.TEMP, terminal_out=True)
+            if config.get_config(s.TEMP) == "SHT35":
+                temp_sensor = TempSHT35(TEMP_logger, status_logger)
         status_logger.info("Temperature and humidity sensor initialized")
 
         # Initialise PM sensor threads
-        if config.get_config(s.PM1):
+        if config.get_config(s.PM1) != "OFF":
             initialize_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1, status_logger=status_logger)
-        if config.get_config(s.PM2):
+        if config.get_config(s.PM2) != "OFF":
             initialize_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2, status_logger=status_logger)
 
         # Start calculating averages for s.PM1 readings, and send data over LoRa

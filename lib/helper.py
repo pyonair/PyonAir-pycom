@@ -1,10 +1,11 @@
 # Helper functions
-import time
-import strings as s
+
 from Configuration import config
-import os
-import _thread
+from loggingpycom import INFO, WARNING, CRITICAL, DEBUG, ERROR
+import strings as s
+import time
 import pycom
+import _thread
 
 pm_current_lock = _thread.allocate_lock()
 pm_processing_lock = _thread.allocate_lock()
@@ -62,12 +63,26 @@ def mean_across_arrays(arrays):
 def check_data_ready():
     is_def = {s.PM1: False, s.PM2: False, s.TEMP: True}
 
-    if config.get_config(s.PM1):
+    if config.get_config(s.PM1) != "OFF":
         is_def[s.PM1] = True
-    if config.get_config(s.PM2):
+    if config.get_config(s.PM2) != "OFF":
         is_def[s.PM2] = True
 
     return is_def
+
+
+def get_logging_level():
+    logging_lvl = config.get_config("logging_lvl")
+    if logging_lvl == "Critical":
+        return CRITICAL
+    elif logging_lvl == "Error":
+        return ERROR
+    elif logging_lvl == "Warning":
+        return WARNING
+    elif logging_lvl == "Info":
+        return INFO
+    elif logging_lvl == "Debug":
+        return DEBUG
 
 
 def blink_led(colour=0x770000, count=1, delay=0.4, blocking=False):

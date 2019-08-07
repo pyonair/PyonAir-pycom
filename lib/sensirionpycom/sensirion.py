@@ -10,7 +10,7 @@ from machine import Timer, UART
 import struct
 import time
 
-from sensirion_error_codes import ERROR_CODE_NO_ERROR, lookup_error_code
+from sensirionpycom.sensirion_error_codes import ERROR_CODE_NO_ERROR, lookup_error_code
 
 timestamp_template = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}"  # yyyy-mm-dd hh-mm-ss
 

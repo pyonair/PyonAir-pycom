@@ -1,12 +1,38 @@
 from Configuration import config
+import strings as s
 
 
 def get_html_form():
 
-    is_selected = {"Critical":"", "Error":"", "Warning":"", "Info":"", "Debug":""}
-    for level in is_selected:
+    selected_region = {"Europe": "", "Asia": "", "Australia": "", "United States": ""}
+    for option in selected_region:
+        if option == config.get_config("region"):
+            selected_region[option] = " selected"
+
+    selected_TEMP = {"SHT35": ""}
+    for option in selected_TEMP:
+        if option == config.get_config(s.TEMP):
+            selected_TEMP[option] = " selected"
+
+    selected_PM1 = {"PMS5003": "", "SPS030": "", "OFF": ""}
+    for option in selected_PM1:
+        if option == config.get_config(s.PM1):
+            selected_PM1[option] = " selected"
+
+    selected_PM2 = {"PMS5003": "", "SPS030": "", "OFF": ""}
+    for option in selected_PM2:
+        if option == config.get_config(s.PM2):
+            selected_PM2[option] = " selected"
+
+    selected_GPS = {"ON": "", "OFF": ""}
+    for option in selected_GPS:
+        if option == config.get_config("GPS"):
+            selected_GPS[option] = " selected"
+
+    selected_logging = {"Critical": "", "Error": "", "Warning": "", "Info": "", "Debug": ""}
+    for level in selected_logging:
         if level == config.get_config("logging_lvl"):
-            is_selected[level] = " selected"
+            selected_logging[level] = " selected"
 
     html_form = '''<!DOCTYPE html>
     <html>
@@ -148,10 +174,10 @@ def get_html_form():
             <input id="app_key" name="app_key" type="password" value="''' + str(config.get_config("app_key")) + '''" required="required" maxlength="32"/>
             <label for="region">Region</label>
             <select name="region">
-              <option>Europe</option>
-              <option>Asia</option>
-              <option>Australia</option>
-              <option>United States</option>
+              <option'''+str(selected_region["Europe"])+'''>Europe</option>
+              <option'''+str(selected_region["Asia"])+'''>Asia</option>
+              <option'''+str(selected_region["Australia"])+'''>Australia</option>
+              <option'''+str(selected_region["United States"])+'''>United States</option>
             </select>
           </div>
           <p>MQTT Configuration - Not implemented</p>
@@ -171,9 +197,9 @@ def get_html_form():
             <hr/>
             <div class="sensor">
               <div>
-                <label for="TEMP_type">Sensor Type</label>
-                <select name="TEMP_type">
-                  <option>SHT35</option>
+                <label for="TEMP">Sensor Type</label>
+                <select name="TEMP">
+                  <option'''+str(selected_TEMP["SHT35"])+'''>SHT35</option>
                 </select>
               </div>
               <div>
@@ -194,11 +220,11 @@ def get_html_form():
                 </div>
                 <div class="sensor grid_item2">
                   <div>
-                    <label for="PM1_type">Sensor Type</label>
-                    <select name="PM1_type">
-                      <option>PMS5003</option>
-                      <option>SPS030</option>
-                      <option>NONE</option>
+                    <label for="PM1">Sensor Type</label>
+                    <select name="PM1">
+                      <option'''+str(selected_PM1["PMS5003"])+'''>PMS5003</option>
+                      <option'''+str(selected_PM1["SPS030"])+'''>SPS030</option>
+                      <option'''+str(selected_PM1["OFF"])+'''>OFF</option>
                     </select>
                   </div>
                   <div>
@@ -216,11 +242,11 @@ def get_html_form():
                 </div>
                 <div class="sensor grid_item5">
                   <div>
-                    <label for="PM2_type">Sensor Type</label>
-                    <select name="PM2_type">
-                      <option>PMS5003</option>
-                      <option>SPS030</option>
-                      <option>NONE</option>
+                    <label for="PM2">Sensor Type</label>
+                    <select name="PM2">
+                      <option'''+str(selected_PM2["PMS5003"])+'''>PMS5003</option>
+                      <option'''+str(selected_PM2["SPS030"])+'''>SPS030</option>
+                      <option'''+str(selected_PM2["OFF"])+'''>OFF</option>
                     </select>
                   </div>
                   <div>
@@ -235,8 +261,8 @@ def get_html_form():
               <div>
                 <label for="GPS">State</label>
                 <select name="GPS">
-                  <option>ON</option>
-                  <option>OFF</option>
+                  <option'''+str(selected_GPS["ON"])+'''>ON</option>
+                  <option'''+str(selected_GPS["OFF"])+'''>OFF</option>
                 </select>
               </div>
               <div>
@@ -251,11 +277,11 @@ def get_html_form():
             <hr class="p_line sensor_settings"/>
             <label for="logging_lvl">Select Logging Level</label>
             <select id="logging_lvl" name="logging_lvl">
-              <option'''+str(is_selected["Critical"])+'''>Critical</option>
-              <option'''+str(is_selected["Error"])+'''>Error</option>
-              <option'''+str(is_selected["Warning"])+'''>Warning</option>
-              <option'''+str(is_selected["Info"])+'''>Info</option>
-              <option'''+str(is_selected["Debug"])+'''>Debug</option>
+              <option'''+str(selected_logging["Critical"])+'''>Critical</option>
+              <option'''+str(selected_logging["Error"])+'''>Error</option>
+              <option'''+str(selected_logging["Warning"])+'''>Warning</option>
+              <option'''+str(selected_logging["Info"])+'''>Info</option>
+              <option'''+str(selected_logging["Debug"])+'''>Debug</option>
             </select>
             <br><br>
             <button type="submit">Save</button>
@@ -294,7 +320,7 @@ def get_html_form():
           json_data.replace(/\\n/g, '');
     
           var date = new Date();
-          var now = 'time_begin'+date.getFullYear()+':'+(date.getMonth()+1)+':'+date.getDate()+':'+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+'time_end';
+          var now = 'time_begin'+date.getUTCFullYear()+':'+(date.getUTCMonth()+1)+':'+date.getUTCDate()+':'+date.getUTCHours()+":"+date.getUTCMinutes()+":"+date.getUTCSeconds()+'time_end';
     
           // ...this is where we’d actually do something with the form data...
           var xhttp = new XMLHttpRequest();

@@ -12,7 +12,6 @@ class TempSHT35(object):
         self.sensor_logger = sensor_logger
         self.status_logger = status_logger
 
-        self.sensor_id = config.get_config("TEMP_id")
         self.timestamp_template = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}"  # yyyy-mm-dd hh-mm-ss
 
         # Initialise i2c - bus no., type, baudrate, i2c pins
