@@ -16,7 +16,7 @@ class FlashPMAveragesException(Exception):
     pass
 
 
-def send_over_lora(logger, is_def, timeout):
+def send_over_lora(logger, is_def):
     """
     Starts a thread that connects to LoRa and sends averages of the raw data
     :type logger: LoggerFactory object (status_logger)
@@ -25,7 +25,7 @@ def send_over_lora(logger, is_def, timeout):
     :param timeout: Timeout for LoRa to send over data seconds
     :type timeout: int
     """
-    _thread.start_new_thread(lora_thread, ('LoRa', logger, is_def, timeout))
+    _thread.start_new_thread(lora_thread, ('LoRa', logger, is_def))
 
 
 def flash_pm_averages(logger, is_def):
@@ -44,7 +44,7 @@ def flash_pm_averages(logger, is_def):
 
         try:
             try:
-                TEMP_avg_readings_str, TEMP_count = get_averages('SHT35', s.TEMP)
+                TEMP_avg_readings_str, TEMP_count = get_averages(s.TEMP)
             except Exception as e:
                 logger.exception("No readings from temperature sensor")
                 logger.critical("Setting 9999 for both temperature and humidity as a place holder")
@@ -53,11 +53,11 @@ def flash_pm_averages(logger, is_def):
 
             if is_def[s.PM1]:
                 # Get averages for PM1 sensor
-                PM1_avg_readings_str, PM1_count = get_averages('PMS5003', s.PM1)
+                PM1_avg_readings_str, PM1_count = get_averages(s.PM1)
 
             if is_def[s.PM2]:
                 # Get averages for PM2 sensor
-                PM2_avg_readings_str, PM2_count = get_averages('PMS5003', s.PM2)
+                PM2_avg_readings_str, PM2_count = get_averages(s.PM2)
 
             # Append averages to the line to be sent over LoRa according to which sensors are defined.
             if is_def[s.PM1] and is_def[s.PM2]:
@@ -88,13 +88,11 @@ def flash_pm_averages(logger, is_def):
             blink_led(colour=0x770000, delay=0.5, count=1)
 
 
-def get_averages(type, sensor_name):
+def get_averages(sensor_name):
     """
     Calculates averages for specific columns of a sensor log data to be sent over LoRa.
-    :param type: sensor type
-    :type type: str
     :param sensor_name: sensor name
-    :type sensor_name: str
+    :sensor_type sensor_name: str
     :return: average readings of specific columns
     :rtype: str
     """
@@ -116,7 +114,8 @@ def get_averages(type, sensor_name):
                 raise FlashPMAveragesException("Cannot flash averages because there is no " + filename + " in " + s.current_path)
 
         # Header of current file
-        header = s.headers_dict_v4[type]
+        sensor_type = config.get_config(sensor_name)
+        header = s.headers_dict_v4[sensor_type]
         count = 0
 
         with open(s.processing_path + filename, 'r') as f:
@@ -128,10 +127,10 @@ def get_averages(type, sensor_name):
                 stripped_line_lst = str(stripped_line).split(',')  # split string to list at comas
                 named_line = dict(zip(header, stripped_line_lst))  # assign each value to its header
                 sensor_reading = []
-                if type == 'PMS5003':
+                if sensor_type == 'PMS5003' or sensor_type == 'SPS030':
                     sensor_reading.append(int(named_line["PM10"]))
                     sensor_reading.append(int(named_line["PM25"]))
-                elif type == 'SHT35':
+                elif sensor_type == 'SHT35':
                     sensor_reading.append(int(float(named_line["temperature"])*10))  # shift left and cast to int
                     sensor_reading.append(int(float(named_line["humidity"])*10))  # shift left and cast to int
                 # Append extra lines here for more readings - update version number and back-end to interpret data
