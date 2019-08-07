@@ -84,7 +84,6 @@ try:
             with open('/flash/debug_config.json', 'r') as f:
                 config.set_config(ujson.loads(f.read()))
                 status_logger.warning("Configuration changed to: " + str(config.get_config()))
-        config.set_config({"PM_interval": 1.2})
 
         # ToDo: get is_def having both sensors enabled
         # Clean up - process current file from previous boot or re-process process file if rebooted while processing
