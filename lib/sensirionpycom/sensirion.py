@@ -3,6 +3,8 @@
     Florentin Bulot
     15/01/2019
     based on https://github.com/FEEprojects/plantower
+
+    Converted into Pycom library by Peter Varga, 07/08/2019
 """
 
 from sensirionpycom import logging

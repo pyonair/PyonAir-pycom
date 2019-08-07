@@ -11,7 +11,7 @@ from machine import Timer, UART
 
 timestamp_template = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}"  # yyyy-mm-dd hh-mm-ss
 
-DEFAULT_SERIAL_PINS = ('P10', 'P17')  # Serial pins to use if no other specified, (TX, RX)
+DEFAULT_SERIAL_PINS = ('P10', 'P11')  # Serial pins to use if no other specified, (TX, RX)
 DEFAULT_BAUD_RATE = 9600  # Serial baud rate to use if no other specified
 DEFAULT_SERIAL_TIMEOUT = 2  # Serial timeout to use if not specified
 DEFAULT_READ_TIMEOUT = 1  # How long to sit looking for the correct character sequence.
@@ -74,29 +74,16 @@ class Plantower(object):
             serial_timeout=DEFAULT_SERIAL_TIMEOUT,
             read_timeout=DEFAULT_READ_TIMEOUT,
             log_level=DEFAULT_LOGGING_LEVEL,
-            id=DEFAULT_ID,
-            **kwargs
+            id=DEFAULT_ID
     ):
         """
             Setup the interface for the sensor
         """
-
-        pin_assignment = kwargs.get('pin_assignment', -1)
-        if pin_assignment != -1:
-            self.pins = pin_assignment  # Custom pin assignment
-        else:
-            self.pins = pins  # Default pin assignment
-
-        id_assigned = kwargs.get('id_assigned', -1)
-        if id_assigned != -1:
-            self.id = id_assigned  # Custom pin assignment
-        else:
-            self.id = id  # Default pin assignment
-
         self.logger = logging.getLogger("PMS5003 Interface")
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(message)s')
         self.logger.setLevel(log_level)
+        self.pins = pins
         self.logger.info("Serial pins: %s", self.pins)
         self.baud = baud
         self.logger.info("Baud rate: %s", self.baud)
@@ -104,6 +91,7 @@ class Plantower(object):
         self.logger.info("Serial Timeout: %s", self.serial_timeout)
         self.read_timeout = read_timeout
         self.logger.info("Read Timeout: %s", self.read_timeout)
+        self.id = id
         self.chrono = Timer.Chrono()
         try:
             self.serial = UART(
@@ -153,11 +141,11 @@ class Plantower(object):
         chrono.start()  # Start timer
         while (chrono.read() < read_timeout):
             inp = self.serial.read(1)  # Read a character from the input
-            if inp == MSG_CHAR_1:  # check if matches
+            if inp == MSG_CHAR_1:  # check it matches
                 recv += inp  # if it does add it to receive string
                 inp = self.serial.read(1)  # read the next character
                 if inp == MSG_CHAR_2:  # check it's what's expected
-                    recv += inp  # add it to the receive string
+                    recv += inp  # att it to the receive string
                     recv += self.serial.read(30)  # read the remaining 30 bytes
                     self._verify(recv)  # verify the checksum
                     chrono.stop()  # Stop the timer
