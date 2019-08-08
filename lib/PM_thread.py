@@ -12,10 +12,19 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pins, serial_id):
 
     sensor_type = config.get_config(sensor_name)
 
-    # variables for sensor reading and computing averages
     if sensor_type == "PMS5003":
+        try:
+            plantower = Plantower(pins=pins, id=serial_id)
 
-        plantower = Plantower(pins=pins, id=serial_id)
+            # wait for sensor to calibrate/stabilize
+            plantower.read()
+            time.sleep(3)
+
+        except SensirionException as e:
+            status_logger.exception("Failed to read from sensor {}".format(sensor_name))
+            blink_led(colour=0x770000, delay=0.5, count=1)
+
+        # variables for sensor reading and computing averages
         last_timestamp = None
         sensor_readings_lst = []
 
@@ -56,7 +65,7 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pins, serial_id):
                 blink_led(colour=0x770000, delay=0.5, count=1)
                 time.sleep(LOOP_DELAY_S)
 
-        time.sleep(3)  # wait for sensor to calibrate
+        time.sleep(3)  # wait for sensor to calibrate/stabilize
 
         try:
             while True:
