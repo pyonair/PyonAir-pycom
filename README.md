@@ -43,7 +43,7 @@ Congratulations! You are now setup and ready to configure your device 😎
 
 ### Configuration
 
-When configuring the device for the first time, it should automatically switch itself into configuration mode, indicated by blue LED flashing. The device creates a WiFi AP named NewPycomDevice, the password is _newpyonair_. After connecting your machine or phone to its WiFi, in your browser, navigate to http://192.168.4.10. The configuration page will show up. After filling all the values and pressing _Save_, the device will reboot, initialise itself (amber light finished with green blink), and continue running according the configuration.
+When configuring the device for the first time, it should automatically switch itself into configuration mode, indicated by continuous blue light. The device creates a WiFi AP named NewPycomDevice, the password is _newpyonair_. After connecting your machine or phone to its WiFi, in your browser, navigate to http://192.168.4.10. The configuration page will show up. After filling all the values and pressing _Save_, the device will reboot, initialise itself (amber light finished with green blink), and continue running according the configuration.
 
 If required to reconfigure the device, simply hold the button for 3 seconds, which enters the configuration mode (constant blue light), then follow the steps above.
 
