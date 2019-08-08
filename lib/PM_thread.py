@@ -19,8 +19,7 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pins, serial_id):
             # wait for sensor to calibrate/stabilize
             plantower.read()
             time.sleep(3)
-
-        except SensirionException as e:
+        except PlantowerException as e:
             status_logger.exception("Failed to read from sensor {}".format(sensor_name))
             blink_led(colour=0x770000, delay=0.5, count=1)
 
@@ -80,7 +79,6 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pins, serial_id):
                     lst_to_log = [curr_timestamp] + [str(i) for i in sensor_reading_round]
                     line_to_log = ','.join(lst_to_log)
                     sensor_logger.log_row(line_to_log)
-
         except SensirionException as e:
             status_logger.exception("Failed to read from sensor {}".format(sensor_name))
             blink_led(colour=0x770000, delay=0.5, count=1)

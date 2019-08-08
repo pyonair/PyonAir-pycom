@@ -37,7 +37,7 @@ def lora_thread(thread_name, logger, is_def):
                 # default region is Europe
                 region = LoRa.EU868
 
-                # set region according to configuration - using either region name, or region code
+                # set region according to configuration
                 if config.get_config("region") == "Asia":
                     region = LoRa.AS923
                 elif config.get_config("region") == "Australia":
