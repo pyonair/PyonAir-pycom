@@ -47,10 +47,12 @@ def get_html_form():
           margin-bottom: 45px;
           font-family: helvetica;
           color: white;
-          font-size: 15px;}
+          font-size: 15px;
+          }
     
         h1{
           margin-bottom: 0px;
+          max-height: 999999px; //disables font boost in android
         }
           
         p{
@@ -58,6 +60,7 @@ def get_html_form():
           margin-left: 5px;
           margin-bottom: 0px;
           margin-top: 2em;
+          max-height: 999999px; //disables font boost in android
         }
     
         hr {
@@ -81,6 +84,7 @@ def get_html_form():
         label {
           display: block;
           margin-top: 1em;
+          max-height: 999999px; //disables font boost in android
         }
     
         .settings{
