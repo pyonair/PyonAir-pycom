@@ -18,7 +18,7 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pins, serial_id):
 
             # wait for sensor to calibrate/stabilize
             plantower.read()
-            time.sleep(3)
+            time.sleep(5)
         except PlantowerException as e:
             status_logger.exception("Failed to read from sensor {}".format(sensor_name))
             blink_led(colour=0x770000, delay=0.5, count=1)
@@ -64,7 +64,7 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pins, serial_id):
                 blink_led(colour=0x770000, delay=0.5, count=1)
                 time.sleep(LOOP_DELAY_S)
 
-        time.sleep(3)  # wait for sensor to calibrate/stabilize
+        time.sleep(5)  # wait for sensor to calibrate/stabilize
 
         try:
             while True:

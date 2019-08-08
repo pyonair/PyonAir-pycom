@@ -54,10 +54,6 @@ def lora_thread(thread_name, logger, is_def):
                 # join a network using OTAA (Over the Air Activation)
                 lora.join(activation=LoRa.OTAA, auth=(app_eui, app_key), timeout=int(config.get_config("lora_timeout"))*1000)
 
-                # wait until the module has joined the network
-                while not lora.has_joined():
-                    pass
-
                 # create a LoRa socket
                 soc = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
 
