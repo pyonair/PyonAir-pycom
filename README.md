@@ -43,7 +43,7 @@ Congratulations! You are now setup and ready to configure your device 😎
 
 ### Configuration
 
-When configuring the device for the first time, it should automatically switch itself into configuration mode, indicated by continuous blue light. The device creates a WiFi AP named NewPycomDevice, the password is _newpyonair_. After connecting your machine or phone to its WiFi, in your browser, navigate to http://192.168.4.10. The configuration page will show up. After filling all the values and pressing _Save_, the device will reboot, initialise itself (amber light finished with green blink), and continue running according the configuration.
+When configuring the device for the first time, it should automatically switch itself into configuration mode, indicated by continuous blue light. The device creates a WiFi AP named NewPyonAir, the password is _newpyonair_. After connecting your machine or phone to its WiFi, in your browser, navigate to http://192.168.4.10. The configuration page will show up. After filling all the values and pressing _Save_, the device will reboot, initialise itself (amber light finished with green blink), and continue running according the configuration.
 
 If required to reconfigure the device, simply hold the button for 3 seconds, which enters the configuration mode (constant blue light), then follow the steps above.
 
@@ -51,7 +51,7 @@ If required to reconfigure the device, simply hold the button for 3 seconds, whi
 
 * Once the device is plugged, it starts initialisation, which is indicated by **amber light**.
 * Successful initialisation is indicated by **green light blinking twice**
-* **Red light blinking** immediately after boot indicates an issue with SD Card (perhaphs it is not plugged in or is not formatted correctly) or [Real Time Clock](https://s-u-pm-sensor.gitbook.io/instructions/hardware/hardware-overview/ds3231-real-time-clock). This error will not be logged into a logging file; however, it still can be seen in Pymakr's REPL if the LoPy is connected to your machine.
+* **Red light blinking** immediately after boot indicates an issue with SD Card (perhaphs it is not plugged in or is not formatted correctly) or an issue with the [Real Time Clock](https://s-u-pm-sensor.gitbook.io/instructions/hardware/hardware-overview/ds3231-real-time-clock). This error will not be logged into a logging file; however, it still can be seen in Pymakr's REPL if the LoPy is connected to your machine.
 * **Red light flashing during initialisation** indicates an issue somewhere else. This issue will be logged into _status_log.txt_ file saved on the SD Card. This error can also be seen in Pymakr's REPL after connecting LoPy to your machine.
 * **Red blinks** during normal operation indicates runtime errors. 
 
