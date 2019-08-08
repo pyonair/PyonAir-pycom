@@ -33,7 +33,7 @@ pycom.rgbled(0x552000)  # flash orange until its loaded
 # Initialize the rest
 try:
     from machine import Pin, unique_id, Timer
-    from ButtonPress import ButtonPress
+    from ConfigButton import ConfigButton
     from SensorLogger import SensorLogger
     from Configuration import config
     from EventScheduler import EventScheduler
@@ -57,9 +57,10 @@ try:
     # Read configuration file to get preferences
     config.read_configuration(status_logger)
 
-    user_button = ButtonPress(logger=status_logger)
+    # Initialize button interrupt on pin 14 for entering configurations page
+    config_button = ConfigButton(logger=status_logger)
     pin_14 = Pin("P14", mode=Pin.IN, pull=None)
-    pin_14.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, user_button.press_handler)
+    pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, config_button.button_handler)
 
     # Check if device is configured, or SD card has been moved to another device
     device_id = hexlify(unique_id()).upper().decode("utf-8")
