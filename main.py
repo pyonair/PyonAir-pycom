@@ -64,7 +64,7 @@ try:
 
     # Check if device is configured, or SD card has been moved to another device
     device_id = hexlify(unique_id()).upper().decode("utf-8")
-    if not config.is_complete() or config.get_config("device_id") != device_id:
+    if not config.is_complete(status_logger) or config.get_config("device_id") != device_id:
         config.reset_configuration(status_logger)
         #  Forces user to configure device, then reboot
         _thread.start_new_thread(new_config_thread, ('New_Config', status_logger, 300))

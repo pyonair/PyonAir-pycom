@@ -25,7 +25,7 @@ class Configuration:
                                       "raw_freq": 0, "TEMP": "SHT35", "PM1": "PMS5003", "PM2": "SPS030", "GPS": "OFF",
                                       "PM1_id": "002","PM2_id": "003", "TEMP_id": "001", "GPS_id": "004",
                                       "PM_interval": 15, "TEMP_freq": 30, "GPS_freq": 0, "logging_lvl": "Warning",
-                                      "lora_timeout": 50}
+                                      "lora_join_timeout": 40, "lora_send_timeout": 10}
 
     # Configuration Accessor/Getter
     def get_config(self, keys=None):
@@ -40,10 +40,17 @@ class Configuration:
     def set_config(self, new_config):
         self.configuration.update(new_config)
 
-    # Returns if all keys are set in the configuration
-    def is_complete(self):
+    # Returns True if the configuration file is complete
+    def is_complete(self, logger):
+        # Check if there are missing values
         if "" in self.configuration.values():
+            logger.warning("There are missing values in the configuration")
             return False
+        # Check if there are missing keys
+        for key in self.default_configuration.keys():
+            if key not in self.get_config().keys():
+                logger.warning("There are missing keys in the configuration")
+                return False
         else:
             return True
 
@@ -82,6 +89,7 @@ class Configuration:
             del lora
 
             logger.info('Configurations were reset')
+            logger.info('Please configure your device!')
         except Exception as e:
             logger.exception('Failed to reset configurations')
             raise ConfigurationException(str(e))

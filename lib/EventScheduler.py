@@ -38,8 +38,10 @@ class EventScheduler:
         self.is_def = check_data_ready()
         #  flash averages of data to sd card at the end of the interval
         flash_pm_averages(logger=self.logger, is_def=self.is_def)
-        #  get random number of seconds within interval
-        self.s_to_next_lora = int(machine.rng() / (2**24) * (self.interval_s - int(config.get_config("lora_timeout")))) + 1
+        #  get random number of seconds within interval subtracting the timeouts, leaving 10 seconds leeway, and
+        #  making sure the supplied interval is greater than 0 (hence the +1)
+        self.s_to_next_lora = int(machine.rng() / (2**24) * (self.interval_s -
+                (int(config.get_config("lora_join_timeout"))+int(config.get_config("lora_send_timeout")) + 10))) + 1
         #  set up an alarm with random delay to send data over LoRa
         self.random_alarm = Timer.Alarm(self.random_event, s=self.s_to_next_lora, periodic=False)
 

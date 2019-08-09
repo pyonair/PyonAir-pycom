@@ -52,7 +52,7 @@ def lora_thread(thread_name, logger, is_def):
                 app_key = ubinascii.unhexlify(config.get_config("app_key"))
 
                 # join a network using OTAA (Over the Air Activation)
-                lora.join(activation=LoRa.OTAA, auth=(app_eui, app_key), timeout=int(config.get_config("lora_timeout"))*1000)
+                lora.join(activation=LoRa.OTAA, auth=(app_eui, app_key), timeout=int(config.get_config("lora_join_timeout"))*1000)
 
                 # create a LoRa socket
                 soc = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
@@ -60,9 +60,8 @@ def lora_thread(thread_name, logger, is_def):
                 # set the LoRaWAN data rate
                 soc.setsockopt(socket.SOL_LORA, socket.SO_DR, 5)
 
-                # make the socket blocking
-                # (waits for the data to be sent and for the 2 receive windows to expire)
-                soc.setblocking(True)
+                # sets timeout for sending data
+                soc.settimeout(int(config.get_config("lora_send_timeout"))*1000)
 
                 logger.info("Thread: {} - joined LoRa network".format(thread_name))
                 logger.info('bandwidth:' + str(lora.bandwidth()))

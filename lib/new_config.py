@@ -107,8 +107,9 @@ def process_data(received_data, logger):
     if first_index != -1 and last_index != -1:
         config_json_str = received_data[(first_index+14):last_index]
 
-        if len(config_json_str) >= 700:
+        if len(config_json_str) >= 1000:
             logger.error('Received configurations are too long')
+            logger.info('Enter configurations with valid length')
             return False  # keep looping - wait for new message from client
 
         logger.info('Configuration data received from user')
