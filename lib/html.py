@@ -192,7 +192,7 @@ def get_html_form():
             <label for="wifi_password">Password</label>
             <input id="wifi_password" name="wifi_password" type="password" value="''' + str(config.get_config("wifi_password")) + '''" required="required" maxlength="128"/>
             <label for="raw_freq">Raw data back-up frequency</label>
-            <input id="raw_freq" name="raw_freq" type="number" value="''' + str(config.get_config("raw_freq")) + '''" required="required" min="0.1" max="8760" step="0.01"/>
+            <input id="raw_freq" name="raw_freq" type="number" value="''' + str(config.get_config("raw_freq")) + '''" required="required" min="0" max="8760" step="0.01"/>
           </div>
           <p>Sensor Settings</p>
           <hr class="p_line sensor_settings"/>
@@ -275,7 +275,7 @@ def get_html_form():
               </div>
               <div>
                 <label for="GPS_freq">Frequency</label>
-                <input class="input_number" id="GPS_freq" name="GPS_freq" type="number" value="''' + str(config.get_config("GPS_freq")) + '''" required="required" min="0.1" max="8760" step="0.01"/>
+                <input class="input_number" id="GPS_freq" name="GPS_freq" type="number" value="''' + str(config.get_config("GPS_freq")) + '''" required="required" min="0" max="8760" step="0.01"/>
               </div>
             </div>
             <hr class="p_line sensor_settings"/>

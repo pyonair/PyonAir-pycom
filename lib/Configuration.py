@@ -22,9 +22,10 @@ class Configuration:
         self.default_configuration = {"device_id": "", "device_name": "NewPyonAir", "password": "newpyonair",
                                       "region": "Europe", "device_eui": "", "application_eui": "",
                                       "app_key": "", "SSID": "notimplemented", "wifi_password": "notimplemented",
-                                      "raw_freq": 0, "PM1": "PMS5003", "PM2": "SPS030", "GPS": "OFF", "PM1_id": "002",
-                                      "PM2_id": "003", "TEMP_id": "001", "GPS_id": "004", "PM_interval": 15,
-                                      "TEMP_freq": 5, "GPS_freq": 0, "logging_lvl": "Warning", "lora_timeout": 50}
+                                      "raw_freq": 0, "TEMP": "SHT35", "PM1": "PMS5003", "PM2": "SPS030", "GPS": "OFF",
+                                      "PM1_id": "002","PM2_id": "003", "TEMP_id": "001", "GPS_id": "004",
+                                      "PM_interval": 15, "TEMP_freq": 30, "GPS_freq": 0, "logging_lvl": "Warning",
+                                      "lora_timeout": 50}
 
     # Configuration Accessor/Getter
     def get_config(self, keys=None):
