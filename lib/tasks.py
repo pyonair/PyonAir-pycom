@@ -8,7 +8,7 @@ import _thread
 from LoRa_thread import lora_thread
 from Configuration import config
 import strings as s
-from helper import pm_current_lock, pm_processing_lock, pm_dump_lock, pm_tosend_lock
+from helper import current_lock, processing_lock, archive_lock, tosend_lock
 import time
 
 
@@ -73,7 +73,7 @@ def flash_pm_averages(logger, is_def):
                 f_tosend.write(line_to_append)
 
             # If raw data was processed, saved and dumped, processing files can be deleted
-            with pm_processing_lock:
+            with processing_lock:
                 path = s.processing_path
                 for sensor_name in [s.TEMP, s.PM1, s.PM2]:
                     if is_def[sensor_name]:
@@ -97,7 +97,7 @@ def get_averages(sensor_name):
     :rtype: str
     """
 
-    with pm_processing_lock:
+    with processing_lock:
         filename = sensor_name + '.csv'
         # Only process current readings if previous processing file was dealt with - if device is rebooted while
         # processing the data (processing file was not deleted) then process it again and send it over LoRa. In this
@@ -141,7 +141,7 @@ def get_averages(sensor_name):
             avg_readings_str = [str(int(i)) for i in mean_across_arrays(lines_lst)]
 
             # Append content of sensor_name.csv.processing into sensor_name.csv
-            with pm_dump_lock:
+            with archive_lock:
                 with open(s.archive_path + filename, 'a') as f:
                     for line in lines:
                         f.write(line)

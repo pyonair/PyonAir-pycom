@@ -3,7 +3,7 @@ Simple logger for logging sensor readings.
 Replaces the functionality of the sensor logger that was previously produced by the LoggerFactory
 """
 import sys
-from helper import pm_current_lock
+from helper import current_lock
 import strings as s
 
 
@@ -26,6 +26,6 @@ class SensorLogger:
         row_to_log = row + self.terminator
         if self.terminal_out:
             sys.stdout.write(self.sensor_name + " - " + row_to_log)
-        with pm_current_lock:
+        with current_lock:
             with open(self.filename, 'a') as f:
                 f.write(row_to_log)

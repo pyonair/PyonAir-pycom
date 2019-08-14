@@ -7,10 +7,10 @@ import time
 import pycom
 import _thread
 
-pm_current_lock = _thread.allocate_lock()
-pm_processing_lock = _thread.allocate_lock()
-pm_dump_lock = _thread.allocate_lock()
-pm_tosend_lock = _thread.allocate_lock()
+current_lock = _thread.allocate_lock()
+processing_lock = _thread.allocate_lock()
+archive_lock = _thread.allocate_lock()
+tosend_lock = _thread.allocate_lock()
 led_lock = _thread.allocate_lock()
 
 
