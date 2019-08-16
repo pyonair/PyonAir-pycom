@@ -47,8 +47,8 @@ class TempSHT35(object):
         try:
             timestamp = self.timestamp_template.format(*time.gmtime())  # get current time in desired format
             read_lst = self.read()  # read SHT35 sensor - [celsius, humidity] to ~5 significant figures
-            round_lst = [round(x, 1) for x in read_lst]  # round readings to 1 significant figure
-            str_round_lst = list(map(str, round_lst))  # cast float to string
+            round_lst = [int(round(x, 1)*10) for x in read_lst]  # round readings to 1 significant figure, shift left, cast to int
+            str_round_lst = list(map(str, round_lst))  # cast int to string
             lst_to_log = [timestamp] + str_round_lst
             line_to_log = ','.join(lst_to_log)
             self.sensor_logger.log_row(line_to_log)

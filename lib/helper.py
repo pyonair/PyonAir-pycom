@@ -60,17 +60,6 @@ def mean_across_arrays(arrays):
     return out_arr
 
 
-def check_data_ready():
-    is_def = {s.PM1: False, s.PM2: False, s.TEMP: True}
-
-    if config.get_config(s.PM1) != "OFF":
-        is_def[s.PM1] = True
-    if config.get_config(s.PM2) != "OFF":
-        is_def[s.PM2] = True
-
-    return is_def
-
-
 def get_logging_level():
     logging_lvl = config.get_config("logging_lvl")
     if logging_lvl == "Critical":

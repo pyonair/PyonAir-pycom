@@ -1,7 +1,7 @@
 import machine
 from machine import RTC, Timer
 from tasks import flash_pm_averages, send_over_lora
-from helper import seconds_to_first_event, check_data_ready
+from helper import seconds_to_first_event
 from Configuration import config
 
 
@@ -20,7 +20,6 @@ class EventScheduler:
         self.first_alarm = None
         self.periodic_alarm = None
         self.random_alarm = None
-        self.is_def = None
 
         #  Start scheduling events
         self.set_event_queue()
@@ -36,10 +35,8 @@ class EventScheduler:
         self.periodic_event(arg)
 
     def periodic_event(self, arg):
-        #  Check which sensors are turned on and which ones have data to be sent over
-        self.is_def = check_data_ready()
         #  flash averages of data to sd card at the end of the interval
-        flash_pm_averages(logger=self.logger, is_def=self.is_def)
+        flash_pm_averages(logger=self.logger)
         #  get random number of seconds within interval subtracting the timeout, leaving 5 seconds leeway, and
         #  making sure the supplied interval is greater than 0 (hence the +1)
         self.s_to_next_lora = int(machine.rng() / (2**24) * (self.interval_s -
@@ -48,4 +45,4 @@ class EventScheduler:
         self.random_alarm = Timer.Alarm(self.random_event, s=self.s_to_next_lora, periodic=False)
 
     def random_event(self, arg):
-        send_over_lora(logger=self.logger, lora=self.lora, lora_socket=self.lora_socket, is_def=self.is_def)
+        send_over_lora(logger=self.logger, lora=self.lora, lora_socket=self.lora_socket)

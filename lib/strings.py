@@ -14,6 +14,13 @@ headers_dict_v4 = {
     "SHT35": ["timestamp", "temperature", "humidity"]
 }
 
+# headers from headers_dict_v4 to calculate averages in task.py and send over LoRaWAN
+lora_sensor_headers = {
+    "SHT35": ["temperature", "humidity"],
+    "PMS5003": ["PM10", "PM25"],
+    "SPS030": ["PM10", "PM25"]
+}
+
 status_header = ['type', 'timestamp', 'message']
 
 config_filename = 'config.txt'

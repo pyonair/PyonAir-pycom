@@ -38,7 +38,7 @@ try:
     from Configuration import config
     from EventScheduler import EventScheduler
     import strings as s
-    from helper import check_data_ready, blink_led, heartbeat
+    from helper import blink_led, heartbeat
     from tasks import send_over_lora, flash_pm_averages
     from TempSHT35 import TempSHT35
     from new_config import new_config_thread
@@ -85,11 +85,6 @@ try:
             with open('/flash/debug_config.json', 'r') as f:
                 config.set_config(ujson.loads(f.read()))
                 status_logger.warning("Configuration changed to: " + str(config.get_config()))
-
-        # ToDo: get lora timestamp from logged timestamp instead of current time
-        # ToDo: do a proper cleanup
-        # ToDo: refactor is_def and its functionality
-        is_def = check_data_ready()  # check which sensors are defined (enabled, and have data)
 
         # Join the LoRa network
         lora, lora_socket = initialize_lorawan()
