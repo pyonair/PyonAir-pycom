@@ -25,7 +25,7 @@ class Configuration:
                                       "raw_freq": 0, "TEMP": "SHT35", "PM1": "PMS5003", "PM2": "SPS030", "GPS": "OFF",
                                       "PM1_id": "002","PM2_id": "003", "TEMP_id": "001", "GPS_id": "004",
                                       "PM_interval": 15, "TEMP_freq": 30, "GPS_freq": 0, "logging_lvl": "Warning",
-                                      "lora_join_timeout": 40, "lora_send_timeout": 10}
+                                      "lora_timeout": 10}
 
     # Configuration Accessor/Getter
     def get_config(self, keys=None):

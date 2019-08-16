@@ -24,7 +24,7 @@ try:
     logger_factory = LoggerFactory()
     status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, terminal_out=True, filename='status_log.txt')
 except Exception as e:
-    print(e)
+    print(str(e))
     while True:
         blink_led(colour=0x770000, delay=0.5, count=1000)
 
@@ -45,7 +45,7 @@ try:
     from ubinascii import hexlify
     import _thread
     import time
-    from initialisation import initialize_pm_sensor, initialize_file_system, remove_residual_files
+    from initialisation import initialize_pm_sensor, initialize_file_system, remove_residual_files, initialize_lorawan
     import ujson
 
     # Initialize file system
@@ -86,9 +86,13 @@ try:
                 config.set_config(ujson.loads(f.read()))
                 status_logger.warning("Configuration changed to: " + str(config.get_config()))
 
-        # ToDo: get is_def having both sensors enabled
-        # Clean up - process current file from previous boot or re-process process file if rebooted while processing
+        # ToDo: get lora timestamp from logged timestamp instead of current time
+        # ToDo: do a proper cleanup
+        # ToDo: refactor is_def and its functionality
         is_def = check_data_ready()  # check which sensors are defined (enabled, and have data)
+
+        # Join the LoRa network
+        lora, lora_socket = initialize_lorawan()
 
         # Initialise temperature and humidity sensor thread with id: TEMP
         if config.get_config(s.TEMP) != "OFF":
@@ -105,7 +109,7 @@ try:
             initialize_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2, status_logger=status_logger)
 
         # Start calculating averages for s.PM1 readings, and send data over LoRa
-        PM_Events = EventScheduler(rtc=rtc, logger=status_logger)
+        PM_Events = EventScheduler(rtc=rtc, logger=status_logger, lora=lora, lora_socket=lora_socket)
 
         status_logger.info("Initialization finished")
 
@@ -117,3 +121,5 @@ try:
 except Exception as e:
     status_logger.exception("Exception in the main")
     pycom.rgbled(0x770000)
+    while True:
+        time.sleep(5)

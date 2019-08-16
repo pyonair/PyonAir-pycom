@@ -6,12 +6,14 @@ from Configuration import config
 
 
 class EventScheduler:
-    def __init__(self, rtc, logger):
+    def __init__(self, rtc, logger, lora, lora_socket):
 
         #  Arguments
         self.interval_s = int(float(config.get_config("PM_interval"))*60)
         self.rtc = rtc
         self.logger = logger
+        self.lora = lora
+        self.lora_socket = lora_socket
 
         #  Attributes
         self.s_to_next_lora = None
@@ -38,12 +40,12 @@ class EventScheduler:
         self.is_def = check_data_ready()
         #  flash averages of data to sd card at the end of the interval
         flash_pm_averages(logger=self.logger, is_def=self.is_def)
-        #  get random number of seconds within interval subtracting the timeouts, leaving 10 seconds leeway, and
+        #  get random number of seconds within interval subtracting the timeout, leaving 5 seconds leeway, and
         #  making sure the supplied interval is greater than 0 (hence the +1)
         self.s_to_next_lora = int(machine.rng() / (2**24) * (self.interval_s -
-                (int(config.get_config("lora_join_timeout"))+int(config.get_config("lora_send_timeout")) + 10))) + 1
+                (int(config.get_config("lora_timeout")) + 5))) + 1
         #  set up an alarm with random delay to send data over LoRa
         self.random_alarm = Timer.Alarm(self.random_event, s=self.s_to_next_lora, periodic=False)
 
     def random_event(self, arg):
-        send_over_lora(logger=self.logger, is_def=self.is_def)
+        send_over_lora(logger=self.logger, lora=self.lora, lora_socket=self.lora_socket, is_def=self.is_def)

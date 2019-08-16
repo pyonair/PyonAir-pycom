@@ -1,3 +1,7 @@
+from network import LoRa
+import socket
+import ubinascii
+from Configuration import config
 from PM_thread import pm_thread
 from SensorLogger import SensorLogger
 import _thread
@@ -34,3 +38,38 @@ def remove_residual_files():
     for path in [s.current_path, s.processing_path]:
         for file in os.listdir(path[:-1]):  # Strip '/' from the end of path
             os.remove(path + file)
+
+
+def initialize_lorawan():
+    # default region is Europe
+    region = LoRa.EU868
+
+    # set region according to configuration
+    if config.get_config("region") == "Asia":
+        region = LoRa.AS923
+    elif config.get_config("region") == "Australia":
+        region = LoRa.AU915
+    elif config.get_config("region") == "United States":
+        region = LoRa.US915
+
+    lora = LoRa(mode=LoRa.LORAWAN, region=region, adr=True)
+
+    # create an OTAA authentication parameters
+    app_eui = ubinascii.unhexlify(config.get_config("application_eui"))
+    app_key = ubinascii.unhexlify(config.get_config("app_key"))
+
+    # join a network using OTAA (Over the Air Activation)
+    lora.join(activation=LoRa.OTAA, auth=(app_eui, app_key), timeout=0)
+
+    # create a LoRa socket
+    lora_socket = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
+
+    # request acknowledgment of data sent
+    lora_socket.setsockopt(socket.SOL_LORA, socket.SO_CONFIRMED, True)
+
+    lora_socket.bind(1)
+
+    # sets timeout for sending data
+    lora_socket.settimeout(int(config.get_config("lora_timeout")) * 1000)
+
+    return lora, lora_socket
