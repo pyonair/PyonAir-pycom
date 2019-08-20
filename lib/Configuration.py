@@ -64,10 +64,9 @@ class Configuration:
         logger.info('Configuration saved to SD card')
 
     #  Reads and returns keys and preferences from sd card
-    def read_configuration(self, logger):
+    def read_configuration(self):
 
         if config_filename not in os.listdir('/sd'):
-            logger.warning('{} does not exist, creating new config file'.format(config_filename))
             with open('/sd/' + config_filename, 'w') as f:  # create new config file
                 f.write(ujson.dumps(self.default_configuration))
                 self.set_config(self.default_configuration)

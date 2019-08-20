@@ -1,10 +1,8 @@
-from machine import I2C, RTC
+from machine import I2C
 
 
 class RtcDS1307:
     def __init__(self):
-
-        self.rtc = RTC()
 
         # Initialise i2c - bus no., type, baudrate, i2c pins
         self.i2c = I2C(0, I2C.MASTER, baudrate=400000, pins=('P9', 'P10'))
@@ -41,10 +39,9 @@ class RtcDS1307:
         self.month = int(hex(data[5])[2:])
         self.year = int(hex(data[6])[2:])
 
-        self.rtc.init(
-            (int('20' + str(self.year)), self.month, self.dayOfMonth, self.hour, self.minute, self.second, 0, 0))
+        datetime = (int('20' + str(self.year)), self.month, self.dayOfMonth, self.hour, self.minute, self.second, 0, 0)
 
-        return self.rtc
+        return datetime
 
 
 clock = RtcDS1307()

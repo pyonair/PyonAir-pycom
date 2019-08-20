@@ -14,7 +14,7 @@ import _thread
 config_lock = _thread.allocate_lock()
 
 
-def new_config_thread(thread_name, logger, timeout):
+def new_config(logger, timeout):
     """
     Thread that turns on access point on the device to modify configurations. Name of access point: PmSensor
     Password: pmsensor Enter 192.168.4.10 on device browser to get configuration form. Indicator LEDs:
@@ -33,7 +33,7 @@ def new_config_thread(thread_name, logger, timeout):
     if not config_lock.locked():
         with config_lock:
 
-            logger.info("Thread: {} started".format(thread_name))
+            logger.info("New configuration setup started")
 
             # Config uses LED colours to indicate the state of the connection - lock is necessary to disable error pings
             led_lock.acquire(1)
@@ -96,9 +96,14 @@ def process_data(received_data, logger):
         config_time_str = received_data[(first_index+10):last_index]
         config_time_lst = config_time_str.split(':')
         config_time_lst[0] = config_time_lst[0][2:]
-        h_yr, h_mnth, h_day, h_hr, h_min, h_sec = int(config_time_lst[0], 16), int(config_time_lst[1], 16), int(config_time_lst[2], 16), int(config_time_lst[3], 16), int(config_time_lst[4], 16), int(config_time_lst[5], 16)
-        clock.set_time(h_yr, h_mnth, h_day, h_hr, h_min, h_sec)
-        logger.info('RTC module calibrated via WiFi')
+        h_yr, h_mnth, h_day, h_hr, h_min, h_sec = int(config_time_lst[0], 16), int(config_time_lst[1], 16), \
+                                                  int(config_time_lst[2], 16), int(config_time_lst[3], 16), \
+                                                  int(config_time_lst[4], 16), int(config_time_lst[5], 16)
+        try:
+            clock.set_time(h_yr, h_mnth, h_day, h_hr, h_min, h_sec)
+            logger.info('RTC module calibrated via WiFi')
+        except Exception:
+            logger.warning('RTC module is not available to calibrate via WiFi')
 
     #  find json string in received message
     first_index = received_data.rfind('json_str_begin')
