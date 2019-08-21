@@ -14,7 +14,7 @@ import _thread
 config_lock = _thread.allocate_lock()
 
 
-def new_config(logger, timeout):
+def new_config(logger, timeout, no_time=False):
     """
     Thread that turns on access point on the device to modify configurations. Name of access point: PmSensor
     Password: pmsensor Enter 192.168.4.10 on device browser to get configuration form. Indicator LEDs:
@@ -40,10 +40,10 @@ def new_config(logger, timeout):
 
             # set pycom up as access point
             wlan = network.WLAN(mode=WLAN.AP, ssid=config.get_config("device_name"))
-            # Connect to PmSensor using password set by the user (default password: pmsensor)
+            # Connect to PmSensor using password set by the user
             wlan.init(mode=WLAN.AP, ssid=config.get_config("device_name"), auth=(WLAN.WPA2, config.get_config("password")), channel=1,
                       antenna=WLAN.INT_ANT)
-            # Load HTML via entering 192,168.4.10 to your browser
+            # Load HTML via entering 192,168.4.10 to browser
             wlan.ifconfig(id=1, config=('192.168.4.10', '255.255.255.0', '192.168.4.1', '192.168.4.1'))
 
             logger.info('Access point turned on as {}'.format(config.get_config("device_name")))
@@ -56,7 +56,11 @@ def new_config(logger, timeout):
             sct.bind(address)  # Bind address to socket
             sct.listen(1)  # Allow one station to connect to socket
 
-            pycom.rgbled(0x0000FF)  # Blue LED - waiting for connection
+            if no_time:
+                # Yellow LED - waiting for connection - signals that user has to connect and RTC or a GPS module
+                pycom.rgbled(0x555500)
+            else:
+                pycom.rgbled(0x000077)  # Blue LED - waiting for connection
 
             get_new_config(sct, logger)
 
@@ -73,7 +77,7 @@ def get_new_config(sct, logger):
         while True:
             client, address = sct.accept()  # wait for new connection
             client.send(get_html_form())  # send html page with form to submit by the user
-            pycom.rgbled(0x00FF00)  # Green LED - Connection successful
+            pycom.rgbled(0x007700)  # Green LED - Connection successful
             received_data = str(client.recv(3000))  # wait for client response
             client.close()  # socket has to be closed because of the loop
             if process_data(received_data, logger):
@@ -82,7 +86,7 @@ def get_new_config(sct, logger):
         logger.exception(str(e))
         logger.error("Failed to configure the device")
         led_lock.release()
-        blink_led(colour=0xFF0000, count=1, delay=3, blocking=True)  # Red LED - Error
+        blink_led(colour=0x770000, count=1, delay=3, blocking=True)  # Red LED - Error
         return
 
 

@@ -4,63 +4,74 @@ from helper import blink_led
 
 pycom.heartbeat(False)  # disable the heartbeat LED
 
-# Try to initialize the RTC and mount SD card, if this fails, keep blinking red and do not proceed
+# Try to mount SD card, if this fails, keep blinking red and do not proceed
 try:
-    from RtcDS1307 import clock
-    from machine import SD, RTC, unique_id
+    from machine import SD
     import os
-    from loggingpycom import DEBUG
-    from LoggerFactory import LoggerFactory
-    from ubinascii import hexlify
-    from Configuration import config
-    from new_config import new_config
-    import gps
 
     # Mount SD card
     sd = SD()
     os.mount(sd, '/sd')
-
-    # Read configuration file to get preferences
-    config.read_configuration()
-
-    # Get current time
-    try:
-        rtc = RTC()
-        # Initialise time from rtc module
-        rtc.init(clock.get_time())
-        # If rtc module is connected but is not set and gps is enabled wait until time is updated via the gps
-        if rtc.now()[0] < 2019 and config.get_config("GPS") == "ON":
-            gps.get_time(blocking=True, rtc=rtc)
-    except Exception:
-        # If rtc module is not connected but gps is enabled wait until time is updated via the gps
-        if config.get_config("GPS") == "ON":
-            gps.get_time(blocking=True, rtc=rtc)
-        # If rtc module is not connected and gps is not enabled there is no way of getting time - terminate execution
-        else:
-            raise Exception("Failed to acquire current time from both the RTC module and GPS")
-
-    # Initialise LoggerFactory and status logger
-    logger_factory = LoggerFactory()
-    status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, terminal_out=True, filename='status_log.txt')
-
-    # Check if device is configured, or SD card has been moved to another device
-    device_id = hexlify(unique_id()).upper().decode("utf-8")
-    if not config.is_complete(status_logger) or config.get_config("device_id") != device_id:
-        config.reset_configuration(status_logger)
-        #  Forces user to configure device, then reboot
-        new_config(status_logger, 300)
-
-    # If device is configured, RTC module is connected, but is not set, and gps is not enabled, then update time via visiting configurations page
-    if rtc.now()[0] < 2019 and config.get_config("GPS") == "OFF":
-        status_logger.warning("Visit configurations page and press submit to set the RTC module")
-        new_config(status_logger, 300)
 
 except Exception as e:
     print(str(e))
     while True:
         blink_led(colour=0x770000, delay=0.5, count=1000)
 
+from machine import RTC, unique_id
+from RtcDS1307 import clock
+from loggingpycom import DEBUG
+from LoggerFactory import LoggerFactory
+from ubinascii import hexlify
+from Configuration import config
+from new_config import new_config
+import GpsSIM28
+
+# Read configuration file to get preferences
+config.read_configuration()
+
+# Initialise LoggerFactory and status logger
+logger_factory = LoggerFactory()
+status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, terminal_out=True, filename='status_log.txt')
+
+# Get current time
+rtc = RTC()
+no_time = False
+try:
+    # Initialize time from rtc module
+    rtc.init(clock.get_time())
+    # If rtc module is connected but is not set and gps is enabled wait until time is updated via the gps
+    if rtc.now()[0] < 2019 and config.get_config("GPS") == "ON":
+        GpsSIM28.get_time(rtc, led=True, logger=False)
+except Exception:
+    # If rtc module is not connected but gps is enabled wait until time is updated via the gps
+    if config.get_config("GPS") == "ON":
+        GpsSIM28.get_time(rtc, led=True, logger=False)
+    # If rtc module is not connected and gps is not enabled there is no way of getting time - terminate execution
+    else:
+        no_time = True
+        status_logger.warning("Failed to acquire current time from both the RTC module and GPS")
+        status_logger.warning("Connect an RTC module and go through configurations, connect a GPS and enable"
+                              "GPS in configurations, or enable GPS in configurations if GPS already connected")
+
+# Check if device is configured, or SD card has been moved to another device
+device_id = hexlify(unique_id()).upper().decode("utf-8")
+if not config.is_complete(status_logger) or config.get_config("device_id") != device_id:
+    config.reset_configuration(status_logger)
+    #  Force user to configure device, then reboot - yellow or blue LED depending if time is set
+    new_config(status_logger, config.get_config("config_timeout"), no_time)
+
+if no_time:  # configure with yellow LED - user has to connect an RTC or a GPS and configure
+    new_config(status_logger, config.get_config("config_timeout"), no_time)
+
+# If device is configured, RTC module is connected, but is not set, and gps is not enabled, then update time via visiting configurations page
+if rtc.now()[0] < 2019 and config.get_config("GPS") == "OFF":
+    status_logger.warning("Visit configurations page and press submit to set the RTC module")
+    new_config(status_logger, config.get_config("config_timeout"))
+
 pycom.rgbled(0x552000)  # flash orange until its loaded
+
+#ToDo: Investigate roughly 5 second "sleep" - could be because of imports
 
 # If sd, time, logger and configurations were set, continue with initializing non-critical features
 try:
@@ -99,15 +110,16 @@ try:
     # Remove residual files from the previous run (removes all files in the current and processing dir)
     remove_residual_files()
 
-    # Initialize button interrupt on pin 14 for entering configurations page
-    config_button = ConfigButton(logger=status_logger)
-    pin_14 = Pin("P14", mode=Pin.IN, pull=None)
-    pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, config_button.button_handler)
+    #ToDo: pin bounces and crashes program if board is not plugged in properly
+    # # Initialize button interrupt on pin 14 for entering configurations page
+    # config_button = ConfigButton(logger=status_logger)
+    # pin_14 = Pin("P14", mode=Pin.IN, pull=None)
+    # pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, config_button.button_handler)
 
     # Try to update RTC module with accurate UTC datetime if GPS is enabled
     if config.get_config("GPS") == "ON":
         # Start a new thread to update time from gps if available
-        gps.get_time(blocking=False, rtc=rtc)
+        _thread.start_new_thread(GpsSIM28.get_time, (rtc, False, status_logger))
 
     # Join the LoRa network
     lora, lora_socket = initialize_lorawan()
@@ -132,9 +144,9 @@ try:
     status_logger.info("Initialization finished")
 
     # Blink green twice to identify that the device has been initialised
-    blink_led(colour=0x005500, count=2)
+    blink_led(colour=0x007700, count=2)
     # Initialize custom yellow heartbeat that triggers every 6 seconds
-    heartbeat = Timer.Alarm(heartbeat, s=6, periodic=True)
+    heartbeat = Timer.Alarm(heartbeat, s=5, periodic=True)
 
 except Exception as e:
     status_logger.exception("Exception in the main")
