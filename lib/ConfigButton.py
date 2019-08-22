@@ -16,12 +16,11 @@ class ConfigButton:
         if self.debounce_timer.read_ms() >= 10:  # 10 ms software switch debounce
             self.debounce_timer.reset()
             value = pin.value()
-            if value == 0:  # Button pressed
-                print("hello")
+            if value == 1:  # Button pressed
                 self.button_held = Timer.Alarm(self.start_config, s=2.5, periodic=False)
-            elif value == 1:  # Button released
+            elif value == 0:  # Button released
                 if self.button_held is not False:
                     self.button_held.cancel()
 
     def start_config(self, arg):  # this handler is called when button was held for 2.5 sec
-        _thread.start_new_thread(new_config, self.logger)
+        _thread.start_new_thread(new_config, (self.logger, False))

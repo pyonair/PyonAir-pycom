@@ -30,6 +30,13 @@ try:
     from ubinascii import hexlify
     from Configuration import config
     from new_config import new_config
+    from machine import Pin
+
+    #ToDo: Proper implementation of transistor circuitry
+    PMTR = Pin('P20', mode=Pin.OUT)
+    PMTR.value(1)
+    GPSTR = Pin('P19', mode=Pin.OUT)
+    GPSTR.value(1)
 
     # Read configuration file to get preferences
     config.read_configuration()
@@ -57,7 +64,7 @@ pycom.rgbled(0x552000)  # flash orange until its loaded
 
 # If sd, time, logger and configurations were set, continue with initializing non-critical features
 try:
-    from machine import Pin, Timer
+    from machine import Timer
     from ConfigButton import ConfigButton
     from SensorLogger import SensorLogger
     from EventScheduler import EventScheduler
@@ -94,9 +101,9 @@ try:
 
     # ToDo: pin bounces and crashes program if board is not plugged in properly
     # Initialize button interrupt on pin 14 for entering configurations page
-    # config_button = ConfigButton(logger=status_logger)
-    # pin_14 = Pin("P14", mode=Pin.IN, pull=None)
-    # pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, config_button.button_handler)
+    config_button = ConfigButton(logger=status_logger)
+    pin_14 = Pin("P14", mode=Pin.IN, pull=None)
+    pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, config_button.button_handler)
 
     # Try to update RTC module with accurate UTC datetime if GPS is enabled and has not yet synchronized
     # ToDo: When implementing GPS on bus 0 check if enabled not connected casues any issues
