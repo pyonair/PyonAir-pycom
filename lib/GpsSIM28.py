@@ -15,16 +15,21 @@ def get_time(rtc, led, logger):
     timeout = config.get_config("GPS_timeout")
     chrono = Timer.Chrono()
     chrono.start()
+    com_counter = int(chrono.read())
     if led:
-        now = int(chrono.read())
+        led_counter = int(chrono.read())
 
     while True:
         # data_in = '$GPRMC,085258.000,A,5056.1384,N,00123.1522,W,0.00,159.12,200819,,,A*7E\r\n'
         data_in = (str(serial.readline()))[1:]
 
+        if (int(chrono.read())-com_counter) >= 10:
+            raise Exception("GPS enabled, but not connected")
+
         for char in data_in:
             sentence = gps.update(char)
             if sentence == "GPRMC":
+                com_counter = int(chrono.read())
                 if gps.valid:
 
                     # Set current time on pycom - convert seconds (timestamp[2]) from float to int
@@ -37,13 +42,11 @@ def get_time(rtc, led, logger):
                     h_hr, h_min, h_sec = int(str(gps.timestamp[0]), 16), int(str(gps.timestamp[1]), 16), int(str(int(gps.timestamp[2])), 16)
                     try:
                         clock.set_time(h_yr, h_mnth, h_day, h_hr, h_min, h_sec)
-                        if logger is not False:
-                            logger.info('GPS UTC datetime successfully updated on pycom board')
-                            logger.info('GPS UTC datetime successfully updated on RTC module')
+                        logger.info('GPS UTC datetime successfully updated on pycom board')
+                        logger.info('GPS UTC datetime successfully updated on RTC module')
                     except Exception:
-                        if logger is not False:
-                            logger.info('GPS UTC datetime successfully updated on pycom board')
-                            logger.warning("Failed to set GPS UTC datetime on the RTC module")
+                        logger.info('GPS UTC datetime successfully updated on pycom board')
+                        logger.warning("Failed to set GPS UTC datetime on the RTC module")
 
                     # Turn led indicator off if enabled, and exit function or thread
                     if led:
@@ -56,18 +59,16 @@ def get_time(rtc, led, logger):
         # If function is blocking, led should be set - blinking blue light indicating that program is waiting for
         # gps to acquire current utc time before continuing execution
         if led:
-            if int(chrono.read()) > now:
-                now = int(chrono.read())
-                if now % 2 == 0:
+            if int(chrono.read()) > led_counter:
+                led_counter = int(chrono.read())
+                if led_counter % 2 == 0:
                     pycom.rgbled(0x000077)
                 else:
                     pycom.rgbled(0x000000)
 
         # If timeout elapsed exit function or thread
         if chrono.read() >= timeout:
-            if logger is not False:
-                logger.error("GPS timeout - failed to get current time")
-            raise Exception("GPS timeout - failed to get current time")
+            raise Exception("GPS timeout")
 
 
 

@@ -1,3 +1,5 @@
+from RtcDS1307 import clock
+import GpsSIM28
 from network import LoRa
 import socket
 import ubinascii
@@ -7,6 +9,56 @@ from SensorLogger import SensorLogger
 import _thread
 import strings as s
 import os
+
+
+def initialize_time(rtc, logger):
+    no_time = False
+    update_time_later = True
+    try:
+        # Get time from RTC module
+        rtc.init(clock.get_time())
+        # RTC module is not calibrated
+        try:
+            if rtc.now()[0] < 2019 or rtc.now()[0] >= 2100:
+                # Get time and calibrate RTC module via GPS
+                if config.get_config("GPS") == "ON":
+                    GpsSIM28.get_time(rtc, led=True, logger=logger)
+                    update_time_later = False
+                # Calibrate RTC module via WiFi Configurations and then reboot
+                else:
+                    logger.critical("Visit configurations page and press submit to set the RTC module")
+                    no_time = True
+        except Exception as e:  # No way of getting time
+            logger.exception("Failed to get current time")
+            no_time = True  # navigate to configurations with yellow LED
+    # RTC module is not available
+    except Exception as e:
+        logger.exception("Failed to get time from RTC module")
+        try:
+            # Get time via GPS
+            if config.get_config("GPS") == "ON":
+                GpsSIM28.get_time(rtc, led=True, logger=logger)
+                update_time_later = False
+            # No way of getting time
+            else:
+                no_time = True  # navigate to configurations with yellow LED
+        except Exception as e:  # No way of getting time
+            logger.exception("Failed to get current time")
+            no_time = True  # navigate to configurations with yellow LED
+
+    if no_time:
+        logger.info("""Failed to get UTC timestamp from both the RTC and GPS modules.
+                    Yellow light indicates that user has to connect and configure the device with GPS or RTC connected.
+                    Possible issues and solutions:
+                      RTC module is not connected - connect an RTC module and/or connect a GPS and enable its operation
+                      GPS module is not connected - connect a GPS and enable its operation and/or connect an RTC module
+                      RTC is not calibrated - simply press submit on configurations page
+                      GPS is connected but not enabled - enable GPS on configurations page
+                      GPS is enabled but not connected - connect a GPS module or have an RTC module connected and 
+                        disable GPS on configurations page
+                      GPS timeout - put device under clear sky and/or increase GPS timeout in configurations""")
+
+    return no_time, update_time_later
 
 
 def initialize_pm_sensor(sensor_name, pins, serial_id, status_logger):

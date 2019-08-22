@@ -24,4 +24,4 @@ class ConfigButton:
                     self.button_held.cancel()
 
     def start_config(self, arg):  # this handler is called when button was held for 2.5 sec
-        _thread.start_new_thread(new_config, (self.logger, config.get_config("config_timeout")))
+        _thread.start_new_thread(new_config, self.logger)

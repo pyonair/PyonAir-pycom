@@ -14,7 +14,7 @@ import _thread
 config_lock = _thread.allocate_lock()
 
 
-def new_config(logger, timeout, no_time=False):
+def new_config(logger, no_time=False):
     """
     Thread that turns on access point on the device to modify configurations. Name of access point: PmSensor
     Password: pmsensor Enter 192.168.4.10 on device browser to get configuration form. Indicator LEDs:
@@ -51,7 +51,7 @@ def new_config(logger, timeout, no_time=False):
 
             address = socket.getaddrinfo('0.0.0.0', 80)[0][-1]  # Accept stations from all addresses
             sct = socket.socket()  # Create socket for communication
-            sct.settimeout(timeout)  # session times out after x seconds
+            sct.settimeout(config.get_config("config_timeout"))  # session times out after x seconds
             gc.collect()  # frees up unused memory if there was a previous connection
             sct.bind(address)  # Bind address to socket
             sct.listen(1)  # Allow one station to connect to socket
@@ -75,7 +75,10 @@ def new_config(logger, timeout, no_time=False):
 def get_new_config(sct, logger):
     try:
         while True:
-            client, address = sct.accept()  # wait for new connection
+            try:
+                client, address = sct.accept()  # wait for new connection
+            except Exception as e:
+                raise Exception("Configuration timeout")
             client.send(get_html_form())  # send html page with form to submit by the user
             pycom.rgbled(0x007700)  # Green LED - Connection successful
             received_data = str(client.recv(3000))  # wait for client response
@@ -107,7 +110,7 @@ def process_data(received_data, logger):
             clock.set_time(h_yr, h_mnth, h_day, h_hr, h_min, h_sec)
             logger.info('RTC module calibrated via WiFi')
         except Exception:
-            logger.warning('RTC module is not available to calibrate via WiFi')
+            logger.warning('RTC module is not available for calibration via WiFi')
 
     #  find json string in received message
     first_index = received_data.rfind('json_str_begin')
@@ -126,4 +129,3 @@ def process_data(received_data, logger):
         return True
 
     return False  # keep looping - wait for new message from client
-
