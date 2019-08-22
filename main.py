@@ -3,6 +3,7 @@ import pycom
 from helper import blink_led
 
 pycom.heartbeat(False)  # disable the heartbeat LED
+pycom.rgbled(0x552000)  # flash orange to indicate startup
 
 # Try to mount SD card, if this fails, keep blinking red and do not proceed
 try:
@@ -31,19 +32,22 @@ try:
     from Configuration import config
     from new_config import new_config
     from machine import Pin
-
-    #ToDo: Proper implementation of transistor circuitry
-    PMTR = Pin('P20', mode=Pin.OUT)
-    PMTR.value(1)
-    GPSTR = Pin('P19', mode=Pin.OUT)
-    GPSTR.value(1)
+    import strings as s
 
     # Read configuration file to get preferences
     config.read_configuration()
 
+    PM_transistor = Pin('P20', mode=Pin.OUT)
+    PM_transistor.value(0)
+    if config.get_config(s.PM1) != "OFF" or config.get_config(s.PM2) != "OFF":
+        PM_transistor.value(1)
+
+    GPS_transistor = Pin('P19', mode=Pin.OUT)
+    GPS_transistor.value(0)
+
     # Get current time
     rtc = RTC()
-    no_time, update_time_later = initialize_time(rtc, status_logger)
+    no_time, update_time_later = initialize_time(rtc, status_logger, GPS_transistor)
 
     # Check if device is configured, or SD card has been moved to another device
     device_id = hexlify(unique_id()).upper().decode("utf-8")
@@ -52,7 +56,7 @@ try:
         #  Force user to configure device, then reboot - yellow or blue LED depending if time is set
         new_config(status_logger, no_time)
 
-    if no_time:  # configure with yellow LED - user has to connect an RTC or a GPS and configure
+    if no_time:  # configure with yellow LED - user has to connect an RTC or a GPS
         new_config(status_logger, no_time)
 
 except Exception as e:
@@ -68,7 +72,6 @@ try:
     from ConfigButton import ConfigButton
     from SensorLogger import SensorLogger
     from EventScheduler import EventScheduler
-    import strings as s
     from helper import blink_led, heartbeat, get_logging_level
     from tasks import send_over_lora, flash_pm_averages
     from TempSHT35 import TempSHT35
@@ -99,17 +102,15 @@ try:
     # Remove residual files from the previous run (removes all files in the current and processing dir)
     remove_residual_files()
 
-    # ToDo: pin bounces and crashes program if board is not plugged in properly
     # Initialize button interrupt on pin 14 for entering configurations page
     config_button = ConfigButton(logger=status_logger)
-    pin_14 = Pin("P14", mode=Pin.IN, pull=None)
+    pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
     pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, config_button.button_handler)
 
     # Try to update RTC module with accurate UTC datetime if GPS is enabled and has not yet synchronized
-    # ToDo: When implementing GPS on bus 0 check if enabled not connected casues any issues
     if config.get_config("GPS") == "ON" and update_time_later:
         # Start a new thread to update time from gps if available
-        _thread.start_new_thread(GpsSIM28.get_time, (rtc, False, status_logger))
+        _thread.start_new_thread(GpsSIM28.get_time, (rtc, False, status_logger, GPS_transistor))
 
     # Join the LoRa network
     lora, lora_socket = initialize_lorawan()

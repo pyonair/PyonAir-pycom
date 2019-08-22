@@ -11,7 +11,7 @@ import strings as s
 import os
 
 
-def initialize_time(rtc, logger):
+def initialize_time(rtc, logger, GPS_transistor):
     no_time = False
     update_time_later = True
     try:
@@ -22,7 +22,7 @@ def initialize_time(rtc, logger):
             if rtc.now()[0] < 2019 or rtc.now()[0] >= 2100:
                 # Get time and calibrate RTC module via GPS
                 if config.get_config("GPS") == "ON":
-                    GpsSIM28.get_time(rtc, led=True, logger=logger)
+                    GpsSIM28.get_time(rtc, True, logger, GPS_transistor)
                     update_time_later = False
                 # Calibrate RTC module via WiFi Configurations and then reboot
                 else:
@@ -37,7 +37,7 @@ def initialize_time(rtc, logger):
         try:
             # Get time via GPS
             if config.get_config("GPS") == "ON":
-                GpsSIM28.get_time(rtc, led=True, logger=logger)
+                GpsSIM28.get_time(rtc, True, logger, GPS_transistor)
                 update_time_later = False
             # No way of getting time
             else:
