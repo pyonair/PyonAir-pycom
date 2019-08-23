@@ -13,6 +13,7 @@ def get_time(rtc, led, logger, GPS_transistor):
 
     logger.info("Getting UTC datetime via GPS")
     logger.info("Turning GPS on - Terminal output is disabled until GPS finishes")
+    uos.dupterm(None)
     message = False
 
     # turn GPS module on via transistor

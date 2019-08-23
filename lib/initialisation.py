@@ -47,8 +47,10 @@ def initialize_time(rtc, logger, GPS_transistor):
             no_time = True  # navigate to configurations with yellow LED
 
     if no_time:
-        logger.info("""Failed to get UTC timestamp from both the RTC and GPS modules.
-                    Yellow light indicates that user has to connect and configure the device with GPS or RTC connected.
+        logger.info("""Failed to get UTC timestamp from both RTC and GPS modules.
+                    User has to connect and configure the device with GPS or RTC connected.
+                    Device will reboot in 3 minutes unless button is pressed for 3 seconds and device is configured.
+                    
                     Possible issues and solutions:
                       RTC module is not connected - connect an RTC module and/or connect a GPS and enable its operation
                       GPS module is not connected - connect a GPS and enable its operation and/or connect an RTC module

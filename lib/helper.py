@@ -111,5 +111,5 @@ def blink_led(colour=0x770000, count=1, delay=0.4, blocking=False):
 
 # yellow blink to simulate heartbeat
 def heartbeat(arg):
-    blink_led(colour=0x555500, count=1, delay=0.1, blocking=True)
+    blink_led(colour=0x005500, count=1, delay=0.1, blocking=True)
 

@@ -14,7 +14,7 @@ import _thread
 config_lock = _thread.allocate_lock()
 
 
-def new_config(logger, no_time=False):
+def new_config(logger, arg):
     """
     Thread that turns on access point on the device to modify configurations. Name of access point: PmSensor
     Password: pmsensor Enter 192.168.4.10 on device browser to get configuration form. Indicator LEDs:
@@ -56,11 +56,7 @@ def new_config(logger, no_time=False):
             sct.bind(address)  # Bind address to socket
             sct.listen(1)  # Allow one station to connect to socket
 
-            if no_time:
-                # Yellow LED - waiting for connection - signals that user has to connect and RTC or a GPS module
-                pycom.rgbled(0x555500)
-            else:
-                pycom.rgbled(0x000077)  # Blue LED - waiting for connection
+            pycom.rgbled(0x000077)  # Blue LED - waiting for connection
 
             get_new_config(sct, logger)
 

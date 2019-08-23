@@ -1,5 +1,4 @@
 from machine import Timer
-from Configuration import config
 from new_config import new_config
 import _thread
 
@@ -11,6 +10,7 @@ class ConfigButton:
         self.debounce_timer = Timer.Chrono()
         self.debounce_timer.start()
         self.button_held = False
+        self.reboot = True
 
     def button_handler(self, pin):
         if self.debounce_timer.read_ms() >= 10:  # 10 ms software switch debounce
@@ -23,4 +23,8 @@ class ConfigButton:
                     self.button_held.cancel()
 
     def start_config(self, arg):  # this handler is called when button was held for 2.5 sec
-        _thread.start_new_thread(new_config, (self.logger, False))
+        self.reboot = False
+        _thread.start_new_thread(new_config, (self.logger, arg))
+
+    def get_reboot(self):
+        return self.reboot
