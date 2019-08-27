@@ -60,7 +60,7 @@ try:
     device_id = hexlify(unique_id()).upper().decode("utf-8")
     if not config.is_complete(status_logger) or config.get_config("device_id") != device_id:
         config.reset_configuration(status_logger)
-        #  Force user to configure device, then reboot - yellow or blue LED depending if time is set
+        #  Force user to configure device, then reboot
         new_config(status_logger, arg=0)
 
     # Initialize button interrupt on pin 14 for entering configurations page
@@ -77,9 +77,10 @@ except Exception as e:
         reboot_timer.start()
         while config_button.get_reboot():
             blink_led(colour=0x777700, delay=0.5)  # Takes one second to execute
-            if int(reboot_timer.read()) >= 30:
+            if int(reboot_timer.read()) >= 180:
                 status_logger.info("rebooting...")
                 reset()
+        new_config(status_logger, arg=0)
     except Exception:
         reset()
 
@@ -98,6 +99,9 @@ try:
     import time
     from initialisation import initialize_pm_sensor, initialize_file_system, remove_residual_files, initialize_lorawan
     import ujson
+
+    # Configurations are entered parallel to main execution upon button press for 2.5 secs
+    config_button.set_config_blocking(False)
 
     """SET VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in the
     back end. If the structure of the LoRa message is changed during update, increment the version number and

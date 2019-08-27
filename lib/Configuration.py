@@ -1,4 +1,4 @@
-from strings import config_filename
+import strings as s
 from ubinascii import hexlify
 from machine import unique_id
 from network import LoRa
@@ -18,14 +18,7 @@ class Configuration:
     def __init__(self):
 
         self.configuration = {}
-
-        self.default_configuration = {"device_id": "", "device_name": "NewPyonAir", "password": "newpyonair",
-                                      "region": "Europe", "device_eui": "", "application_eui": "",
-                                      "app_key": "", "SSID": "notimplemented", "wifi_password": "notimplemented",
-                                      "raw_freq": 0, "TEMP": "SHT35", "PM1": "PMS5003", "PM2": "SPS030", "GPS": "OFF",
-                                      "PM1_id": "002","PM2_id": "003", "TEMP_id": "001", "GPS_id": "004",
-                                      "PM_interval": 15, "TEMP_freq": 30, "GPS_freq": 0, "logging_lvl": "Warning",
-                                      "lora_timeout": 10, "GPS_timeout": 900, "config_timeout": 420}
+        self.default_configuration = s.default_configuration
 
     # Configuration Accessor/Getter
     def get_config(self, keys=None):
@@ -59,19 +52,19 @@ class Configuration:
 
         self.set_config(ujson.loads(config_json_str))
 
-        with open('/sd/' + config_filename, 'w') as f:  # save credentials to sd card
+        with open('/sd/' + s.config_filename, 'w') as f:  # save credentials to sd card
             f.write(ujson.dumps(self.configuration))
         logger.info('Configuration saved to SD card')
 
     #  Reads and returns keys and preferences from sd card
     def read_configuration(self):
 
-        if config_filename not in os.listdir('/sd'):
-            with open('/sd/' + config_filename, 'w') as f:  # create new config file
+        if s.config_filename not in os.listdir('/sd'):
+            with open('/sd/' + s.config_filename, 'w') as f:  # create new config file
                 f.write(ujson.dumps(self.default_configuration))
                 self.set_config(self.default_configuration)
         else:
-            with open('/sd/' + config_filename, 'r') as f:
+            with open('/sd/' + s.config_filename, 'r') as f:
                 self.set_config(ujson.loads(f.read()))
 
     #  Resets all configuration, then sets new device_id and device_EUI

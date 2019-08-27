@@ -35,12 +35,12 @@ def lora_thread(thread_name, logger, lora, lora_socket):
 
             log_file_name = s.lora_file
 
-            # Set the structure of the bytes to send over lora according to which sensors are defined
-            # version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H /
-            # / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H / PM2_id-H / PM2_ PM10-B / PM2_PM25-B / PM2_count-H
-            structure = '<BHHhhHHBBHHBBH'
+            """Set the structure of the bytes to send over lora according to which sensors are defined. long_struct is 
+            used for temp+2PM, while short_struct is used for temp+1PM. Synchronized with back-end according to version 
+            number"""
+            structure = s.lora_long_struct
             if config.get_config(s.PM1) == "OFF" or config.get_config(s.PM2) == "OFF":
-                structure = '<BHHhhHHBBH'
+                structure = s.lora_short_struct
 
             if log_file_name not in os.listdir(s.lora_path[:-1]):  # Strip '/' from the end of path
                 raise Exception('Thread: {} - {} does not exist'.format(thread_name, log_file_name))

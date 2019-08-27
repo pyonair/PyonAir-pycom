@@ -29,7 +29,7 @@ def initialize_time(rtc, logger, GPS_transistor):
                     logger.critical("Visit configurations page and press submit to set the RTC module")
                     no_time = True
         except Exception as e:  # No way of getting time
-            logger.exception("Failed to get current time")
+            logger.exception("Failed to get current time from GPS")
             no_time = True  # navigate to configurations with yellow LED
     # RTC module is not available
     except Exception as e:
@@ -43,7 +43,7 @@ def initialize_time(rtc, logger, GPS_transistor):
             else:
                 no_time = True  # navigate to configurations with yellow LED
         except Exception as e:  # No way of getting time
-            logger.exception("Failed to get current time")
+            logger.exception("Failed to get current time from GPS")
             no_time = True  # navigate to configurations with yellow LED
 
     if no_time:
