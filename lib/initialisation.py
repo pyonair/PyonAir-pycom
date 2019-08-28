@@ -11,7 +11,7 @@ import strings as s
 import os
 
 
-def initialize_time(rtc, logger, GPS_transistor):
+def initialize_time(rtc, logger):
     no_time = False
     update_time_later = True
     try:
@@ -22,7 +22,7 @@ def initialize_time(rtc, logger, GPS_transistor):
             if rtc.now()[0] < 2019 or rtc.now()[0] >= 2100:
                 # Get time and calibrate RTC module via GPS
                 if config.get_config("GPS") == "ON":
-                    GpsSIM28.get_time(rtc, True, logger, GPS_transistor)
+                    GpsSIM28.get_time(rtc, True, logger)
                     update_time_later = False
                 # Calibrate RTC module via WiFi Configurations and then reboot
                 else:
@@ -37,7 +37,7 @@ def initialize_time(rtc, logger, GPS_transistor):
         try:
             # Get time via GPS
             if config.get_config("GPS") == "ON":
-                GpsSIM28.get_time(rtc, True, logger, GPS_transistor)
+                GpsSIM28.get_time(rtc, True, logger)
                 update_time_later = False
             # No way of getting time
             else:
@@ -120,8 +120,6 @@ def initialize_lorawan():
 
     # request acknowledgment of data sent
     lora_socket.setsockopt(socket.SOL_LORA, socket.SO_CONFIRMED, True)
-
-    lora_socket.bind(1)
 
     # sets timeout for sending data
     lora_socket.settimeout(int(config.get_config("lora_timeout")) * 1000)

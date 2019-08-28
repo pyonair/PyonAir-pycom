@@ -1,6 +1,7 @@
 from machine import I2C, Timer
 from Configuration import config
 from helper import blink_led
+from strings import csv_timestamp_template
 import time
 
 
@@ -11,8 +12,6 @@ class TempSHT35(object):
 
         self.sensor_logger = sensor_logger
         self.status_logger = status_logger
-
-        self.timestamp_template = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}"  # yyyy-mm-dd hh-mm-ss
 
         # Initialise i2c - bus no., type, baudrate, i2c pins
         self.i2c = I2C(0, I2C.MASTER, baudrate=9600, pins=('P9', 'P10'))
@@ -45,7 +44,7 @@ class TempSHT35(object):
     def process_readings(self, arg):
         # read and log pm sensor data
         try:
-            timestamp = self.timestamp_template.format(*time.gmtime())  # get current time in desired format
+            timestamp = csv_timestamp_template.format(*time.gmtime())  # get current time in desired format
             read_lst = self.read()  # read SHT35 sensor - [celsius, humidity] to ~5 significant figures
             round_lst = [int(round(x, 1)*10) for x in read_lst]  # round readings to 1 significant figure, shift left, cast to int
             str_round_lst = list(map(str, round_lst))  # cast int to string

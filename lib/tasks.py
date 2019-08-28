@@ -11,7 +11,7 @@ import strings as s
 from helper import current_lock, processing_lock, archive_lock, tosend_lock
 
 
-def send_over_lora(logger, lora, lora_socket):
+def send_over_lora(logger, data_type, lora, lora_socket):
     """
     Starts a thread that connects to LoRa and sends averages of the raw data
     :type logger: LoggerFactory object (status_logger)
@@ -20,7 +20,7 @@ def send_over_lora(logger, lora, lora_socket):
     :param timeout: Timeout for LoRa to send over data seconds
     :type timeout: int
     """
-    _thread.start_new_thread(lora_thread, ('LoRa', logger, lora, lora_socket))
+    _thread.start_new_thread(lora_thread, ('LoRa', logger, data_type, lora, lora_socket))
 
 
 def flash_pm_averages(logger):
@@ -39,49 +39,46 @@ def flash_pm_averages(logger):
     if config.get_config(s.PM2) != "OFF":
         sensors[s.PM2] = True
 
-    # Only calculate averages at least one PM sensor is enabled
-    if sensors[s.PM1] or sensors[s.PM2]:
+    logger.debug("Calculating averages")
 
-        logger.debug("Calculating averages")
+    try:
+        TEMP_avg_readings_str, TEMP_count = get_averages(s.TEMP, logger)
 
-        try:
-            TEMP_avg_readings_str, TEMP_count = get_averages(s.TEMP, logger)
+        if sensors[s.PM1]:
+            # Get averages for PM1 sensor
+            PM1_avg_readings_str, PM1_count = get_averages(s.PM1, logger)
 
-            if sensors[s.PM1]:
-                # Get averages for PM1 sensor
-                PM1_avg_readings_str, PM1_count = get_averages(s.PM1, logger)
+        if sensors[s.PM2]:
+            # Get averages for PM2 sensor
+            PM2_avg_readings_str, PM2_count = get_averages(s.PM2, logger)
 
-            if sensors[s.PM2]:
-                # Get averages for PM2 sensor
-                PM2_avg_readings_str, PM2_count = get_averages(s.PM2, logger)
+        # Append averages to the line to be sent over LoRa according to which sensors are defined.
+        if sensors[s.PM1] and sensors[s.PM2]:
+            line_to_append = str(config.get_config("version")) + ',' + str(minutes_from_midnight()) + ',' + str(config.get_config("TEMP_id")) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config.get_config("PM1_id")) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + ',' + str(config.get_config("PM2_id")) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
+        elif sensors[s.PM1]:
+            line_to_append = str(config.get_config("version")) + ',' + str(minutes_from_midnight()) + ',' + str(config.get_config("TEMP_id")) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config.get_config("PM1_id")) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + '\n'
+        elif sensors[s.PM2]:
+            line_to_append = str(config.get_config("version")) + ',' + str(minutes_from_midnight()) + ',' + str(config.get_config("TEMP_id")) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config.get_config("PM2_id")) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
 
-            # Append averages to the line to be sent over LoRa according to which sensors are defined.
-            if sensors[s.PM1] and sensors[s.PM2]:
-                line_to_append = str(config.get_config("version")) + ',' + str(minutes_from_midnight()) + ',' + str(config.get_config("TEMP_id")) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config.get_config("PM1_id")) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + ',' + str(config.get_config("PM2_id")) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
-            elif sensors[s.PM1]:
-                line_to_append = str(config.get_config("version")) + ',' + str(minutes_from_midnight()) + ',' + str(config.get_config("TEMP_id")) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config.get_config("PM1_id")) + ',' + ','.join(PM1_avg_readings_str) + ',' + str(PM1_count) + '\n'
-            elif sensors[s.PM2]:
-                line_to_append = str(config.get_config("version")) + ',' + str(minutes_from_midnight()) + ',' + str(config.get_config("TEMP_id")) + ',' + ','.join(TEMP_avg_readings_str) + ',' + str(TEMP_count) + ',' + str(config.get_config("PM2_id")) + ',' + ','.join(PM2_avg_readings_str) + ',' + str(PM2_count) + '\n'
+        # Append lines to sensor_name.csv.tosend
+        lora_filepath = s.lora_path + s.PM_lora_file
+        with open(lora_filepath, 'w') as f_tosend:
+            f_tosend.write(line_to_append)
 
-            # Append lines to sensor_name.csv.tosend
-            lora_filepath = s.lora_path + s.lora_file
-            with open(lora_filepath, 'w') as f_tosend:
-                f_tosend.write(line_to_append)
+        # If raw data was processed, saved and dumped, processing files can be deleted
+        with processing_lock:
+            path = s.processing_path
+            for sensor_name in [s.TEMP, s.PM1, s.PM2]:
+                if sensors[sensor_name]:
+                    filename = sensor_name + '.csv'
+                    try:
+                        os.remove(path + filename)
+                    except Exception as e:
+                        logger.exception("Failed to remove " + filename + " in " + path)
 
-            # If raw data was processed, saved and dumped, processing files can be deleted
-            with processing_lock:
-                path = s.processing_path
-                for sensor_name in [s.TEMP, s.PM1, s.PM2]:
-                    if sensors[sensor_name]:
-                        filename = sensor_name + '.csv'
-                        try:
-                            os.remove(path + filename)
-                        except Exception as e:
-                            logger.exception("Failed to remove " + filename + " in " + path)
-
-        except Exception as e:
-            logger.exception("Failed to flash averages")
-            blink_led(colour=0x770000, delay=0.5, count=1)
+    except Exception as e:
+        logger.exception("Failed to flash averages")
+        blink_led(colour=0x770000, delay=0.5, count=1)
 
 
 def get_averages(sensor_name, logger):

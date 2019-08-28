@@ -53,13 +53,9 @@ try:
     if config.get_config(s.PM1) != "OFF" or config.get_config(s.PM2) != "OFF":
         PM_transistor.value(1)
 
-    # Initialize GPS power circuitry
-    GPS_transistor = Pin('P19', mode=Pin.OUT)
-    GPS_transistor.value(0)
-
     # Get current time
     rtc = RTC()
-    no_time, update_time_later = initialize_time(rtc, status_logger, GPS_transistor)
+    no_time, update_time_later = initialize_time(rtc, status_logger)
 
     # Check if device is configured, or SD card has been moved to another device
     device_id = hexlify(unique_id()).upper().decode("utf-8")
@@ -76,6 +72,7 @@ try:
         raise Exception("Could not acquire UTC timestamp")
 
 except Exception as e:
+    status_logger.exception(str(e))
     try:
         reboot_timer = Timer.Chrono()
         reboot_timer.start()
@@ -145,8 +142,11 @@ try:
     if config.get_config(s.PM2) != "OFF":
         initialize_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2, status_logger=status_logger)
 
-    # Start calculating averages for s.PM1 readings, and send data over LoRa
-    PM_Events = EventScheduler(rtc=rtc, logger=status_logger, lora=lora, lora_socket=lora_socket)
+    # Start calculating sensor averages and send over LoRa if at least one PM sensor is defined
+    if config.get_config(s.PM1) != "OFF" or config.get_config(s.PM2) != "OFF":
+        PM_Events = EventScheduler(rtc=rtc, logger=status_logger, event_type="PM", lora=lora, lora_socket=lora_socket)
+    if config.get_config(s.GPS) == "ON":
+        GPS_Events = EventScheduler(rtc=rtc, logger=status_logger, event_type="GPS", lora=lora, lora_socket=lora_socket)
 
     status_logger.info("Initialization finished")
 
@@ -158,7 +158,7 @@ try:
     # Try to update RTC module with accurate UTC datetime if GPS is enabled and has not yet synchronized
     if config.get_config("GPS") == "ON" and update_time_later:
         # Start a new thread to update time from gps if available
-        _thread.start_new_thread(GpsSIM28.get_time, (rtc, False, status_logger, GPS_transistor))
+        _thread.start_new_thread(GpsSIM28.get_time, (rtc, False, status_logger))
 
 except Exception as e:
     status_logger.exception("Exception in the main")

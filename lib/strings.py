@@ -1,7 +1,7 @@
 """Code is implemented semi-modular using these strings. While it is fine to change most of these strings without any
 complication, please only do so, if you have looked at the uses and are confident that you know what you are doing."""
 
-csv_timestamp_template = "{:04d}-{:02d}-{:02d}_{:02d}-{:02d}-{:02d}.csv"  # yyyy-mm-dd hh-mm-ss
+csv_timestamp_template = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}"  # yyyy-mm-dd hh-mm-ss
 
 headers_dict_v4 = {
     "PMS5003": ["timestamp", "pm10_cf1", "PM1", "pm25_cf1", "PM25", "pm100_cf1", "PM10", "gr03um", "gr05um", "gr10um", "gr25um", "gr50um", "gr100um", ""],
@@ -32,13 +32,14 @@ default_configuration = {"device_id": "", "device_name": "NewPyonAir", "password
                          "device_eui": "", "application_eui": "", "app_key": "", "SSID": "notimplemented",
                          "wifi_password": "notimplemented", "raw_freq": 0, "TEMP": "SHT35", "PM1": "PMS5003",
                          "PM2": "SPS030", "GPS": "OFF", "PM1_id": "002","PM2_id": "003", "TEMP_id": "001",
-                         "GPS_id": "004", "PM_interval": 15, "TEMP_freq": 30, "GPS_freq": 0, "logging_lvl": "Warning",
+                         "GPS_id": "004", "PM_interval": 15, "TEMP_freq": 30, "GPS_freq": 0.05, "logging_lvl": "Warning",
                          "lora_timeout": 10, "GPS_timeout": 900, "config_timeout": 420}
 
 # Sensor names
 PM1 = 'PM1'
 PM2 = 'PM2'
 TEMP = 'TEMP'
+GPS = 'GPS'
 
 # Extensions
 current_ext = '.current'
@@ -64,9 +65,12 @@ filesystem_dirs = [current, processing, lora, wifi, archive]
 file_name_temp = root_path + '{}' + '.csv' + '{}'  # call this like: file_name_temp.format(sensor_name, extension)
 
 # Temporary constant files before message queueing implemented
-lora_file = 'lora.csv'
+PM_lora_file = 'PM_lora.csv'
+GPS_lora_file = 'GPS_lora.csv'
 
 # version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H /
 # / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H / PM2_id-H / PM2_ PM10-B / PM2_PM25-B / PM2_count-H
 lora_long_struct = '<BHHhhHHBBHHBBH'
 lora_short_struct = '<BHHhhHHBBH'
+# timestamp-H / GPS_id-H / lat_deg-B / lat_min-f / lat_comp-c / long_deg-B / long_min-f / long_comp-c / alt-f
+lora_gps_struct = '<BHBfcBfcf'

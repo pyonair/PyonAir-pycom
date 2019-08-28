@@ -78,7 +78,7 @@ def get_new_config(sct, logger):
             client.send(get_html_form())  # send html page with form to submit by the user
             pycom.rgbled(0x007700)  # Green LED - Connection successful
             received_data = str(client.recv(3000))  # wait for client response
-            # print(received_data)
+            # logger.debug(received_data)
             client.close()  # socket has to be closed because of the loop
             if process_data(received_data, logger):
                 return

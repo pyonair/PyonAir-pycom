@@ -3,19 +3,24 @@ from machine import RTC, Timer
 from tasks import flash_pm_averages, send_over_lora
 from helper import seconds_to_first_event
 from Configuration import config
+import GpsSIM28
 
 
 class EventScheduler:
-    def __init__(self, rtc, logger, lora, lora_socket):
+    def __init__(self, rtc, logger, event_type, lora, lora_socket):
 
         #  Arguments
-        self.interval_s = int(float(config.get_config("PM_interval"))*60)
         self.rtc = rtc
         self.logger = logger
+        self.event_type = event_type
         self.lora = lora
         self.lora_socket = lora_socket
 
         #  Attributes
+        if self.event_type == "PM":
+            self.interval_s = int(float(config.get_config("PM_interval"))*60)
+        elif self.event_type == "GPS":
+            self.interval_s = int(float(config.get_config("GPS_freq"))*3600)
         self.s_to_next_lora = None
         self.first_alarm = None
         self.periodic_alarm = None
@@ -35,14 +40,24 @@ class EventScheduler:
         self.periodic_event(arg)
 
     def periodic_event(self, arg):
-        #  flash averages of data to sd card at the end of the interval
-        flash_pm_averages(logger=self.logger)
+
+        if self.event_type == "PM":
+            #  flash averages of PM data to sd card to be sent over LoRa
+            flash_pm_averages(logger=self.logger)
+        elif self.event_type == "GPS":
+            #  get position from gps to be sent over LoRA
+            GpsSIM28.get_position(logger=self.logger)
+
         #  get random number of seconds within interval subtracting the timeout, leaving 5 seconds leeway, and
-        #  making sure the supplied interval is greater than 0 (hence the +1)
-        self.s_to_next_lora = int(machine.rng() / (2**24) * (self.interval_s -
+        #  making sure the supplied interval is greater than 0 (hence the +1) - this interval is the same for PM and GPS
+        self.s_to_next_lora = int(machine.rng() / (2**24) * (int(float(config.get_config("PM_interval"))*60) -
                 (int(config.get_config("lora_timeout")) + 5))) + 1
+
         #  set up an alarm with random delay to send data over LoRa
         self.random_alarm = Timer.Alarm(self.random_event, s=self.s_to_next_lora, periodic=False)
 
     def random_event(self, arg):
-        send_over_lora(logger=self.logger, lora=self.lora, lora_socket=self.lora_socket)
+        if self.event_type == "PM":
+            send_over_lora(logger=self.logger, data_type="PM", lora=self.lora, lora_socket=self.lora_socket)
+        elif self.event_type == "GPS":
+            send_over_lora(logger=self.logger, data_type="GPS", lora=self.lora, lora_socket=self.lora_socket)
