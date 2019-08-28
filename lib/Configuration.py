@@ -81,7 +81,7 @@ class Configuration:
             del lora
 
             logger.info('Configurations were reset')
-            logger.info('Please configure your device!')
+            logger.warning('Please configure your device!')
         except Exception as e:
             logger.exception('Failed to reset configurations')
             raise ConfigurationException(str(e))

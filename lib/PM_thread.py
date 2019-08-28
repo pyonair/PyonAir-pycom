@@ -8,7 +8,7 @@ import time
 # ToDo: Use interrupts and unify the two sensor processing by polling only one reading from the plantower in a second.
 def pm_thread(sensor_name, sensor_logger, status_logger, pins, serial_id):
 
-    status_logger.info("Thread PM sensor: {} started".format(sensor_name))
+    status_logger.debug("Thread PM sensor: {} started".format(sensor_name))
 
     sensor_type = config.get_config(sensor_name)
 

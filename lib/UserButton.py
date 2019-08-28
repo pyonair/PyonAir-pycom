@@ -3,7 +3,7 @@ from new_config import new_config
 import _thread
 
 
-class ConfigButton:
+class UserButton:
     def __init__(self, logger):
 
         self.logger = logger
@@ -12,16 +12,18 @@ class ConfigButton:
         self.reboot_timer = Timer.Chrono()
         self.reboot_timer.start()
         self.config_press = False
-        self.reboot = True
+        self.config_enabled = False
         self.config_blocking = True
         self.config_start = False
+        self.reboot = True
 
     def button_handler(self, pin):
         if self.debounce_timer.read_ms() >= 10:  # 10 ms software switch debounce
             self.debounce_timer.reset()
             value = pin.value()
             if value == 1:  # Button pressed
-                self.config_press = Timer.Alarm(self.start_config, s=2.5, periodic=False)
+                if self.config_enabled:
+                    self.config_press = Timer.Alarm(self.start_config, s=2.5, periodic=False)
                 self.reboot_timer.reset()
 
             elif value == 0:  # Button released
@@ -32,7 +34,10 @@ class ConfigButton:
 
                 # If button was pressed and released within 1 second, then reboot the device
                 if self.reboot_timer.read() < 1:
-                    self.logger.info("rebooting...")
+                    try:  # if sd card failed to mount handle exception thrown in logger
+                        self.logger.info("Button press - rebooting...")
+                    except Exception as e:
+                        pass
                     reset()
 
     # this handler is called when button was held for 2.5 sec
@@ -52,3 +57,6 @@ class ConfigButton:
 
     def set_config_blocking(self, config_blocking):
         self.config_blocking = config_blocking
+
+    def set_config_enabled(self, config_enabled):
+        self.config_enabled = config_enabled

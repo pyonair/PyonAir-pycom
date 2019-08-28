@@ -2,7 +2,6 @@
 
 from Configuration import config
 from loggingpycom import INFO, WARNING, CRITICAL, DEBUG, ERROR
-import strings as s
 import time
 import pycom
 import _thread

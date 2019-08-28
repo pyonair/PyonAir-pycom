@@ -7,24 +7,31 @@ pycom.rgbled(0x552000)  # flash orange to indicate startup
 
 # Try to mount SD card, if this fails, keep blinking red and do not proceed
 try:
-    from machine import SD, reset
+    from machine import SD, Pin, reset
     import os
     from loggingpycom import DEBUG
     from LoggerFactory import LoggerFactory
-
-    # Mount SD card
-    sd = SD()
-    os.mount(sd, '/sd')
+    from UserButton import UserButton
 
     # Initialise LoggerFactory and status logger
     logger_factory = LoggerFactory()
     status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, terminal_out=True,
                                                         filename='status_log.txt')
+
+    # Initialize button interrupt on pin 14 for user interaction
+    user_button = UserButton(status_logger)
+    pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
+    pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
+
+    # Mount SD card
+    sd = SD()
+    os.mount(sd, '/sd')
+
 except Exception as e:
     print(str(e))
     reboot_counter = 0
     while True:
-        blink_led(colour=0x770000, delay=0.5)  # Takes one second to execute
+        blink_led(colour=0x770000, delay=0.5)  # blink red LED
         reboot_counter += 1
         if reboot_counter >= 180:
             reset()
@@ -35,8 +42,6 @@ try:
     from ubinascii import hexlify
     from Configuration import config
     from new_config import new_config
-    from ConfigButton import ConfigButton
-    from machine import Pin
     import strings as s
 
     # Read configuration file to get preferences
@@ -63,11 +68,10 @@ try:
         #  Force user to configure device, then reboot
         new_config(status_logger, arg=0)
 
-    # Initialize button interrupt on pin 14 for entering configurations page
-    config_button = ConfigButton(status_logger)
-    pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
-    pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, config_button.button_handler)
+    # User button will enter configurations page from this point on
+    user_button.set_config_enabled(True)
 
+    # If initialize time failed to acquire exact time, halt initialization
     if no_time:
         raise Exception("Could not acquire UTC timestamp")
 
@@ -75,8 +79,8 @@ except Exception as e:
     try:
         reboot_timer = Timer.Chrono()
         reboot_timer.start()
-        while config_button.get_reboot():
-            blink_led(colour=0x777700, delay=0.5)  # Takes one second to execute
+        while user_button.get_reboot():
+            blink_led(colour=0x777700, delay=0.5)  # blink yellow LED
             if int(reboot_timer.read()) >= 180:
                 status_logger.info("rebooting...")
                 reset()
@@ -101,7 +105,7 @@ try:
     import ujson
 
     # Configurations are entered parallel to main execution upon button press for 2.5 secs
-    config_button.set_config_blocking(False)
+    user_button.set_config_blocking(False)
 
     """SET VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in the
     back end. If the structure of the LoRa message is changed during update, increment the version number and

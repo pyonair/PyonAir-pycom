@@ -39,10 +39,10 @@ def flash_pm_averages(logger):
     if config.get_config(s.PM2) != "OFF":
         sensors[s.PM2] = True
 
-    # Only calculate averages if PM1 or PM2 or both sensors are enabled and have gathered data
+    # Only calculate averages at least one PM sensor is enabled
     if sensors[s.PM1] or sensors[s.PM2]:
 
-        logger.info("Calculating averages")
+        logger.debug("Calculating averages")
 
         try:
             TEMP_avg_readings_str, TEMP_count = get_averages(s.TEMP, logger)
@@ -134,7 +134,7 @@ def get_averages(sensor_name, logger):
     except Exception as e:
         # ToDo: Find out why exception logs the traceback 'None' here.
         logger.exception("No readings from sensor {}".format(sensor_name))
-        logger.critical("Setting 0 as a place holder")
+        logger.warning("Setting 0 as a place holder")
         blink_led(colour=0x770000, delay=0.5, count=1)
     finally:
         return avg_readings_str, count

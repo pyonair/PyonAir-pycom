@@ -259,7 +259,7 @@ def get_html_form():
                   </div>
                 </div>
               </div>
-            <label>GPS - Not implemented</label>
+            <label>GPS - Work in progress</label>
             <hr/>
             <div class="sensor">
               <div>
