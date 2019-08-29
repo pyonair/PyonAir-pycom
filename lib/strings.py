@@ -32,7 +32,7 @@ default_configuration = {"device_id": "", "device_name": "NewPyonAir", "password
                          "device_eui": "", "application_eui": "", "app_key": "", "SSID": "notimplemented",
                          "wifi_password": "notimplemented", "raw_freq": 0, "TEMP": "SHT35", "PM1": "PMS5003",
                          "PM2": "SPS030", "GPS": "OFF", "PM1_id": "002","PM2_id": "003", "TEMP_id": "001",
-                         "GPS_id": "004", "PM_interval": 15, "TEMP_freq": 30, "GPS_freq": 0.05, "logging_lvl": "Warning",
+                         "GPS_id": "004", "PM_interval": 15, "TEMP_freq": 30, "GPS_freq": 12, "logging_lvl": "Warning",
                          "lora_timeout": 10, "GPS_timeout": 900, "config_timeout": 420}
 
 # Sensor names
@@ -72,5 +72,5 @@ GPS_lora_file = 'GPS_lora.csv'
 # / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H / PM2_id-H / PM2_ PM10-B / PM2_PM25-B / PM2_count-H
 lora_long_struct = '<BHHhhHHBBHHBBH'
 lora_short_struct = '<BHHhhHHBBH'
-# timestamp-H / GPS_id-H / lat_deg-B / lat_min-f / lat_comp-c / long_deg-B / long_min-f / long_comp-c / alt-f
-lora_gps_struct = '<BHBfcBfcf'
+# timestamp-H / GPS_id-H / lat-f / long-f / alt-f
+lora_gps_struct = '<HHfff'

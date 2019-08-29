@@ -55,16 +55,25 @@ def lora_thread(thread_name, logger, data_type, lora, lora_socket):
                 with open(s.lora_path + log_file_name, 'r') as f:
 
                     # read all lines from lora.csv.tosend
-                    lines = f.readlines()
-                    for line in lines:
-                        stripped_line = line[:-1]  # strip /n
-                        split_line_lst = stripped_line.split(',')  # split line to a list of values
-                        int_line = list(map(int, split_line_lst))  # cast str list to int list
-                        logger.debug("Sending over lora: " + str(int_line))
-                        payload = struct.pack(structure, *int_line)  # define payload with given structure and list of averages
+                    line = f.readline()
+                    stripped_line = line[:-1]  # strip /n
+                    split_line_lst = stripped_line.split(',')  # split line to a list of strings
 
+                    # cast string values to appropriate data type
+                    casted_line_list = []
+                    for i in range((len(structure)-1)):  # iterate for length of structure having '<' stripped
+                        if structure[i+1] == 'f':  # iterate through structure ignoring '<'
+                            casted_line_list.append(float(split_line_lst[i]))  # cast to float if structure is 'f'
+                        else:
+                            casted_line_list.append(int(split_line_lst[i]))  # cast to int otherwise
+
+                    # pack payload and send it over LoRa
+                    logger.debug("Sending over lora: " + str(casted_line_list))
+                    payload = struct.pack(structure, *casted_line_list)  # define payload with given structure and list of averages
                     lora_socket.send(payload)  # send payload to the connected socket
                     logger.debug("Thread: {} sent payload".format(thread_name))
+
+                    # remove file sent
                     logger.debug("Thread: {} removing file: {}".format(thread_name, log_file_name))
                     os.remove(s.lora_path + log_file_name)
 

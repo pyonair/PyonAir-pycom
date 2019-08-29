@@ -8,6 +8,7 @@ import strings as s
 import time
 import pycom
 import uos
+import _thread
 
 # Initialize GPS power circuitry
 GPS_transistor = Pin('P19', mode=Pin.OUT)
@@ -18,6 +19,9 @@ gps = MicropyGPS()
 
 # Create GPS sensor logger
 GPS_logger = SensorLogger(sensor_name=s.GPS, terminal_out=True)
+
+# Having a lock is necessary, because it is possible to have two gps threads running at the same time
+gps_lock = _thread.allocate_lock()
 
 
 # delete serial used for terminal out and initialize serial for GPS
@@ -59,111 +63,135 @@ def gps_deinit(serial, logger, message):
 
 def get_time(rtc, led, logger):
 
-    logger.info("Getting UTC datetime via GPS")
-    serial, chrono = gps_init(logger)  # initialize serial and timer
-    message = False  # no message while terminal is disabled (by default)
-    com_counter = int(chrono.read())  # counter for checking whether gps is connected
-    if led:  # led indicator enabled - when get_time is blocking upon boot
-        led_counter = int(chrono.read())  # counter for blinking led
+    if gps_lock.locked():
+        logger.debug("Waiting for other gps thread to finish")
+    with gps_lock:
+        logger.info("Getting UTC datetime via GPS")
 
-    while True:
-        # data_in = '$GPRMC,085258.000,A,5056.1384,N,00123.1522,W,0.00,159.12,200819,,,A*7E\r\n'
-        data_in = (str(serial.readline()))[1:]
+        serial, chrono = gps_init(logger)  # initialize serial and timer
+        message = False  # no message while terminal is disabled (by default)
+        com_counter = int(chrono.read())  # counter for checking whether gps is connected
+        if led:  # led indicator enabled - when get_time is blocking upon boot
+            led_counter = int(chrono.read())  # counter for blinking led
 
-        if (int(chrono.read()) - com_counter) >= 10:
-            gps_deinit(serial, logger, message)
-            raise Exception("GPS enabled, but not connected")
+        while True:
+            # data_in = '$GPRMC,085258.000,A,5056.1384,N,00123.1522,W,0.00,159.12,200819,,,A*7E\r\n'
+            data_in = (str(serial.readline()))[1:]
 
-        for char in data_in:
-            sentence = gps.update(char)
-            if sentence == "GPRMC":
-                com_counter = int(chrono.read())
-                if gps.valid:
+            if (int(chrono.read()) - com_counter) >= 10:
+                gps_deinit(serial, logger, message)
+                raise Exception("GPS enabled, but not connected")
 
-                    # Set current time on pycom - convert seconds (timestamp[2]) from float to int
-                    datetime = (int('20' + str(gps.date[2])), gps.date[1], gps.date[0], gps.timestamp[0],
-                                gps.timestamp[1], int(gps.timestamp[2]), 0, 0)
-                    rtc.init(datetime)
+            for char in data_in:
+                sentence = gps.update(char)
+                if sentence == "GPRMC":
+                    com_counter = int(chrono.read())
+                    if gps.valid:
 
-                    # Set current time on RTC module if connected - convert seconds (timestamp[2]) from float to int
-                    h_day, h_mnth, h_yr = int(str(gps.date[0]), 16), int(str(gps.date[1]), 16), int(str(gps.date[2]),
-                                                                                                    16)
-                    h_hr, h_min, h_sec = int(str(gps.timestamp[0]), 16), int(str(gps.timestamp[1]), 16), int(
-                        str(int(gps.timestamp[2])), 16)
-                    try:
-                        clock.set_time(h_yr, h_mnth, h_day, h_hr, h_min, h_sec)
-                        message = """GPS UTC datetime successfully updated on pycom board 
-                                    GPS UTC datetime successfully updated on RTC module"""
-                    except Exception:
-                        message = """GPS UTC datetime successfully updated on pycom board 
-                                    Failed to set GPS UTC datetime on the RTC module"""
+                        # Set current time on pycom - convert seconds (timestamp[2]) from float to int
+                        datetime = (int('20' + str(gps.date[2])), gps.date[1], gps.date[0], gps.timestamp[0],
+                                    gps.timestamp[1], int(gps.timestamp[2]), 0, 0)
+                        rtc.init(datetime)
 
-                    # Turn flashing blue led indicator off if enabled, and exit function or thread
-                    if led:
-                        pycom.rgbled(0x552000)  # flash orange to indicate continuation of startup
-                    gps_deinit(serial, logger, message)
-                    return
+                        # Set current time on RTC module if connected - convert seconds (timestamp[2]) from float to int
+                        h_day, h_mnth, h_yr = int(str(gps.date[0]), 16), int(str(gps.date[1]), 16), int(str(gps.date[2]),
+                                                                                                        16)
+                        h_hr, h_min, h_sec = int(str(gps.timestamp[0]), 16), int(str(gps.timestamp[1]), 16), int(
+                            str(int(gps.timestamp[2])), 16)
+                        try:
+                            clock.set_time(h_yr, h_mnth, h_day, h_hr, h_min, h_sec)
+                            message = """GPS UTC datetime successfully updated on pycom board 
+                                        GPS UTC datetime successfully updated on RTC module"""
+                        except Exception:
+                            message = """GPS UTC datetime successfully updated on pycom board 
+                                        Failed to set GPS UTC datetime on the RTC module"""
 
-        # If function is blocking, led should be set - blinking blue light indicating that program is waiting for
-        # gps to acquire current utc time before continuing execution
-        if led:
-            if int(chrono.read()) > led_counter:
-                led_counter = int(chrono.read())
-                if led_counter % 2 == 0:
-                    pycom.rgbled(0x000077)
-                else:
-                    pycom.rgbled(0x000000)
+                        # Turn flashing blue led indicator off if enabled, and exit function or thread
+                        if led:
+                            pycom.rgbled(0x552000)  # flash orange to indicate continuation of startup
+                        gps_deinit(serial, logger, message)
+                        return
 
-        # If timeout elapsed exit function or thread
-        # if chrono.read() >= config.get_config("GPS_timeout"):
-        if chrono.read() >= 10:
-            gps_deinit(serial, logger, message)
-            raise Exception("GPS timeout")
+            # If function is blocking, led should be set - blinking blue light indicating that program is waiting for
+            # gps to acquire current utc time before continuing execution
+            if led:
+                if int(chrono.read()) > led_counter:
+                    led_counter = int(chrono.read())
+                    if led_counter % 2 == 0:
+                        pycom.rgbled(0x000077)
+                    else:
+                        pycom.rgbled(0x000000)
+
+            # If timeout elapsed exit function or thread
+            if chrono.read() >= config.get_config("GPS_timeout"):
+                gps_deinit(serial, logger, message)
+                raise Exception("GPS timeout")
 
 
-def get_position(logger):
-    serial, chrono = gps_init(logger)
+def get_position(logger, arg=0):
 
-    message = False
-    com_counter = int(chrono.read())
+    if gps_lock.locked():
+        logger.debug("Waiting for other gps thread to finish")
+    with gps_lock:
+        logger.info("Getting position via GPS")
 
-    while True:
-        data_in = '$GPGGA,085259.000,5056.1384,N,00123.1522,W,1,8,1.17,25.1,M,47.6,M,,*7D\r\n'
-        # data_in = (str(serial.readline()))[1:]
+        serial, chrono = gps_init(logger)
 
-        if (int(chrono.read()) - com_counter) >= 10:
-            gps_deinit(serial, logger, message)
-            raise Exception("GPS enabled, but not connected")
+        message = False
+        com_counter = int(chrono.read())
 
-        for char in data_in:
-            sentence = gps.update(char)
-            if sentence == "GPGGA":
-                com_counter = int(chrono.read())
+        while True:
+            # data_in = '$GPGGA,085259.000,5056.1384,N,00123.1522,W,1,8,1.17,25.1,M,47.6,M,,*7D\r\n'
+            data_in = (str(serial.readline()))[1:]
 
-                if 0 < gps.hdop < 5 and gps.satellites_in_use >= 3:
+            if (int(chrono.read()) - com_counter) >= 10:
+                gps_deinit(serial, logger, message)
+                raise Exception("GPS enabled, but not connected")
 
-                    message = """Successfully acquired location from GPS
-                    Longitude: {}
-                    Latitude: {}
-                    Altitude: {}""".format(gps.longitude, gps.latitude, gps.altitude)
+            for char in data_in:
+                sentence = gps.update(char)
+                if sentence == "GPGGA":
+                    com_counter = int(chrono.read())
 
-                    # Log GPS location
-                    timestamp = s.csv_timestamp_template.format(*time.gmtime())  # get current time in desired format
-                    lst_to_log = [timestamp] + gps.latitude + gps.longitude + gps.altitude
-                    line_to_log = ','.join(lst_to_log)
-                    GPS_logger.log_row(line_to_log)
+                    # Process data only if quality of signal is great
+                    if 0 < gps.hdop < 4 and gps.satellites_in_use >= 3:
 
-                    # Construct LoRa message
-                    line_to_send = str(minutes_from_midnight()) + ',' + str(config.get_config("GPS_id")) + ',' + \
-                                     ','.join(lst_to_log[1:]) + '\n'
+                        latitude = gps.latitude[0] + gps.latitude[1]/60
+                        if gps.latitude[2] == 'S':
+                            latitude = -latitude
 
-                    # Append lines to sensor_name.csv.tosend
-                    lora_filepath = s.lora_path + s.GPS_lora_file
-                    with open(lora_filepath, 'w') as f_tosend:
-                        f_tosend.write(line_to_send)
+                        longitude = gps.longitude[0] + gps.longitude[1]/60
+                        if gps.longitude[2] == 'W':
+                            longitude = -longitude
 
-        # If timeout elapsed exit function or thread
-        if chrono.read() >= config.get_config("GPS_timeout"):
-            gps_deinit(serial, logger, message)
-            raise Exception("GPS timeout")
+                        message = """Successfully acquired location from GPS
+                        Satellites used: {}
+                        HDOP: {}
+                        Latitude: {}
+                        Longitude: {}
+                        Altitude: {}""".format(gps.satellites_in_use, gps.hdop, latitude, longitude, gps.altitude)
+
+                        # Log GPS location
+                        timestamp = s.csv_timestamp_template.format(*time.gmtime())  # get current time in desired format
+                        lst_to_log = [timestamp, latitude, longitude, gps.altitude]
+                        str_lst_to_log = list(map(str, lst_to_log))  # cast to string
+                        line_to_log = ','.join(str_lst_to_log)
+                        GPS_logger.log_row(line_to_log)
+
+                        # Construct LoRa message
+                        line_to_send = str(minutes_from_midnight()) + ',' + str(config.get_config("GPS_id")) + ',' + \
+                                         ','.join(str_lst_to_log[1:]) + '\n'
+
+                        # Append lines to sensor_name.csv.tosend
+                        lora_filepath = s.lora_path + s.GPS_lora_file
+                        with open(lora_filepath, 'w') as f_tosend:
+                            f_tosend.write(line_to_send)
+
+                        gps_deinit(serial, logger, message)
+                        return
+
+            # If timeout elapsed exit function or thread
+            if chrono.read() >= config.get_config("GPS_timeout"):
+                gps_deinit(serial, logger, message)
+                raise Exception("GPS timeout - place device under clear sky and/or increase timeout in configurations")
 
