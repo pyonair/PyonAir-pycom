@@ -8,6 +8,7 @@ import strings as s
 import time
 import pycom
 import uos
+import sys
 import _thread
 
 # Initialize GPS power circuitry
@@ -16,9 +17,6 @@ GPS_transistor.value(0)
 
 # gps library to parse, interpret and store data coming from the serial
 gps = MicropyGPS()
-
-# Create GPS sensor logger
-GPS_logger = SensorLogger(sensor_name=s.GPS, terminal_out=True)
 
 # Having a lock is necessary, because it is possible to have two gps threads running at the same time
 gps_lock = _thread.allocate_lock()
@@ -141,8 +139,8 @@ def get_position(logger, arg=0):
         com_counter = int(chrono.read())
 
         while True:
-            # data_in = '$GPGGA,085259.000,5056.1384,N,00123.1522,W,1,8,1.17,25.1,M,47.6,M,,*7D\r\n'
-            data_in = (str(serial.readline()))[1:]
+            data_in = '$GPGGA,085259.000,5056.1384,N,00123.1522,W,1,8,1.17,25.1,M,47.6,M,,*7D\r\n'
+            # data_in = (str(serial.readline()))[1:]
 
             if (int(chrono.read()) - com_counter) >= 10:
                 gps_deinit(serial, logger, message)
@@ -171,21 +169,24 @@ def get_position(logger, arg=0):
                         Longitude: {}
                         Altitude: {}""".format(gps.satellites_in_use, gps.hdop, latitude, longitude, gps.altitude)
 
-                        # Log GPS location
+                        # Process GPS location
                         timestamp = s.csv_timestamp_template.format(*time.gmtime())  # get current time in desired format
                         lst_to_log = [timestamp, latitude, longitude, gps.altitude]
                         str_lst_to_log = list(map(str, lst_to_log))  # cast to string
-                        line_to_log = ','.join(str_lst_to_log)
-                        GPS_logger.log_row(line_to_log)
+                        line_to_log = ','.join(str_lst_to_log) + '\n'
+
+                        # Print to terminal and log to archive
+                        sys.stdout.write(s.GPS + " - " + line_to_log)
+                        with open(s.archive_path + s.GPS + '.csv', 'a') as f_archive:
+                            f_archive.write(line_to_log)
 
                         # Construct LoRa message
-                        line_to_send = str(minutes_from_midnight()) + ',' + str(config.get_config("GPS_id")) + ',' + \
-                                         ','.join(str_lst_to_log[1:]) + '\n'
+                        line_to_send = str(config.get_config("version")) + ',' + str(minutes_from_midnight()) + ',' + \
+                                       str(config.get_config("GPS_id")) + ',' + ','.join(str_lst_to_log[1:]) + '\n'
 
                         # Append lines to sensor_name.csv.tosend
-                        lora_filepath = s.lora_path + s.GPS_lora_file
-                        with open(lora_filepath, 'w') as f_tosend:
-                            f_tosend.write(line_to_send)
+                        with open(s.lora_path + s.GPS_lora_file, 'w') as f_to_send:
+                            f_to_send.write(line_to_send)
 
                         gps_deinit(serial, logger, message)
                         return
