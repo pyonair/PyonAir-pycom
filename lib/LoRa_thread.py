@@ -78,7 +78,7 @@ def lora_thread(thread_name, logger, data_type, lora, lora_socket):
                     os.remove(s.lora_path + log_file_name)
 
         except Exception as e:
-            logger.exception("Sending averages over LoRaWAN failed")
+            logger.exception("Sending payload over LoRaWAN failed")
             blink_led(colour=0x770000, delay=0.5, count=1)
         finally:
             logger.debug("Thread: {} finished".format(thread_name))

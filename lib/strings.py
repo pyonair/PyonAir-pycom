@@ -72,5 +72,5 @@ GPS_lora_file = 'GPS_lora.csv'
 # / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H / PM2_id-H / PM2_ PM10-B / PM2_PM25-B / PM2_count-H
 lora_long_struct = '<BHHhhHHBBHHBBH'
 lora_short_struct = '<BHHhhHHBBH'
-# timestamp-H / GPS_id-H / lat-f / long-f / alt-f
-lora_gps_struct = '<HHfff'
+# version-B / timestamp-H / GPS_id-H / lat-f / long-f / alt-f
+lora_gps_struct = '<BHHfff'
