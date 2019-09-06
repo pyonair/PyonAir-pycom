@@ -9,7 +9,7 @@ def get_html_form():
         if option == config.get_config("region"):
             selected_region[option] = " selected"
 
-    selected_TEMP = {"SHT35": ""}
+    selected_TEMP = {"SHT35": "", "OFF": ""}
     for option in selected_TEMP:
         if option == config.get_config(s.TEMP):
             selected_TEMP[option] = " selected"
@@ -24,7 +24,7 @@ def get_html_form():
         if option == config.get_config(s.PM2):
             selected_PM2[option] = " selected"
 
-    selected_GPS = {"ON": "", "OFF": ""}
+    selected_GPS = {"SIM28": "", "OFF": ""}
     for option in selected_GPS:
         if option == config.get_config("GPS"):
             selected_GPS[option] = " selected"
@@ -204,6 +204,7 @@ def get_html_form():
                 <label for="TEMP">Sensor Type</label>
                 <select name="TEMP">
                   <option'''+str(selected_TEMP["SHT35"])+'''>SHT35</option>
+                  <option'''+str(selected_TEMP["OFF"])+'''>OFF</option>
                 </select>
               </div>
               <div>
@@ -237,8 +238,8 @@ def get_html_form():
                   </div>
                 </div>
                 <div class="grid_item3">
-                  <label for="PM_interval">Interval</label>
-                  <input class="input_number" id="PM_interval" name="PM_interval" type="number" value="''' + str(config.get_config("PM_interval")) + '''" required="required" min="1" max="120" step="0.01"/>
+                  <label for="interval">Interval</label>
+                  <input class="input_number" id="PM_interval" name="interval" type="number" value="''' + str(config.get_config("interval")) + '''" required="required" min="1" max="120" step="0.01"/>
                 </div>
                 <div class="grid_item4">
                   <label class="pm_sensor_label">PM Sensor 2</label>
@@ -265,7 +266,7 @@ def get_html_form():
               <div>
                 <label for="GPS">State</label>
                 <select name="GPS">
-                  <option'''+str(selected_GPS["ON"])+'''>ON</option>
+                  <option'''+str(selected_GPS["SIM28"])+'''>ON</option>
                   <option'''+str(selected_GPS["OFF"])+'''>OFF</option>
                 </select>
               </div>

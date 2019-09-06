@@ -1,17 +1,14 @@
 import network
 from network import WLAN
 import usocket as socket
-from html import get_html_form
+from config_page import get_html_form
 import machine
 import pycom
 import gc
 from Configuration import config
-from helper import led_lock, blink_led
+from helper import new_config_lock, led_lock, blink_led
 from RtcDS1307 import clock
-import _thread
-
-
-config_lock = _thread.allocate_lock()
+import ujson
 
 
 def new_config(logger, arg):
@@ -30,8 +27,8 @@ def new_config(logger, arg):
     """
 
     #  Only one of this thread is allowed to run at a time
-    if not config_lock.locked():
-        with config_lock:
+    if not new_config_lock.locked():
+        with new_config_lock:
 
             logger.info("New configuration setup started")
 
@@ -97,7 +94,7 @@ def process_data(received_data, logger):
     last_index = received_data.rfind('time_end')
 
     if first_index != -1 and last_index != -1:
-        config_time_str = received_data[(first_index+10):last_index]
+        config_time_str = received_data[(first_index + len('time_begin')):last_index]
         config_time_lst = config_time_str.split(':')
         config_time_lst[0] = config_time_lst[0][2:]
         h_yr, h_mnth, h_day, h_hr, h_min, h_sec = int(config_time_lst[0], 16), int(config_time_lst[1], 16), \
@@ -114,7 +111,8 @@ def process_data(received_data, logger):
     last_index = received_data.rfind('json_str_end')
 
     if first_index != -1 and last_index != -1:
-        config_json_str = received_data[(first_index+14):last_index]
+        config_json_str = received_data[(first_index + len('json_str_begin')):last_index]
+        new_config_dict = ujson.loads(config_json_str)
 
         if len(config_json_str) >= 1000:
             logger.error('Received configurations are too long')
@@ -122,7 +120,7 @@ def process_data(received_data, logger):
             return False  # keep looping - wait for new message from client
 
         logger.info('Configuration data received from user')
-        config.save_configuration(logger, config_json_str)
+        config.save_configuration(new_config_dict)
         return True
 
     return False  # keep looping - wait for new message from client

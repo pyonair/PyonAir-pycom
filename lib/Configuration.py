@@ -48,13 +48,12 @@ class Configuration:
             return True
 
     #  Saves keys and preferences to sd card
-    def save_configuration(self, logger, config_json_str):
+    def save_configuration(self, new_config):
 
-        self.set_config(ujson.loads(config_json_str))
+        self.set_config(new_config)
 
-        with open('/sd/' + s.config_filename, 'w') as f:  # save credentials to sd card
+        with open(s.root_path + s.config_filename, 'w') as f:  # save credentials to sd card
             f.write(ujson.dumps(self.configuration))
-        logger.info('Configuration saved to SD card')
 
     #  Reads and returns keys and preferences from sd card
     def read_configuration(self):
