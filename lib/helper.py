@@ -1,19 +1,20 @@
-# Helper functions
+# Helper functions and miscellaneous globals
 
 from Configuration import config
-from loggingpycom import INFO, WARNING, CRITICAL, DEBUG, ERROR
+import strings as s
 import time
 import pycom
 import _thread
 
+
+# locks/mutexes
 current_lock = _thread.allocate_lock()
-processing_lock = _thread.allocate_lock()
-archive_lock = _thread.allocate_lock()
-tosend_lock = _thread.allocate_lock()
+new_config_lock = _thread.allocate_lock()
+lora_lock = _thread.allocate_lock()
 led_lock = _thread.allocate_lock()
 
 
-def seconds_to_first_event(rtc, interval_s):
+def seconds_to_first_event(interval_s):
     """
     Computes number of seconds (float) until the first sensor average reading
     :param rtc: real time clock object containing current time up to microsecond precision
@@ -21,23 +22,20 @@ def seconds_to_first_event(rtc, interval_s):
     :type interval_s: int
     :return:  number of seconds until first event
     """
-    now = rtc.now()
-    first_event_s = interval_s - (((now[4] * 60) + now[5] + (now[6]) / 1000000) % interval_s)
-    hours = interval_s // 3600
-    if hours >= 1:
-        first_event_s += hours * 3600
+    current_time = time.gmtime()
+    first_event_s = interval_s - (((current_time[3] * 60 * 60) + (current_time[4] * 60) + current_time[5]) % interval_s)
+
     return first_event_s
 
 
-def minutes_from_midnight():
+def minutes_of_the_month():
     """
-
-    :return: Number of seconds from midnight
+    :return: Number of seconds from the start of the month
     :rtype: int
     """
     t = time.gmtime()
-    hours, minutes = t[3], t[4]
-    return (hours * 60) + minutes
+    days, hours, minutes = t[2], t[3], t[4]
+    return ((days - 1) * 24 * 60) + (hours * 60) + minutes
 
 
 def mean_across_arrays(arrays):
@@ -57,20 +55,6 @@ def mean_across_arrays(arrays):
             sm += array[i]
         out_arr.append(sm/n_arrays)
     return out_arr
-
-
-def get_logging_level():
-    logging_lvl = config.get_config("logging_lvl")
-    if logging_lvl == "Critical":
-        return CRITICAL
-    elif logging_lvl == "Error":
-        return ERROR
-    elif logging_lvl == "Warning":
-        return WARNING
-    elif logging_lvl == "Info":
-        return INFO
-    elif logging_lvl == "Debug":
-        return DEBUG
 
 
 def blink_led(colour=0x770000, count=1, delay=0.4, blocking=False):
@@ -112,3 +96,24 @@ def blink_led(colour=0x770000, count=1, delay=0.4, blocking=False):
 def heartbeat(arg):
     blink_led(colour=0x005500, count=1, delay=0.1, blocking=True)
 
+
+# returns a dictionary of sensors and if they are enabled
+def get_sensors():
+
+    sensors = {s.TEMP: False, s.PM1: False, s.PM2: False}
+
+    for sensor in sensors:
+        if config.get_config(sensor) != "OFF":
+            sensors[sensor] = True
+
+    return sensors
+
+
+def get_format(sensors):
+
+    fmt = ""
+    for sensor_name in [s.TEMP, s.PM1, s.PM2]:
+        if sensors[sensor_name]:  # if the sensor is enabled
+            fmt += sensor_name[0]  # add the first character to fmt to construct format eg.: TPP, TP, PP, P, T
+
+    return fmt

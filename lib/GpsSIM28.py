@@ -2,8 +2,7 @@ from machine import UART, Timer, Pin
 from micropyGPS import MicropyGPS
 from RtcDS1307 import clock
 from Configuration import config
-from SensorLogger import SensorLogger
-from helper import minutes_from_midnight
+from helper import minutes_of_the_month
 import strings as s
 import time
 import pycom
@@ -126,7 +125,7 @@ def get_time(rtc, led, logger):
                 raise Exception("GPS timeout")
 
 
-def get_position(logger, arg=0):
+def get_position(logger, lora):
 
     if gps_lock.locked():
         logger.debug("Waiting for other gps thread to finish")
@@ -139,8 +138,8 @@ def get_position(logger, arg=0):
         com_counter = int(chrono.read())
 
         while True:
-            data_in = '$GPGGA,085259.000,5056.1384,N,00123.1522,W,1,8,1.17,25.1,M,47.6,M,,*7D\r\n'
-            # data_in = (str(serial.readline()))[1:]
+            # data_in = '$GPGGA,085259.000,5056.1384,N,00123.1522,W,1,8,1.17,25.1,M,47.6,M,,*7D\r\n'
+            data_in = (str(serial.readline()))[1:]
 
             if (int(chrono.read()) - com_counter) >= 10:
                 gps_deinit(serial, logger, message)
@@ -180,13 +179,19 @@ def get_position(logger, arg=0):
                         with open(s.archive_path + s.GPS + '.csv', 'a') as f_archive:
                             f_archive.write(line_to_log)
 
-                        # Construct LoRa message
-                        line_to_send = str(config.get_config("version")) + ',' + str(minutes_from_midnight()) + ',' + \
-                                       str(config.get_config("GPS_id")) + ',' + ','.join(str_lst_to_log[1:]) + '\n'
+                        if config.get_config("LORA") == "ON":
+                            # get year and month from timestamp
+                            year_month = timestamp[2:4] + "," + timestamp[5:7] + ','
 
-                        # Append lines to sensor_name.csv.tosend
-                        with open(s.lora_path + s.GPS_lora_file, 'w') as f_to_send:
-                            f_to_send.write(line_to_send)
+                            # get minutes since start of the month
+                            minutes = str(minutes_of_the_month())
+
+                            # Construct LoRa message
+                            line_to_log = year_month + 'G,' + str(config.get_config("version")) + ',' + minutes + ',' \
+                                          + str(config.get_config("GPS_id")) + ',' + ','.join(str_lst_to_log[1:]) + '\n'
+
+                            # Logs line_to_log to be sent over lora
+                            lora.lora_buffer.write(line_to_log)
 
                         gps_deinit(serial, logger, message)
                         return
@@ -195,4 +200,3 @@ def get_position(logger, arg=0):
             if chrono.read() >= config.get_config("GPS_timeout"):
                 gps_deinit(serial, logger, message)
                 raise Exception("GPS timeout - place device under clear sky and/or increase timeout in configurations")
-

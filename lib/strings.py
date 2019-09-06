@@ -32,8 +32,9 @@ default_configuration = {"device_id": "", "device_name": "NewPyonAir", "password
                          "device_eui": "", "application_eui": "", "app_key": "", "SSID": "notimplemented",
                          "wifi_password": "notimplemented", "raw_freq": 0, "TEMP": "SHT35", "PM1": "PMS5003",
                          "PM2": "SPS030", "GPS": "OFF", "PM1_id": "002","PM2_id": "003", "TEMP_id": "001",
-                         "GPS_id": "004", "PM_interval": 15, "TEMP_freq": 30, "GPS_freq": 12, "logging_lvl": "Warning",
-                         "lora_timeout": 10, "GPS_timeout": 900, "config_timeout": 420}
+                         "GPS_id": "004", "interval": 15, "TEMP_freq": 30, "GPS_freq": 12, "logging_lvl": "Warning",
+                         "lora_timeout": 20, "GPS_timeout": 900, "config_timeout": 420, "fair_access": 30,
+                         "air_time": 75, "message_count": 0, "transmission_date": 0, "LORA": "ON"}
 
 # Sensor names
 PM1 = 'PM1'
@@ -41,36 +42,49 @@ PM2 = 'PM2'
 TEMP = 'TEMP'
 GPS = 'GPS'
 
-# Extensions
-current_ext = '.current'
-processing_ext = '.processing'
-dump_ext = ''
+# Directories in /sd/
+current = 'Current'
+processing = 'Processing'
+archive = 'Archive'
+archive_averages = 'Averages'
 
-# Directories
-current = 'current'
-processing = 'processing'
-lora = 'lora_tosend'
-wifi = 'wifi_tosend'
-archive = 'archive'
+# File names
+lora_file_name = 'LoRa_Buffer'
+# wifi_file_name = 'WiFi_Buffer'
 
 # Paths
 root_path = '/sd/'
 current_path = root_path + current + '/'
 processing_path = root_path + processing + '/'
 archive_path = root_path + archive + '/'
-lora_path = root_path + lora + '/'
-filesystem_dirs = [current, processing, lora, wifi, archive]
+archive_averages_path = archive_path + archive_averages + '/'
+filesystem_dirs = [current, processing, archive]
 
-# Templates
-file_name_temp = root_path + '{}' + '.csv' + '{}'  # call this like: file_name_temp.format(sensor_name, extension)
+# Lora structures:
 
-# Temporary constant files before message queueing implemented
-PM_lora_file = 'PM_lora.csv'
-GPS_lora_file = 'GPS_lora.csv'
-
+# TEMP, PM1, PM2
 # version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H /
 # / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H / PM2_id-H / PM2_ PM10-B / PM2_PM25-B / PM2_count-H
-lora_long_struct = '<BHHhhHHBBHHBBH'
-lora_short_struct = '<BHHhhHHBBH'
+TPP = {"port": 1, "structure": '<BHHhhHHBBHHBBH'}
+
+# TEMP, PM
+# version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H /
+# / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H
+TP = {"port": 2, "structure": '<BHHhhHHBBH'}
+
+# PM1, PM2
+# version-B / timestamp-H / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H / PM2_id-H / PM2_ PM10-B / PM2_PM25-B /
+# PM2_count-H
+PP = {"port": 3, "structure": '<BHHBBHHBBH'}
+
+# PM
+# version-B / timestamp-H / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H
+P = {"port": 4, "structure": '<BHHBBH'}
+
+# TEMP
+# version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H
+T = {"port": 5, "structure": '<BHHhhH'}
+
+# GPS
 # version-B / timestamp-H / GPS_id-H / lat-f / long-f / alt-f
-lora_gps_struct = '<BHHfff'
+G = {"port": 6, "structure": '<BHHfff'}
