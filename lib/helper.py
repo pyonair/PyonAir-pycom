@@ -57,44 +57,29 @@ def mean_across_arrays(arrays):
     return out_arr
 
 
-def blink_led(colour=0x770000, count=1, delay=0.4, blocking=False):
-    """
-    Blink with the inbuilt LED
-    :param colour: colour in format like 0x770000, which is red
-    :type colour: int
-    :param count: number of blinks
-    :type count: int
-    :param delay: delay in between blinks in seconds
-    :type delay: float
-    :param blocking: True - will execute even if it has to wait, False - does not execute if LED is already in use
-    :type blocking: bool
-    """
+def blink_led(args):
+
+    colour, delay, blocking = args[0], args[1], args[2]
 
     if blocking:
         acquired = False
         re_tries = 0
         while not acquired:  # pycom has not yet implemented the timeout feature
             acquired = led_lock.acquire(0)
-            time.sleep(0.2)
+            time.sleep(0.1)
             re_tries += 1
-            if re_tries >= 7:
+            if re_tries >= 6:
                 break
     else:
-        acquired = led_lock.acquire(0)
+        # acquired = led_lock.acquire(0)
+        acquired = not led_lock.locked()
 
     if acquired:
-        for i in range(count):
-            pycom.rgbled(colour)
-            time.sleep(delay)
-            pycom.rgbled(0x000000)
-            time.sleep(delay)
-
-        led_lock.release()
-
-
-# yellow blink to simulate heartbeat
-def heartbeat(arg):
-    blink_led(colour=0x005500, count=1, delay=0.1, blocking=True)
+        pycom.rgbled(colour)
+        time.sleep(delay)
+        pycom.rgbled(0x000000)
+        if blocking:
+            led_lock.release()
 
 
 # returns a dictionary of sensors and if they are enabled

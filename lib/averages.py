@@ -59,7 +59,7 @@ def get_sensor_averages(logger, lora):
 
     except Exception as e:
         logger.exception("Failed to flash averages")
-        blink_led(colour=0x770000, delay=0.5, count=1)
+        blink_led((0x550000, 0.4, True))
 
 
 def calculate_average(sensor_name, logger):
@@ -112,7 +112,7 @@ def calculate_average(sensor_name, logger):
     except Exception as e:
         logger.exception("No readings from sensor {}".format(sensor_name))
         logger.warning("Setting 0 as a place holder")
-        blink_led(colour=0x770000, delay=0.5, count=1)
+        blink_led((0x550000, 0.4, True))
     finally:
         return {sensor_name + "_avg": avg_readings_str, sensor_name + "_count": count}
 

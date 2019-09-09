@@ -87,7 +87,7 @@ class LoRaWAN:
 
             except Exception as e:
                 self.logger.exception("Sending payload over LoRaWAN failed")
-                blink_led(colour=0x770000, delay=0.5, count=1)
+                blink_led((0x550000, 0.4, True))
 
     def get_sending_details(self):
 

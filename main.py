@@ -31,7 +31,7 @@ except Exception as e:
     print(str(e))
     reboot_counter = 0
     while True:
-        blink_led(colour=0x770000, delay=0.5)  # blink red LED
+        blink_led((0x550000, 0.5, True))  # blink red LED
         reboot_counter += 1
         if reboot_counter >= 180:
             reset()
@@ -43,9 +43,22 @@ try:
     from Configuration import config
     from new_config import new_config
     import strings as s
+    import ujson
 
     # Read configuration file to get preferences
     config.read_configuration()
+
+    """SET VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in the
+    back end. If the structure of the LoRa message is changed during update, increment the version number and
+    add a corresponding decoder to the back-end."""
+    config.set_config({"version": 1})
+
+    # Override Preferences - DEVELOPER USE ONLY - keep all overwrites here
+    if 'debug_config.json' in os.listdir('/flash'):
+        status_logger.warning("Overriding configuration with the content of debug_config.json")
+        with open('/flash/debug_config.json', 'r') as f:
+            config.set_config(ujson.loads(f.read()))
+            status_logger.warning("Configuration changed to: " + str(config.get_config()))
 
     # Initialize PM power circuitry
     PM_transistor = Pin('P20', mode=Pin.OUT)
@@ -82,7 +95,7 @@ except Exception as e:
         reboot_timer = Timer.Chrono()
         reboot_timer.start()
         while user_button.get_reboot():
-            blink_led(colour=0x777700, delay=0.5)  # blink yellow LED
+            blink_led((0x555500, 0.5, True))  # blink yellow LED
             if int(reboot_timer.read()) >= 180:
                 status_logger.info("rebooting...")
                 reset()
@@ -98,32 +111,19 @@ try:
     from machine import Timer
     from SensorLogger import SensorLogger
     from EventScheduler import EventScheduler
-    from helper import blink_led, heartbeat, get_sensors
+    from helper import blink_led, get_sensors
     from averages import get_sensor_averages
     from TempSHT35 import TempSHT35
     import GpsSIM28
     import _thread
     from initialisation import initialize_pm_sensor, initialize_file_system, remove_residual_files, get_logging_level
     from LoRaWAN import LoRaWAN
-    import ujson
 
     # Configurations are entered parallel to main execution upon button press for 2.5 secs
     user_button.set_config_blocking(False)
 
-    """SET VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in the
-    back end. If the structure of the LoRa message is changed during update, increment the version number and
-    add a corresponding decoder to the back-end."""
-    config.set_config({"version": 1})
-
     # Set debug level - has to be set after logger was initialized and device was configured
     logger_factory.set_level('status_logger', get_logging_level())
-
-    # Override Preferences - DEVELOPER USE ONLY - keep all overwrites here
-    if 'debug_config.json' in os.listdir('/flash'):
-        status_logger.warning("Overriding configuration with the content of debug_config.json")
-        with open('/flash/debug_config.json', 'r') as f:
-            config.set_config(ujson.loads(f.read()))
-            status_logger.warning("Configuration changed to: " + str(config.get_config()))
 
     # Initialize file system
     initialize_file_system()
@@ -161,17 +161,19 @@ try:
     status_logger.info("Initialization finished")
 
     # Blink green three times to identify that the device has been initialised
-    blink_led(colour=0x007700, count=3)
-    # Initialize custom yellow heartbeat that triggers every 6 seconds
-    heartbeat = Timer.Alarm(heartbeat, s=4, periodic=True)
+    for val in range(3):
+        blink_led((0x005500, 0.5, True))
+        time.sleep(0.5)
+    # Initialize custom yellow heartbeat that triggers every 5 seconds
+    heartbeat = Timer.Alarm(blink_led, s=5, arg=(0x005500, 0.1, True), periodic=True)
 
     # Try to update RTC module with accurate UTC datetime if GPS is enabled and has not yet synchronized
     if gps_on and update_time_later:
         # Start a new thread to update time from gps if available
-        _thread.start_new_thread(GpsSIM28.get_time, (rtc, False, status_logger))
+        _thread.start_new_thread(GpsSIM28.get_time, (rtc, status_logger))
 
 except Exception as e:
     status_logger.exception("Exception in the main")
-    pycom.rgbled(0x770000)
+    pycom.rgbled(0x550000)
     while True:
         time.sleep(5)

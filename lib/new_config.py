@@ -53,7 +53,7 @@ def new_config(logger, arg):
             sct.bind(address)  # Bind address to socket
             sct.listen(1)  # Allow one station to connect to socket
 
-            pycom.rgbled(0x000077)  # Blue LED - waiting for connection
+            pycom.rgbled(0x000055)  # Blue LED - waiting for connection
 
             get_new_config(sct, logger)
 
@@ -73,7 +73,7 @@ def get_new_config(sct, logger):
             except Exception as e:
                 raise Exception("Configuration timeout")
             client.send(get_html_form())  # send html page with form to submit by the user
-            pycom.rgbled(0x007700)  # Green LED - Connection successful
+            pycom.rgbled(0x005500)  # Green LED - Connection successful
             received_data = str(client.recv(3000))  # wait for client response
             # logger.debug(received_data)
             client.close()  # socket has to be closed because of the loop
@@ -83,7 +83,7 @@ def get_new_config(sct, logger):
         logger.exception(str(e))
         logger.error("Failed to configure the device")
         led_lock.release()
-        blink_led(colour=0x770000, count=1, delay=3, blocking=True)  # Red LED - Error
+        blink_led((0x550000, 3, True))  # Red LED - Error
         return
 
 

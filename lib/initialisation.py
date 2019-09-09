@@ -7,6 +7,7 @@ from Configuration import config
 import _thread
 import strings as s
 import os
+import pycom
 
 
 def initialize_time(rtc, gps_on, logger):
@@ -20,7 +21,7 @@ def initialize_time(rtc, gps_on, logger):
             if rtc.now()[0] < 2019 or rtc.now()[0] >= 2100:
                 # Get time and calibrate RTC module via GPS
                 if gps_on:
-                    GpsSIM28.get_time(rtc, True, logger)
+                    GpsSIM28.get_time(rtc, logger)
                     update_time_later = False
                 # Calibrate RTC module via WiFi Configurations and then reboot
                 else:
@@ -35,7 +36,7 @@ def initialize_time(rtc, gps_on, logger):
         try:
             # Get time via GPS
             if gps_on:
-                GpsSIM28.get_time(rtc, True, logger)
+                GpsSIM28.get_time(rtc, logger)
                 update_time_later = False
             # No way of getting time
             else:
@@ -57,6 +58,8 @@ def initialize_time(rtc, gps_on, logger):
                       GPS is enabled but not connected - connect a GPS module or have an RTC module connected and 
                         disable GPS on configurations page
                       GPS timeout - put device under clear sky and/or increase GPS timeout in configurations""")
+    else:
+        pycom.rgbled(0x552000)  # flash orange until its loaded
 
     return no_time, update_time_later
 

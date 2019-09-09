@@ -8,7 +8,8 @@ import time
 # ToDo: Use interrupts and unify the two sensor processing by polling only one reading from the plantower in a second.
 def pm_thread(sensor_name, sensor_logger, status_logger, pins, serial_id):
 
-    status_logger.debug("Thread PM sensor: {} started".format(sensor_name))
+    message = "Thread {} started".format(sensor_name)
+    status_logger.debug(message)
 
     sensor_type = config.get_config(sensor_name)
 
@@ -20,8 +21,8 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pins, serial_id):
             plantower.read()
             time.sleep(5)
         except PlantowerException as e:
-            status_logger.exception("Failed to read from sensor {}".format(sensor_name))
-            blink_led(colour=0x770000, delay=0.5, count=1)
+            status_logger.exception("Failed to read from sensor PMS5003")
+            blink_led((0x550000, 0.4, True))
 
         # variables for sensor reading and computing averages
         last_timestamp = None
@@ -48,8 +49,8 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pins, serial_id):
                     # Add the current reading to the list, which will be processed when the timestamp changes
                     sensor_readings_lst.append(sensor_reading)
             except PlantowerException as e:
-                status_logger.exception("Failed to read from sensor {}".format(sensor_name))
-                blink_led(colour=0x770000, delay=0.5, count=1)
+                status_logger.exception("Failed to read from sensor PMS5003")
+                blink_led((0x550000, 0.4, True))
 
     elif sensor_type == "SPS030":
 
@@ -60,14 +61,14 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pins, serial_id):
                 SPS030 = Sensirion(pins=pins, id=serial_id)  # automatically starts measurement
                 break
             except SensirionException as e:
-                status_logger.exception("Failed to read from sensor {}".format(sensor_name))
-                blink_led(colour=0x770000, delay=0.5, count=1)
+                status_logger.exception("Failed to read from sensor SPS030")
+                blink_led((0x550000, 0.4, True))
                 time.sleep(LOOP_DELAY_S)
 
         time.sleep(5)  # wait for sensor to calibrate/stabilize
 
-        try:
-            while True:
+        while True:
+            try:
                 time.sleep(LOOP_DELAY_S)
 
                 recv = SPS030.read()
@@ -79,6 +80,6 @@ def pm_thread(sensor_name, sensor_logger, status_logger, pins, serial_id):
                     lst_to_log = [curr_timestamp] + [str(i) for i in sensor_reading_round]
                     line_to_log = ','.join(lst_to_log)
                     sensor_logger.log_row(line_to_log)
-        except SensirionException as e:
-            status_logger.exception("Failed to read from sensor {}".format(sensor_name))
-            blink_led(colour=0x770000, delay=0.5, count=1)
+            except SensirionException as e:
+                status_logger.exception("Failed to read from sensor SPS030")
+                blink_led((0x550000, 0.4, True))

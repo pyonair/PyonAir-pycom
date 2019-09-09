@@ -32,8 +32,8 @@ class UserButton:
                 if self.config_press is not False:
                     self.config_press.cancel()
 
-                # If button was pressed and released within 1 second, then reboot the device
-                if self.reboot_timer.read() < 1:
+                # If button was pressed and released within 1.5 seconds, then reboot the device
+                if self.reboot_timer.read() < 1.5:
                     try:  # if sd card failed to mount handle exception thrown in logger
                         self.logger.info("Button press - rebooting...")
                     except Exception as e:
