@@ -102,15 +102,16 @@ def get_time(rtc, logger):
                                             Failed to set GPS UTC datetime on the RTC module"""
 
                             gps_deinit(serial, logger, message, indicator_led)
-                            return
+                            return True
 
             # If timeout elapsed exit function or thread
             if chrono.read() >= int(config.get_config("GPS_timeout")):
                 gps_deinit(serial, logger, message, indicator_led)
-                raise Exception("""GPS timeout
+                logger.error("""GPS timeout
                 Check if GPS module is connected
                 Place device under clear sky
                 Increase GPS timeout in configurations""")
+                return False
 
 
 def get_position(logger, lora):
@@ -191,12 +192,13 @@ def get_position(logger, lora):
                                 lora.lora_buffer.write(line_to_log)
 
                             gps_deinit(serial, logger, message, indicator_led)
-                            return
+                            return True
 
             # If timeout elapsed exit function or thread
             if chrono.read() >= int(config.get_config("GPS_timeout")):
                 gps_deinit(serial, logger, message, indicator_led)
-                raise Exception("""GPS timeout
+                logger.error("""GPS timeout
                 Check if GPS module is connected
                 Place device under clear sky
                 Increase GPS timeout in configurations""")
+                return False

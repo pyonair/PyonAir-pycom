@@ -17,32 +17,29 @@ def initialize_time(rtc, gps_on, logger):
         # Get time from RTC module
         rtc.init(clock.get_time())
         # RTC module is not calibrated
-        try:
-            if rtc.now()[0] < 2019 or rtc.now()[0] >= 2100:
-                # Get time and calibrate RTC module via GPS
-                if gps_on:
-                    GpsSIM28.get_time(rtc, logger)
+        if rtc.now()[0] < 2019 or rtc.now()[0] >= 2100:
+            # Get time and calibrate RTC module via GPS
+            if gps_on:
+                if GpsSIM28.get_time(rtc, logger):
                     update_time_later = False
-                # Calibrate RTC module via WiFi Configurations and then reboot
-                else:
-                    logger.critical("Visit configurations page and press submit to set the RTC module")
-                    no_time = True
-        except Exception as e:  # No way of getting time
-            logger.exception("Failed to get current time from GPS")
-            no_time = True  # navigate to configurations with yellow LED
+                else:  # No way of getting time
+                    logger.exception("Failed to get current time from GPS")
+                    no_time = True  # navigate to configurations with yellow LED
+            # Calibrate RTC module via WiFi Configurations and then reboot
+            else:
+                logger.critical("Visit configurations page and press submit to set the RTC module")
+                no_time = True
     # RTC module is not available
     except Exception as e:
         logger.exception("Failed to get time from RTC module")
-        try:
-            # Get time via GPS
-            if gps_on:
-                GpsSIM28.get_time(rtc, logger)
+        # Get time via GPS
+        if gps_on:
+            if GpsSIM28.get_time(rtc, logger):
                 update_time_later = False
-            # No way of getting time
-            else:
+            else:  # No way of getting time
+                logger.exception("Failed to get current time from GPS")
                 no_time = True  # navigate to configurations with yellow LED
-        except Exception as e:  # No way of getting time
-            logger.exception("Failed to get current time from GPS")
+        else:  # No way of getting time
             no_time = True  # navigate to configurations with yellow LED
 
     if no_time:
@@ -58,7 +55,7 @@ def initialize_time(rtc, gps_on, logger):
                       GPS is enabled but not connected - connect a GPS module or have an RTC module connected and 
                         disable GPS on configurations page
                       GPS timeout - put device under clear sky and/or increase GPS timeout in configurations""")
-    else:
+    elif gps_on:
         pycom.rgbled(0x552000)  # flash orange until its loaded
 
     return no_time, update_time_later
