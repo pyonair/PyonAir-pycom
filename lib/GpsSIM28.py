@@ -105,7 +105,7 @@ def get_time(rtc, logger):
                             return
 
             # If timeout elapsed exit function or thread
-            if chrono.read() >= config.get_config("GPS_timeout"):
+            if chrono.read() >= int(config.get_config("GPS_timeout")):
                 gps_deinit(serial, logger, message, indicator_led)
                 raise Exception("""GPS timeout
                 Check if GPS module is connected
@@ -134,8 +134,21 @@ def get_position(logger, lora):
                     sentence = gps.update(char)
                     if sentence == "GPGGA":
 
+                        # set aim for the quality of the signal based on the time elapsed
+                        elapsed = chrono.read() / int(config.get_config("GPS_timeout"))
+                        if elapsed < 0.5:
+                            hdop_aim = 1.5
+                        elif elapsed < 0.6:
+                            hdop_aim = 2
+                        elif elapsed < 0.7:
+                            hdop_aim = 3
+                        elif elapsed < 0.8:
+                            hdop_aim = 4
+                        else:
+                            hdop_aim = 5
+
                         # Process data only if quality of signal is great
-                        if 0 < gps.hdop < 4 and gps.satellites_in_use >= 3:
+                        if 0 < gps.hdop <= hdop_aim and gps.satellites_in_use >= 3:
 
                             latitude = gps.latitude[0] + gps.latitude[1]/60
                             if gps.latitude[2] == 'S':
@@ -181,7 +194,7 @@ def get_position(logger, lora):
                             return
 
             # If timeout elapsed exit function or thread
-            if chrono.read() >= config.get_config("GPS_timeout"):
+            if chrono.read() >= int(config.get_config("GPS_timeout")):
                 gps_deinit(serial, logger, message, indicator_led)
                 raise Exception("""GPS timeout
                 Check if GPS module is connected
