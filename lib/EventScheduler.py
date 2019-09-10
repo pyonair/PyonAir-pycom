@@ -20,7 +20,7 @@ class EventScheduler:
         if self.data_type == "sensors":
             self.interval_s = int(float(config.get_config("interval"))*60)
             if self.interval_s < 15 * 60:
-                self.logger.warning("Interval is less than 15 minutes - no real time transmission is guaranteed")
+                self.logger.warning("Interval is less than 15 mins - real time transmission is not guaranteed")
         elif self.data_type == "gps":
             self.interval_s = int(float(config.get_config("GPS_freq"))*3600)
         self.s_to_next_lora = None

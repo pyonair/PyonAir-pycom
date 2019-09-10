@@ -1,7 +1,6 @@
 from Configuration import config
 import strings as s
-from helper import blink_led, seconds_to_first_event, lora_lock, minutes_of_the_month
-from machine import Timer
+from helper import blink_led, lora_lock, minutes_of_the_month
 from RingBuffer import RingBuffer
 import struct
 import os
@@ -9,6 +8,8 @@ from network import LoRa
 import socket
 import ubinascii
 import time
+# import machine
+# import ujson
 
 
 class LoRaWAN:
@@ -42,10 +43,16 @@ class LoRaWAN:
         self.lora_socket = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
 
         # request acknowledgment of data sent
-        self.lora_socket.setsockopt(socket.SOL_LORA, socket.SO_CONFIRMED, True)
+        # self.lora_socket.setsockopt(socket.SOL_LORA, socket.SO_CONFIRMED, True)
+
+        # do not request acknowledgment of data sent
+        self.lora_socket.setsockopt(socket.SOL_LORA, socket.SO_CONFIRMED, False)
 
         # sets timeout for sending data
         self.lora_socket.settimeout(int(config.get_config("lora_timeout")) * 1000)
+
+        # set up callback for receiving downlink messages
+        # self.lora.callback(trigger=LoRa.RX_PACKET_EVENT, handler=self.lora_recv)
 
         # initializes circular lora stack to back up data up to about 22.5 days depending on the length of the month
         self.lora_buffer = RingBuffer(self.logger, s.processing_path, s.lora_file_name, 31 * self.message_limit, 100)
@@ -54,6 +61,34 @@ class LoRaWAN:
             self.check_date()  # remove messages that are over a month old
         except Exception as e:
             pass
+
+    # def lora_recv(self, arg):
+    #
+    #     message = self.lora_socket.recv(600)
+    #     self.logger.info("Lora message received: {}".format(message))
+    #
+    #     if message == bytes([1]):
+    #         self.logger.info("Reset triggered over LoRa")
+    #         self.logger.info("rebooting...")
+    #         machine.reset()
+    #
+    #     message = message.decode()
+    #     try:
+    #         new_config = ujson.loads(message)
+    #     except Exception as e:
+    #         self.logger.info("Unknown command")
+    #         return
+    #
+    #     for key in new_config.keys():
+    #         if key not in config.default_configuration.keys():
+    #             self.logger.info("Unknown command")
+    #             return
+    #
+    #     self.logger.info("New configuration key-value pairs received over LoRa")
+    #     self.logger.info(new_config)
+    #     config.save_configuration(new_config)
+    #     self.logger.info("rebooting...")
+    #     machine.reset()
 
     def lora_send(self, arg1, arg2):
 

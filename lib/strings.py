@@ -32,9 +32,10 @@ default_configuration = {"device_id": "", "device_name": "NewPyonAir", "password
                          "device_eui": "", "application_eui": "", "app_key": "", "SSID": "notimplemented",
                          "wifi_password": "notimplemented", "raw_freq": 0, "TEMP": "SHT35", "PM1": "PMS5003",
                          "PM2": "SPS030", "GPS": "OFF", "PM1_id": "002","PM2_id": "003", "TEMP_id": "001",
-                         "GPS_id": "004", "interval": 15, "TEMP_freq": 30, "GPS_freq": 12, "logging_lvl": "Warning",
-                         "lora_timeout": 20, "GPS_timeout": 1200, "config_timeout": 600, "fair_access": 30,
-                         "air_time": 75, "message_count": 0, "transmission_date": 0, "LORA": "ON"}
+                         "GPS_id": "004", "interval": 15, "TEMP_freq": 30, "GPS_freq": 12, "PM1_init": 30,
+                         "PM2_init": 30, "logging_lvl": "Warning", "lora_timeout": 20, "GPS_timeout": 1200,
+                         "config_timeout": 600, "fair_access": 30, "air_time": 75, "message_count": 0,
+                         "transmission_date": 0, "LORA": "ON"}
 
 # Sensor names
 PM1 = 'PM1'

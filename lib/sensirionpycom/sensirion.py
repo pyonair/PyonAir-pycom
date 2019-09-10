@@ -49,7 +49,7 @@ SUBCMD_WRITE_INTERVAL = b'\x00'
 
 RX_DELAY_S = 0.02 # How long to wait between sending the read command and getting data (seconds)
 
-MIN_SAMPLE_INTERVAL = 1
+MIN_SAMPLE_INTERVAL = 0.5
 
 class SensirionReading(object):
     """
@@ -104,8 +104,9 @@ class Sensirion(object):
         """
 
         self.logger = logging.getLogger("SPS030 Interface")
-        logging.basicConfig(
-            format='%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(message)s')
+        logging.basicConfig()
+        # logging.basicConfig(
+        #     format='%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(message)s')
         self.logger.setLevel(log_level)
         self.id = id
         self.pins = pins
