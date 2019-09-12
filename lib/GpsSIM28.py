@@ -30,7 +30,7 @@ def gps_init(logger):
     GPS_transistor.value(1)
 
     # set up serial input for gps signals
-    serial = UART(0, baudrate=115200, pins=('P22', 'P21'))  # Tx, Rx
+    serial = UART(0, baudrate=9600, pins=('P22', 'P21'))  # Tx, Rx
 
     chrono = Timer.Chrono()
     chrono.start()
@@ -69,18 +69,25 @@ def get_time(rtc, logger):
         logger.info("Getting UTC datetime via GPS")
 
         serial, chrono, indicator_led = gps_init(logger)  # initialize serial and timer
+        com_counter = int(chrono.read())  # counter for checking whether gps is connected
         message = False  # no message while terminal is disabled (by default)
 
         while True:
             # data_in = '$GPRMC,085258.000,A,5056.1384,N,00123.1522,W,0.00,159.12,200819,,,A*7E\r\n'
-            data_in = (str(serial.readline()))
-            if data_in == "None":
-                time.sleep(3)
+            data_in = (str(serial.readline()))[1:]
+
+            if (int(chrono.read()) - com_counter) >= 10:
+                gps_deinit(serial, logger, message, indicator_led)
+                logger.error("GPS enabled, but not connected")
+                return False
+
+            if data_in[1:4] != "$GP":
+                time.sleep(1)
             else:
-                data_in = data_in[1:]
                 for char in data_in:
                     sentence = gps.update(char)
                     if sentence == "GPRMC":
+                        com_counter = int(chrono.read())
                         if gps.valid:
 
                             # Set current time on pycom - convert seconds (timestamp[2]) from float to int
@@ -122,34 +129,38 @@ def get_position(logger, lora):
         logger.info("Getting position via GPS")
 
         serial, chrono, indicator_led = gps_init(logger)
+        com_counter = int(chrono.read())  # counter for checking whether gps is connected
         message = False
 
         while True:
             # data_in = '$GPGGA,085259.000,5056.1384,N,00123.1522,W,1,8,1.17,25.1,M,47.6,M,,*7D\r\n'
-            data_in = (str(serial.readline()))
-            if data_in == "None":
-                time.sleep(3)
+            data_in = (str(serial.readline()))[1:]
+
+            if (int(chrono.read()) - com_counter) >= 10:
+                gps_deinit(serial, logger, message, indicator_led)
+                logger.error("GPS enabled, but not connected")
+                return False
+
+            if data_in[1:4] != "$GP":
+                time.sleep(1)
             else:
-                data_in = data_in[1:]
                 for char in data_in:
                     sentence = gps.update(char)
                     if sentence == "GPGGA":
+                        com_counter = int(chrono.read())
 
                         # set aim for the quality of the signal based on the time elapsed
                         elapsed = chrono.read() / int(config.get_config("GPS_timeout"))
-                        if elapsed < 0.5:
-                            hdop_aim = 1.5
-                        elif elapsed < 0.6:
-                            hdop_aim = 2
-                        elif elapsed < 0.7:
-                            hdop_aim = 3
-                        elif elapsed < 0.8:
-                            hdop_aim = 4
-                        else:
-                            hdop_aim = 5
+
+                        hdop_aim = [1, 1.2, 1.5, 1.8, 2, 2.5, 3, 4, 5, 6, 7]
+                        time_limit = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
+
+                        for index in range(len(time_limit)):
+                            if elapsed < time_limit[index]:
+                                break
 
                         # Process data only if quality of signal is great
-                        if 0 < gps.hdop <= hdop_aim and gps.satellites_in_use >= 3:
+                        if 0 < gps.hdop <= hdop_aim[index] and gps.satellites_in_use >= 3:
 
                             latitude = gps.latitude[0] + gps.latitude[1]/60
                             if gps.latitude[2] == 'S':

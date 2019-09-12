@@ -49,7 +49,7 @@ SUBCMD_WRITE_INTERVAL = b'\x00'
 
 RX_DELAY_S = 0.02 # How long to wait between sending the read command and getting data (seconds)
 
-MIN_SAMPLE_INTERVAL = 0.5
+MIN_SAMPLE_INTERVAL = 0
 
 class SensirionReading(object):
     """
