@@ -4,18 +4,13 @@ PyonAir is a low-cost open-source air pollution monitor developed at the Univers
 
 ![PyonAir](https://blobscdn.gitbook.com/v0/b/gitbook-28427.appspot.com/o/assets%2F-LheWV6hCRaax90oq84D%2F-LixJBNfaAPa5rYwP1p_%2F-LixJEjxsWOdrSaRS4OQ%2FCAD%20pic%202.jpg?alt=media&token=b29deb3e-967f-48d5-8073-85b7d377e322)
 
-## Hardware
+## User guide
+To build your own PyonAir, please visit our GitBook: https://s-u-pm-sensor.gitbook.io/pyonair/
 
-All the hardware components used for the air monitor are listed [here](https://s-u-pm-sensor.gitbook.io/instructions/hardware/hardware-overview).
-
-## Wiring
-
-There are three options to wire the device:
-1. custom made PCB (schematic in the link below)
-2. breadboard
-3. stripboard
-
-The wiring instructions can be found [here](https://s-u-pm-sensor.gitbook.io/instructions/tutorial/wiring).
+Included are:
+-An overview of the hardware 
+-A step-by-step guide to buying, building and installing your PyonAir
+-Additional resources to support PyonAir customisation
 
 ## Getting Started
 
@@ -35,7 +30,7 @@ Follow the instructions on https://docs.pycom.io/gettingstarted/installation/ to
     
     or alternatively use [GitHub Desktop](https://desktop.github.com/) to clone the repository.
     
-2. Connect your LoPy with a USB cable to your machine and open the repository in your editor (Atom or VSC) with Pymakr plugin enabled. Connect to your device with Pymakr. In case of issues, please refer to: https://docs.pycom.io/pymakr/installation/
+2. Connect your PyonAir with a FTDI-USB cable to your machine and open the repository in your editor (Atom or VSC) with Pymakr plugin enabled. Connect to your device with Pymakr. In case of issues, please refer to: https://docs.pycom.io/pymakr/installation/
 
 3. When connected, hit the upload button to flash the code into your LoPy.
 
