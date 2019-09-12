@@ -24,7 +24,7 @@ def get_sensor_averages(logger, lora):
     # get a dictionary of sensors and their status
     sensors = get_sensors()
     fmt = get_format(sensors)
-    version = str(config.get_config("version"))
+    version = str(config.get_config("fmt_version"))
     timestamp = s.csv_timestamp_template.format(*time.gmtime())  # get current time in desired format
     minutes = str(minutes_of_the_month())  # get minutes past last midnight
 

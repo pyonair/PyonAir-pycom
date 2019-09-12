@@ -29,13 +29,13 @@ status_header = ['type', 'timestamp', 'message']
 config_filename = 'config.txt'
 
 default_configuration = {"device_id": "", "device_name": "NewPyonAir", "password": "newpyonair", "region": "Europe",
-                         "device_eui": "", "application_eui": "", "app_key": "", "SSID": "notimplemented",
-                         "wifi_password": "notimplemented", "raw_freq": 0, "TEMP": "SHT35", "PM1": "PMS5003",
-                         "PM2": "SPS030", "GPS": "OFF", "PM1_id": "002","PM2_id": "003", "TEMP_id": "001",
+                         "device_eui": "", "application_eui": "", "app_key": "", "SSID": "", "fmt_version": "",
+                         "wifi_password": "", "raw_freq": 0, "TEMP": "SHT35", "PM1": "PMS5003", "code_version": "",
+                         "PM2": "SPS030", "GPS": "OFF", "PM1_id": "002", "PM2_id": "003", "TEMP_id": "001",
                          "GPS_id": "004", "interval": 15, "TEMP_freq": 30, "GPS_freq": 12, "PM1_init": 30,
                          "PM2_init": 30, "logging_lvl": "Warning", "lora_timeout": 20, "GPS_timeout": 1200,
                          "config_timeout": 600, "fair_access": 30, "air_time": 75, "message_count": 0,
-                         "transmission_date": 0, "LORA": "ON"}
+                         "transmission_date": 0, "LORA": "ON", "update": False, "server": "127.0.0.1", "port": 5000}
 
 # Sensor names
 PM1 = 'PM1'
@@ -64,28 +64,28 @@ filesystem_dirs = [current, processing, archive]
 # Lora structures:
 
 # TEMP, PM1, PM2
-# version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H /
+# fmt_version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H /
 # / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H / PM2_id-H / PM2_ PM10-B / PM2_PM25-B / PM2_count-H
 TPP = {"port": 1, "structure": '<BHHhhHHBBHHBBH'}
 
 # TEMP, PM
-# version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H /
+# fmt_version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H /
 # / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H
 TP = {"port": 2, "structure": '<BHHhhHHBBH'}
 
 # PM1, PM2
-# version-B / timestamp-H / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H / PM2_id-H / PM2_ PM10-B / PM2_PM25-B /
+# fmt_version-B / timestamp-H / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H / PM2_id-H / PM2_ PM10-B / PM2_PM25-B /
 # PM2_count-H
 PP = {"port": 3, "structure": '<BHHBBHHBBH'}
 
 # PM
-# version-B / timestamp-H / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H
+# fmt_version-B / timestamp-H / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H
 P = {"port": 4, "structure": '<BHHBBH'}
 
 # TEMP
-# version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H
+# fmt_version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H
 T = {"port": 5, "structure": '<BHHhhH'}
 
 # GPS
-# version-B / timestamp-H / GPS_id-H / lat-f / long-f / alt-f
+# fmt_version-B / timestamp-H / GPS_id-H / lat-f / long-f / alt-f
 G = {"port": 6, "structure": '<BHHfff'}

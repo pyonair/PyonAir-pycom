@@ -8,8 +8,7 @@ from network import LoRa
 import socket
 import ubinascii
 import time
-# import machine
-# import ujson
+import machine
 
 
 class LoRaWAN:
@@ -52,7 +51,7 @@ class LoRaWAN:
         self.lora_socket.settimeout(int(config.get_config("lora_timeout")) * 1000)
 
         # set up callback for receiving downlink messages
-        # self.lora.callback(trigger=LoRa.RX_PACKET_EVENT, handler=self.lora_recv)
+        self.lora.callback(trigger=LoRa.RX_PACKET_EVENT, handler=self.lora_recv)
 
         # initializes circular lora stack to back up data up to about 22.5 days depending on the length of the month
         self.lora_buffer = RingBuffer(self.logger, s.processing_path, s.lora_file_name, 31 * self.message_limit, 100)
@@ -62,33 +61,32 @@ class LoRaWAN:
         except Exception as e:
             pass
 
-    # def lora_recv(self, arg):
-    #
-    #     message = self.lora_socket.recv(600)
-    #     self.logger.info("Lora message received: {}".format(message))
-    #
-    #     if message == bytes([1]):
-    #         self.logger.info("Reset triggered over LoRa")
-    #         self.logger.info("rebooting...")
-    #         machine.reset()
-    #
-    #     message = message.decode()
-    #     try:
-    #         new_config = ujson.loads(message)
-    #     except Exception as e:
-    #         self.logger.info("Unknown command")
-    #         return
-    #
-    #     for key in new_config.keys():
-    #         if key not in config.default_configuration.keys():
-    #             self.logger.info("Unknown command")
-    #             return
-    #
-    #     self.logger.info("New configuration key-value pairs received over LoRa")
-    #     self.logger.info(new_config)
-    #     config.save_configuration(new_config)
-    #     self.logger.info("rebooting...")
-    #     machine.reset()
+    def lora_recv(self, arg):
+
+        payload = self.lora_socket.recv(600)  # receive bytes message
+        self.logger.info("Lora message received")
+        msg = payload.decode()  # convert to string
+
+        try:
+            if msg == "0":  # start software update
+                self.logger.info("Software update triggered over LoRa")
+                config.save_configuration({"update": True})
+                machine.reset()
+            else:
+                split_msg = msg.split(":")
+                if split_msg[0] == "1":  # update wifi credentials
+                    self.logger.info("WiFi credentials updated over LoRa")
+                    config.save_configuration({"SSID": split_msg[1], "wifi_password": split_msg[2]})
+                elif split_msg[0] == "2":  # update wifi credentials and start software update
+                    self.logger.info("WiFi credentials updated over LoRa")
+                    config.save_configuration({"SSID": split_msg[1], "wifi_password": split_msg[2]})
+                    self.logger.info("Software update triggered over LoRa")
+                    config.save_configuration({"update": True})
+                    machine.reset()
+                else:
+                    self.logger.error("Unknown command received over LoRa")
+        except Exception as e:
+            self.logger.exception("Failed to interpret message received over LoRa")
 
     def lora_send(self, arg1, arg2):
 

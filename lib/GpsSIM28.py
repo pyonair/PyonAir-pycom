@@ -196,7 +196,7 @@ def get_position(logger, lora):
                                 minutes = str(minutes_of_the_month())
 
                                 # Construct LoRa message
-                                line_to_log = year_month + 'G,' + str(config.get_config("version")) + ',' + minutes + ',' \
+                                line_to_log = year_month + 'G,' + str(config.get_config("fmt_version")) + ',' + minutes + ',' \
                                               + str(config.get_config("GPS_id")) + ',' + ','.join(str_lst_to_log[1:]) + '\n'
 
                                 # Logs line_to_log to be sent over lora

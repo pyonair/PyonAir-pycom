@@ -44,16 +44,20 @@ try:
     from ubinascii import hexlify
     from Configuration import config
     from new_config import new_config
+    from software_update import software_update
     import strings as s
     import ujson
 
     # Read configuration file to get preferences
     config.read_configuration()
 
-    """SET VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in the
-    back end. If the structure of the LoRa message is changed during update, increment the version number and
+    """SET FORMAT VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in 
+    the back end. If the structure of the LoRa message is changed during update, increment the version number and
     add a corresponding decoder to the back-end."""
-    config.set_config({"version": 1})
+    config.save_configuration({"fmt_version": 1})
+
+    """SET CODE VERSION NUMBER - if new tag is added on git, update code version number below accordingly"""
+    config.save_configuration({"code_version": "v0.2.2"})
 
     # Override Preferences - DEVELOPER USE ONLY - keep all overwrites here
     if 'debug_config.json' in os.listdir('/flash'):
@@ -61,12 +65,6 @@ try:
         with open('/flash/debug_config.json', 'r') as f:
             config.set_config(ujson.loads(f.read()))
             status_logger.warning("Configuration changed to: " + str(config.get_config()))
-
-    # Initialize PM power circuitry
-    PM_transistor = Pin('P20', mode=Pin.OUT)
-    PM_transistor.value(0)
-    if config.get_config(s.PM1) != "OFF" or config.get_config(s.PM2) != "OFF":
-        PM_transistor.value(1)
 
     # Check if GPS is enabled in configurations
     gps_on = True
@@ -90,6 +88,10 @@ try:
     # If initialize time failed to acquire exact time, halt initialization
     if no_time:
         raise Exception("Could not acquire UTC timestamp")
+
+    # Check if updating was triggered over LoRa
+    if config.get_config("update"):
+        software_update(status_logger)
 
 except Exception as e:
     status_logger.exception(str(e))
@@ -147,6 +149,12 @@ try:
         if config.get_config(s.TEMP) == "SHT35":
             temp_sensor = TempSHT35(TEMP_logger, status_logger)
     status_logger.info("Temperature and humidity sensor initialized")
+
+    # Initialize PM power circuitry
+    PM_transistor = Pin('P20', mode=Pin.OUT)
+    PM_transistor.value(0)
+    if config.get_config(s.PM1) != "OFF" or config.get_config(s.PM2) != "OFF":
+        PM_transistor.value(1)
 
     # Initialise PM sensor threads
     if sensors[s.PM1]:
