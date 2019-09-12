@@ -49,10 +49,13 @@ try:
     # Read configuration file to get preferences
     config.read_configuration()
 
-    """SET VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in the
-    back end. If the structure of the LoRa message is changed during update, increment the version number and
+    """SET FORMAT VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in 
+    the back end. If the structure of the LoRa message is changed during update, increment the version number and
     add a corresponding decoder to the back-end."""
-    config.set_config({"version": 1})
+    config.save_configuration({"fmt_version": 1})
+
+    """SET CODE VERSION NUMBER - if new tag is added on git, update code version number below accordingly"""
+    config.save_configuration({"code_version": "v0.2.2"})
 
     # Override Preferences - DEVELOPER USE ONLY - keep all overwrites here
     if 'debug_config.json' in os.listdir('/flash'):
