@@ -9,7 +9,7 @@ import _thread
 
 # locks/mutexes
 current_lock = _thread.allocate_lock()
-new_config_lock = _thread.allocate_lock()
+wifi_lock = _thread.allocate_lock()
 lora_lock = _thread.allocate_lock()
 led_lock = _thread.allocate_lock()
 

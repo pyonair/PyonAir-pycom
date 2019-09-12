@@ -6,7 +6,7 @@ import machine
 import pycom
 import gc
 from Configuration import config
-from helper import new_config_lock, led_lock, blink_led
+from helper import wifi_lock, led_lock, blink_led
 from RtcDS1307 import clock
 import ujson
 
@@ -27,8 +27,8 @@ def new_config(logger, arg):
     """
 
     #  Only one of this thread is allowed to run at a time
-    if not new_config_lock.locked():
-        with new_config_lock:
+    if not wifi_lock.locked():
+        with wifi_lock:
 
             logger.info("New configuration setup started")
 
@@ -80,8 +80,7 @@ def get_new_config(sct, logger):
             if process_data(received_data, logger):
                 return
     except Exception as e:
-        logger.exception(str(e))
-        logger.error("Failed to configure the device")
+        logger.exception("Failed to configure the device")
         led_lock.release()
         blink_led((0x550000, 3, True))  # Red LED - Error
         return
