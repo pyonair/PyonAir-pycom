@@ -191,8 +191,6 @@ def get_html_form():
             <input id="SSID" name="SSID" type="text" value="''' + str(config.get_config("SSID")) + '''" required="required" maxlength="32"/>
             <label for="wifi_password">Password</label>
             <input id="wifi_password" name="wifi_password" type="password" value="''' + str(config.get_config("wifi_password")) + '''" required="required" maxlength="128"/>
-            <label for="raw_freq">Raw data back-up frequency - Not Implemented</label>
-            <input id="raw_freq" name="raw_freq" type="number" value="''' + str(config.get_config("raw_freq")) + '''" required="required" min="0" max="8760" step="0.01"/>
           </div>
           <p>Sensor Settings</p>
           <hr class="p_line sensor_settings"/>

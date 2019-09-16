@@ -70,6 +70,7 @@ def get_time(rtc, logger):
 
         serial, chrono, indicator_led = gps_init(logger)  # initialize serial and timer
         com_counter = int(chrono.read())  # counter for checking whether gps is connected
+        timeout = int(float(config.get_config("GPS_timeout")) * 60)
         message = False  # no message while terminal is disabled (by default)
 
         while True:
@@ -112,7 +113,7 @@ def get_time(rtc, logger):
                             return True
 
             # If timeout elapsed exit function or thread
-            if chrono.read() >= int(config.get_config("GPS_timeout")):
+            if chrono.read() >= timeout:
                 gps_deinit(serial, logger, message, indicator_led)
                 logger.error("""GPS timeout
                 Check if GPS module is connected
@@ -130,6 +131,7 @@ def get_position(logger, lora):
 
         serial, chrono, indicator_led = gps_init(logger)
         com_counter = int(chrono.read())  # counter for checking whether gps is connected
+        timeout = int(float(config.get_config("GPS_timeout")) * 60)
         message = False
 
         while True:
@@ -150,7 +152,7 @@ def get_position(logger, lora):
                         com_counter = int(chrono.read())
 
                         # set aim for the quality of the signal based on the time elapsed
-                        elapsed = chrono.read() / int(config.get_config("GPS_timeout"))
+                        elapsed = chrono.read() / timeout
 
                         hdop_aim = [1, 1.2, 1.5, 1.8, 2, 2.5, 3, 4, 5, 6, 7]
                         time_limit = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
@@ -206,7 +208,7 @@ def get_position(logger, lora):
                             return True
 
             # If timeout elapsed exit function or thread
-            if chrono.read() >= int(config.get_config("GPS_timeout")):
+            if chrono.read() >= timeout:
                 gps_deinit(serial, logger, message, indicator_led)
                 logger.error("""GPS timeout
                 Check if GPS module is connected

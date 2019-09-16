@@ -48,7 +48,7 @@ def new_config(logger, arg):
 
             address = socket.getaddrinfo('0.0.0.0', 80)[0][-1]  # Accept stations from all addresses
             sct = socket.socket()  # Create socket for communication
-            sct.settimeout(config.get_config("config_timeout"))  # session times out after x seconds
+            sct.settimeout(int(float(config.get_config("config_timeout")) * 60))  # session times out after x seconds
             gc.collect()  # frees up unused memory if there was a previous connection
             sct.bind(address)  # Bind address to socket
             sct.listen(1)  # Allow one station to connect to socket
