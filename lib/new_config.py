@@ -119,6 +119,7 @@ def process_data(received_data, logger):
             return False  # keep looping - wait for new message from client
 
         logger.info('Configuration data received from user')
+        config.set_config({"LORA": False})  # set checkbox to false, only gets overwritten if it was checked in the form
         config.save_config(new_config_dict)
         return True
 

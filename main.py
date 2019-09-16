@@ -56,7 +56,7 @@ try:
     # ToDo: Set code_version to '0.0.0' in default config, and remove the line below
     config.save_config({"code_version": "0.2.5"})
 
-    """SET FORMAT VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in 
+    """SET FORMAT VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in
     the back end. If the structure of the LoRa message is changed during update, increment the version number and
     add a corresponding decoder to the back-end."""
     config.save_config({"fmt_version": 1})

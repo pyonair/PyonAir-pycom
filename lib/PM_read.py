@@ -14,7 +14,7 @@ def pm_thread(sensor_name, status_logger, pins, serial_id):
     sensor_logger = SensorLogger(sensor_name=sensor_name, terminal_out=True)
 
     sensor_type = config.get_config(sensor_name)
-    init_time = config.get_config(sensor_name + "_init")
+    init_time = int(config.get_config(sensor_name + "_init"))
 
     init_count = 0
 
