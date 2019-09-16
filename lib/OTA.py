@@ -19,16 +19,12 @@ import pycom
 import os
 import machine
 
-# Try to get version number
-try:
-    from OTA_VERSION import VERSION
-except ImportError:
-    VERSION = '1.0.0'
-
-
 class OTA():
     # The following two methods need to be implemented in a subclass for the
     # specific transport mechanism e.g. WiFi
+
+    def __init__(self, version):
+        self.version = version
 
     def connect(self):
         raise NotImplementedError()
@@ -37,9 +33,8 @@ class OTA():
         raise NotImplementedError()
 
     # OTA methods
-
     def get_current_version(self):
-        return VERSION
+        return self.version
 
     def get_update_manifest(self):
         req = "manifest.json?current_ver={}".format(self.get_current_version())
@@ -88,18 +83,6 @@ class OTA():
         # Flash firmware
         if "firmware" in manifest:
             self.write_firmware(manifest['firmware'])
-
-        # Save version number
-        try:
-            self.backup_file({"dst_path": "/flash/OTA_VERSION.py"})
-        except OSError:
-            pass  # There isnt a previous file to backup
-        with open("/flash/OTA_VERSION.py", 'w') as fp:
-            fp.write("VERSION = '{}'".format(manifest['version']))
-        from OTA_VERSION import VERSION
-
-        # Reboot the device to run the new decode
-        machine.reset()
 
     def get_file(self, f):
         new_path = "{}.new".format(f['dst_path'])
@@ -156,11 +139,13 @@ class OTA():
 
 
 class WiFiOTA(OTA):
-    def __init__(self, ssid, password, ip, port):
+    def __init__(self, ssid, password, ip, port, version):
         self.SSID = ssid
         self.password = password
         self.ip = ip
         self.port = port
+
+        OTA.__init__(self, version)
 
     def connect(self):
         self.wlan = network.WLAN(mode=network.WLAN.STA)

@@ -57,7 +57,7 @@ class EventScheduler:
                 if self.lora.transmission_date != date:
                     self.lora.message_count = 0
                     self.lora.transmission_date = date
-                    config.save_configuration({"message_count": self.lora.message_count, "transmission_date": date})
+                    config.save_config({"message_count": self.lora.message_count, "transmission_date": date})
 
                 # send 2, 3 or at most 4 messages per interval based on length of interval
                 lora_slot = int(float(config.get_config("interval"))*60) // 30  # lora_rate changes for each 30 seconds

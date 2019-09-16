@@ -24,7 +24,7 @@ class LoRaWAN:
         else:
             self.message_count = 0  # if device was last transmitting a day or more ago, reset message_count for the day
             self.transmission_date = date
-            config.save_configuration({"message_count": self.message_count, "transmission_date": date})
+            config.save_config({"message_count": self.message_count, "transmission_date": date})
 
         regions = {"Europe": LoRa.EU868, "Asia": LoRa.AS923, "Australia": LoRa.AU915, "United States": LoRa.US915}
         region = regions[config.get_config("region")]
@@ -68,20 +68,24 @@ class LoRaWAN:
         msg = payload.decode()  # convert to string
 
         try:
-            if msg == "0":  # start software update
+            if msg == "0":  # reboot device
+                self.logger.info("Reset triggered over LoRa")
+                self.logger.info("Rebooting...")
+                machine.reset()
+            elif msg == "1":  # start software update
                 self.logger.info("Software update triggered over LoRa")
-                config.save_configuration({"update": True})
+                config.save_config({"update": True})
                 machine.reset()
             else:
                 split_msg = msg.split(":")
-                if split_msg[0] == "1":  # update wifi credentials
+                if split_msg[0] == "2":  # update wifi credentials
                     self.logger.info("WiFi credentials updated over LoRa")
-                    config.save_configuration({"SSID": split_msg[1], "wifi_password": split_msg[2]})
-                elif split_msg[0] == "2":  # update wifi credentials and start software update
+                    config.save_config({"SSID": split_msg[1], "wifi_password": split_msg[2]})
+                elif split_msg[0] == "3":  # update wifi credentials and start software update
                     self.logger.info("WiFi credentials updated over LoRa")
-                    config.save_configuration({"SSID": split_msg[1], "wifi_password": split_msg[2]})
+                    config.save_config({"SSID": split_msg[1], "wifi_password": split_msg[2]})
                     self.logger.info("Software update triggered over LoRa")
-                    config.save_configuration({"update": True})
+                    config.save_config({"update": True})
                     machine.reset()
                 else:
                     self.logger.error("Unknown command received over LoRa")
@@ -113,7 +117,7 @@ class LoRaWAN:
                     self.logger.debug("LoRa - sent payload")
 
                     self.message_count += 1  # increment number of files sent over LoRa today
-                    config.save_configuration({"message_count": self.message_count})  # save number of messages today
+                    config.save_config({"message_count": self.message_count})  # save number of messages today
 
                     # remove message sent
                     self.lora_buffer.remove_head()

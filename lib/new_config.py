@@ -119,7 +119,7 @@ def process_data(received_data, logger):
             return False  # keep looping - wait for new message from client
 
         logger.info('Configuration data received from user')
-        config.save_configuration(new_config_dict)
+        config.save_config(new_config_dict)
         return True
 
     return False  # keep looping - wait for new message from client

@@ -36,7 +36,7 @@ class Configuration:
     # Returns True if the configuration file is complete
     def is_complete(self, logger):
         # Check if there are missing values
-        if "" in self.configuration.values():
+        if "" in self.get_config().values():
             logger.warning("There are missing values in the configuration")
             return False
         # Check if there are missing keys
@@ -48,7 +48,7 @@ class Configuration:
             return True
 
     #  Saves keys and preferences to sd card
-    def save_configuration(self, new_config):
+    def save_config(self, new_config):
 
         self.set_config(new_config)
 

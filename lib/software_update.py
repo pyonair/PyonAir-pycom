@@ -22,19 +22,28 @@ def software_update(logger):
             server_ip = config.get_config("server")
             port = int(config.get_config("port"))
 
-            print(ssid, password, server_ip, port)
+            logger.info("SSID: " + str(ssid))
+            logger.info("server_ip: " + str(server_ip))
+            logger.info("port: " + str(port))
+
+            version = config.get_config("code_version")
 
             # Perform OTA update
-            ota = WiFiOTA(ssid, password, server_ip, port)
+            ota = WiFiOTA(ssid, password, server_ip, port, version)
 
             # Turn off WiFi to save power
             w = WLAN()
             w.deinit()
 
+            logger.info("connecting...")
             ota.connect()
             ota.update()
 
-            time.sleep(5)
+            time.sleep(2)
+
+            new_version = str(ota.get_current_version())  # get updated version
+            config.save_config({"code_version": str(new_version)})  # save new version to config on SD
+            logger.info("Successfully updated the device from version {} to version {}".format(version, new_version))
 
         except Exception as e:
             logger.exception("Failed to update the device")
@@ -43,7 +52,7 @@ def software_update(logger):
 
         finally:
             # Turn off update mode
-            config.save_configuration({"update": False})
+            config.save_config({"update": False})
 
             pycom.rgbled(0x000000)
             led_lock.release()
