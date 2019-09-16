@@ -51,14 +51,15 @@ try:
     # Read configuration file to get preferences
     config.read_configuration()
 
+    """SET CODE VERSION NUMBER - if new tag is added on git, update code version number accordingly"""
+    # ToDo: Update OTA.py so if version is 0.0.0, it backs up all existing files, and adds all files as new.
+    # ToDo: Set code_version to '0.0.0' in default config, and remove the line below
+    config.save_config({"code_version": "0.2.4"})
+
     """SET FORMAT VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in 
     the back end. If the structure of the LoRa message is changed during update, increment the version number and
     add a corresponding decoder to the back-end."""
     config.save_config({"fmt_version": 1})
-
-    """SET CODE VERSION NUMBER - if new tag is added on git, update code version number, so OTA update will not 
-    start from scratch on devices that are updated for the first time."""
-    s.default_configuration["code_version"] = "0.2.3"
 
     # Override Preferences - DEVELOPER USE ONLY - keep all overwrites here
     if 'debug_config.json' in os.listdir('/flash'):

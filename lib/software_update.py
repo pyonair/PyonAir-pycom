@@ -29,7 +29,7 @@ def software_update(logger):
             version = config.get_config("code_version")
 
             # Perform OTA update
-            ota = WiFiOTA(ssid, password, server_ip, port, version)
+            ota = WiFiOTA(logger, ssid, password, server_ip, port, version)
 
             # Turn off WiFi to save power
             w = WLAN()

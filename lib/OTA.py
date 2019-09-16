@@ -23,7 +23,8 @@ class OTA():
     # The following two methods need to be implemented in a subclass for the
     # specific transport mechanism e.g. WiFi
 
-    def __init__(self, version):
+    def __init__(self, logger, version):
+        self.logger = logger
         self.version = version
 
     def connect(self):
@@ -46,20 +47,20 @@ class OTA():
     def update(self):
         manifest = self.get_update_manifest()
         if manifest is None:
-            print("Already on the latest version")
+            self.logger.info("Already on the latest version")
             return
 
         # Download new files and verify hashes
         for f in manifest['new'] + manifest['update']:
-            # Upto 5 retries
+            # Up to 5 retries
             for _ in range(5):
                 try:
                     self.get_file(f)
                     break
                 except Exception as e:
-                    print(e)
+                    self.logger.exception(str(e))
                     msg = "Error downloading `{}` retrying..."
-                    print(msg.format(f['URL']))
+                    self.logger.error(msg.format(f['URL']))
             else:
                 raise Exception("Failed to download `{}`".format(f['URL']))
 
@@ -101,7 +102,7 @@ class OTA():
 
         # Hash mismatch
         if hash != f['hash']:
-            print(hash, f['hash'])
+            self.logger.info(hash, f['hash'])
             msg = "Downloaded file's hash does not match expected hash"
             raise Exception(msg)
 
@@ -139,13 +140,13 @@ class OTA():
 
 
 class WiFiOTA(OTA):
-    def __init__(self, ssid, password, ip, port, version):
+    def __init__(self, logger, ssid, password, ip, port, version):
         self.SSID = ssid
         self.password = password
         self.ip = ip
         self.port = port
 
-        OTA.__init__(self, version)
+        OTA.__init__(self, logger, version)
 
     def connect(self):
         self.wlan = network.WLAN(mode=network.WLAN.STA)
@@ -172,7 +173,7 @@ class WiFiOTA(OTA):
         h = None
 
         # Connect to server
-        print("Requesting: {}".format(req))
+        self.logger.info("Requesting: {}".format(req))
         s = socket.socket(socket.AF_INET,
                           socket.SOCK_STREAM,
                           socket.IPPROTO_TCP)

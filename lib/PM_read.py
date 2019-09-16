@@ -23,6 +23,8 @@ def pm_thread(sensor_name, status_logger, pins, serial_id):
         # initialize sensor
         sensor = Plantower(pins=pins, id=serial_id)
 
+        time.sleep(1)
+
         # warm up time  - readings are not logged
         while init_count < init_time:
             try:
