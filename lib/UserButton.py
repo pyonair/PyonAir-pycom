@@ -1,5 +1,6 @@
 from machine import Timer, reset
 from new_config import new_config
+from helper import led_lock
 import _thread
 
 
@@ -50,6 +51,7 @@ class UserButton:
 
         # config_blocking is True by default, and set False in main once all critical failures were dealt with
         if not self.config_blocking:  # Configurations are entered parallel to main execution
+            led_lock.release()
             _thread.start_new_thread(new_config, (self.logger, arg))
 
     def get_reboot(self):

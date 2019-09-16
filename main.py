@@ -12,6 +12,7 @@ try:
     from loggingpycom import DEBUG
     from LoggerFactory import LoggerFactory
     from UserButton import UserButton
+    import time
 
     # Initialise LoggerFactory and status logger
     logger_factory = LoggerFactory()
@@ -32,12 +33,13 @@ except Exception as e:
     reboot_counter = 0
     while True:
         blink_led((0x550000, 0.5, True))  # blink red LED
+        time.sleep(0.5)
         reboot_counter += 1
         if reboot_counter >= 180:
             reset()
 
 try:
-    from machine import RTC, unique_id, Timer
+    from machine import RTC, unique_id
     from initialisation import initialize_time
     from ubinascii import hexlify
     from Configuration import config
@@ -94,12 +96,13 @@ try:
 
 except Exception as e:
     status_logger.exception(str(e))
+    reboot_counter = 0
     try:
-        reboot_timer = Timer.Chrono()
-        reboot_timer.start()
         while user_button.get_reboot():
             blink_led((0x555500, 0.5, True))  # blink yellow LED
-            if int(reboot_timer.read()) >= 180:
+            time.sleep(0.5)
+            reboot_counter += 1
+            if reboot_counter >= 180:
                 status_logger.info("rebooting...")
                 reset()
         new_config(status_logger, arg=0)
@@ -110,11 +113,10 @@ pycom.rgbled(0x552000)  # flash orange until its loaded
 
 # If sd, time, logger and configurations were set, continue with initialization
 try:
-    import time
     from machine import Timer
     from SensorLogger import SensorLogger
     from EventScheduler import EventScheduler
-    from helper import blink_led, get_sensors
+    from helper import blink_led, get_sensors, led_lock
     from averages import get_sensor_averages
     from TempSHT35 import TempSHT35
     import GpsSIM28
@@ -183,6 +185,7 @@ try:
 
 except Exception as e:
     status_logger.exception("Exception in the main")
+    led_lock.acquire()
     pycom.rgbled(0x550000)
     while True:
         time.sleep(5)
