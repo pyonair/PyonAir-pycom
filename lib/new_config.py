@@ -13,17 +13,11 @@ import ujson
 
 def new_config(logger, arg):
     """
-    Thread that turns on access point on the device to modify configurations. Name of access point: PmSensor
-    Password: pmsensor Enter 192.168.4.10 on device browser to get configuration form. Indicator LEDs:
-    Blue - Access point turned on, not connected, Green - Connected, configuration is open on browser,
-    Red - An error has occured
+    Method that turns the pycom to an access point for the user to connect and update the configurations.
     The device automatically reboots and applies modifications upon successful configuration.
-    :param thread_name: Thread id
-    :type thread_name: str
+    Takes an extra dummy argument required by the threading library.
     :param logger: status logger
-    :type logger: LoggerFactory object
-    :param timeout: timeout (in seconds) for user configuration
-    :type timeout: int
+    :type logger: LoggerFactory
     """
 
     #  Only one of this thread is allowed to run at a time
@@ -66,6 +60,13 @@ def new_config(logger, arg):
 
 #  Sends html form over wifi and receives data from the user
 def get_new_config(sct, logger):
+    """
+    Sends an html form to a web socket, and waits for the user to connect
+    :param sct: web socket
+    :type sct: socket object
+    :param logger: status logger
+    :type logger: LoggerFactory object
+    """
     try:
         while True:
             try:
@@ -87,7 +88,15 @@ def get_new_config(sct, logger):
 
 
 def process_data(received_data, logger):
-
+    """
+    Processes form sent by the user as a json string and saves new configurations. Also updates time on the RTC module.
+    :param received_data: json string received from the web socket
+    :type received_data: str
+    :param logger: status logger
+    :type logger: LoggerFactory
+    :return: True or False
+    :rtype: bool
+    """
     #  find json string in received message
     first_index = received_data.rfind('time_begin')
     last_index = received_data.rfind('time_end')
@@ -111,7 +120,8 @@ def process_data(received_data, logger):
 
     if first_index != -1 and last_index != -1:
         config_json_str = received_data[(first_index + len('json_str_begin')):last_index]
-        new_config_dict = ujson.loads(config_json_str)
+        new_config_dict = {"LORA": "OFF"}  # checkbox default value is false - gets overwritten if its true
+        new_config_dict.update(ujson.loads(config_json_str))
 
         if len(config_json_str) >= 1000:
             logger.error('Received configurations are too long')
@@ -119,7 +129,6 @@ def process_data(received_data, logger):
             return False  # keep looping - wait for new message from client
 
         logger.info('Configuration data received from user')
-        config.set_config({"LORA": False})  # set checkbox to false, only gets overwritten if it was checked in the form
         config.save_config(new_config_dict)
         return True
 

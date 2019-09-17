@@ -16,11 +16,12 @@ led_lock = _thread.allocate_lock()
 
 def seconds_to_first_event(interval_s):
     """
-    Computes number of seconds (float) until the first sensor average reading
-    :param rtc: real time clock object containing current time up to microsecond precision
-    :param interval_s: interval between average readings
+    Computes number of seconds (float) until the first sensor average reading, such that the event will occur at a
+    second divisible by the interval
+    :param interval_s: int
     :type interval_s: int
-    :return:  number of seconds until first event
+    :return: seconds until the first event
+    :rtype: float
     """
     current_time = time.gmtime()
     first_event_s = interval_s - (((current_time[3] * 60 * 60) + (current_time[4] * 60) + current_time[5]) % interval_s)
@@ -58,7 +59,12 @@ def mean_across_arrays(arrays):
 
 
 def blink_led(args):
-
+    """
+    Schedule a blink on the LED of a given colour for a given time. If blocking is set True, it will wait until lock
+    is acquired or timed out. If blocking is False, it will take the lock if it is free, pass otherwise
+    :param args: colour, delay, blocking
+    :type args: tuple(hex, int, bool)
+    """
     colour, delay, blocking = args[0], args[1], args[2]
 
     if blocking:
@@ -84,7 +90,11 @@ def blink_led(args):
 
 # returns a dictionary of sensors and if they are enabled
 def get_sensors():
-
+    """
+    Dictionary of sensors (TEMP, PM1, PM2) and whether they are enabled in the configurations
+    :return: sensors
+    :rtype: dict
+    """
     sensors = {s.TEMP: False, s.PM1: False, s.PM2: False}
 
     for sensor in sensors:
@@ -95,7 +105,13 @@ def get_sensors():
 
 
 def get_format(sensors):
-
+    """
+    Constructs a format based on the type of sensors that are enabled
+    :param sensors: Dictionary of sensors (TEMP, PM1, PM2) and whether they are enabled in the configurations
+    :type sensors: dict
+    :return: format
+    :rtype: str
+    """
     fmt = ""
     for sensor_name in [s.TEMP, s.PM1, s.PM2]:
         if sensors[sensor_name]:  # if the sensor is enabled

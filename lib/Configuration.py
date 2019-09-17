@@ -22,6 +22,15 @@ class Configuration:
 
     # Configuration Accessor/Getter
     def get_config(self, keys=None):
+        """
+        If keys are given, return corresponding values in a list, if on key is given, return the corresponding value,
+        if no arguments are given, return the config dictionary
+        :param keys: keys in configuration dictionary
+        :type keys: None, list of keys or a single key
+        :return: values in configuration dictionary
+        :rtype: dict, list of any, any
+        """
+
         if keys is None:
             return self.configuration
         if isinstance(keys, list):
@@ -31,25 +40,21 @@ class Configuration:
 
     # Configuration Mutator/Setter
     def set_config(self, new_config):
-        self.configuration.update(new_config)
+        """
+        # Update configuration dict in code the running code
+        :param new_config: set of new configuration key-value pairs
+        :type new_config: dict
+        """
 
-    # Returns True if the configuration file is complete
-    def is_complete(self, logger):
-        # Check if there are missing values
-        if "" in self.get_config().values():
-            logger.warning("There are missing values in the configuration")
-            return False
-        # Check if there are missing keys
-        for key in self.default_configuration.keys():
-            if key not in self.get_config().keys():
-                logger.warning("There are missing keys in the configuration")
-                return False
-        else:
-            return True
+        self.configuration.update(new_config)
 
     #  Saves keys and preferences to sd card
     def save_config(self, new_config):
-
+        """
+        Updates configuration dict in the running code and in the SD card as well
+        :param new_config: set of new configuration key-value pairs
+        :type new_config: dict
+        """
         self.set_config(new_config)
 
         with open(s.root_path + s.config_filename, 'w') as f:  # save credentials to sd card
@@ -57,6 +62,9 @@ class Configuration:
 
     #  Reads and returns keys and preferences from sd card
     def read_configuration(self):
+        """
+        Read config file on SD card and load it to the configuration dict
+        """
 
         if s.config_filename not in os.listdir('/sd'):
             with open('/sd/' + s.config_filename, 'w') as f:  # create new config file
@@ -66,9 +74,36 @@ class Configuration:
             with open('/sd/' + s.config_filename, 'r') as f:
                 self.set_config(ujson.loads(f.read()))
 
+    # Returns True if the configuration file is complete
+    def is_complete(self, logger):
+        """
+        Checks for missing keys and values in the configuration dict
+        :param logger: status logger
+        :type logger: LoggerFactory object
+        :return: True if config is complete, False if not
+        :rtype: bool
+        """
+
+        # Check if there are missing values
+        if "" in self.get_config().values():
+            logger.warning("There are missing values in the configuration")
+            return False
+        # Check if there are missing keys
+        for key in self.default_configuration.keys():
+            if key not in self.get_config().keys():
+                print(key)
+                logger.warning("There are missing keys in the configuration")
+                return False
+        else:
+            return True
+
     #  Resets all configuration, then sets new device_id and device_EUI
     def reset_configuration(self, logger):
-
+        """
+        Resets configuration to the default one and fetches device_id and device_eui
+        :param logger: status logger
+        :type logger: LoggerFactory object
+        """
         try:
             self.configuration.clear()  # clear configuration
             self.set_config(self.default_configuration)  # set configuration to default
@@ -86,4 +121,5 @@ class Configuration:
             raise ConfigurationException(str(e))
 
 
+# global configuration dictionary
 config = Configuration()

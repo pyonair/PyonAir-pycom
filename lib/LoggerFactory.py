@@ -66,6 +66,12 @@ class LoggerFactory:
         return self.loggers[name]
 
     def set_level(self, name, level):
-
+        """
+        Set logging level
+        :param name: logger name
+        :type name: str
+        :param level: logging level
+        :type level: str
+        """
         self.loggers[name].setLevel(level)
         return self.loggers[name]

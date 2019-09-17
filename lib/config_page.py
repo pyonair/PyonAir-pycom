@@ -3,8 +3,13 @@ import strings as s
 
 
 def get_html_form():
+    """
+    Constructs a webpage that includes a form to fill in by the user to acquire new configurations for the device
+    :return: html_form
+    :rtype: str
+    """
 
-    if config.get_config("LORA"):
+    if config.get_config("LORA") == "ON":
         lora_check = " checked"
     else:
         lora_check = ""
@@ -87,27 +92,24 @@ def get_html_form():
         .settings{
           margin-left: 30px;
         }
-        .settings hr{
-          width: 480px;
-        }
         .lora_grid1{
           display: grid;
-          grid-template-columns: 100px 100px;
+          grid-template-columns: 120px 100px;
         }
        .lora_grid2{
           display: grid;
-          grid-template-columns: 65px 100px;
+          grid-template-columns: 95px 100px;
         }
         .pm_sensors{
           margin-left: 15px;
           display: grid;
-          grid-template-columns: 370px 110px;
+          grid-template-columns: 390px 110px;
         }
         .pm_sensors .pm_sensor_label{
           margin-top: 1em;
         }
         .pm_sensors hr{
-          width: 340px;
+          width: 360px;
         }
         .input_text{
           margin-top: 5px;
@@ -118,7 +120,7 @@ def get_html_form():
         }
         .input_checkbox{
           margin-top: 0.6em;
-          margin-left: 15px;
+          margin-left: 5px;
           transform: scale(1.6);
         }
         select{
@@ -157,6 +159,12 @@ def get_html_form():
         .sensor_settings{
           width: 530px;
         }
+        .interval_hr{
+          width: 380px;
+        }
+        .gps_hr{
+          width: 480px;
+        }
       </style>
       </head>
       <body>
@@ -170,8 +178,8 @@ def get_html_form():
             <input class="input_text" id="device_name" name="device_name" type="text" value="''' + str(config.get_config("device_name")) + '''" required="required" maxlength="32"/>
             <label for="password">New Password</label>
             <input class="input_text" id="password" name="password" type="password" value="''' + str(config.get_config("password")) + '''" required="required" maxlength="32"/>
-            <label for="config_timeout">Config Timeout</label>
-            <input class="input_number" id="config_timeout" name="config_timeout" type="number" value="''' + str(config.get_config("config_timeout")) + '''" required="required" min="0" max="120" step="0.01"/>
+            <label for="config_timeout">Config Timeout (m)</label>
+            <input class="input_number" id="config_timeout" name="config_timeout" type="number" value="''' + str(config.get_config("config_timeout")) + '''" required="required" min="3" max="120" step="0.01"/>
           </div>
           <p>LoRaWAN Configuration</p>
           <hr class="p_line"/>
@@ -183,18 +191,18 @@ def get_html_form():
             <input class="input_text" id="app_key" name="app_key" type="password" value="''' + str(config.get_config("app_key")) + '''" required="required" maxlength="32"/>
             <div class = "lora_grid1">
               <div>
-                <label for="fair_access">Fair Access</label>
+                <label for="fair_access">Fair Access (s)</label>
                 <input class="input_number" id="fair_access" name="fair_access" type="number" value="''' + str(config.get_config("fair_access")) + '''" required="required" min="0" max="65535"/>
               </div>
               <div>
-                <label for="air_time">Air Time</label>
+                <label for="air_time">Air Time (ms)</label>
                 <input class="input_number" id="air_time" name="air_time" type="number" value="''' + str(config.get_config("air_time")) + '''" required="required" min="0" max="5000"/>
               </div>
             </div>
             <div class = "lora_grid2">
               <div>
-                <label for="LORA">On/Off</label>
-                <input class="input_checkbox" type="checkbox" name="LORA" value="true"'''+lora_check+'''>
+                <label for="LORA">On?</label>
+                <input class="input_checkbox" type="checkbox" name="LORA" value="ON"'''+lora_check+'''>
               </div>
               <div>
                 <label for="region">Region</label>
@@ -219,7 +227,7 @@ def get_html_form():
           <hr class="p_line sensor_settings"/>
           <div class="settings">
             <label>Temperature and Humidity Sensor</label>
-            <hr/>
+            <hr class="interval_hr"/>
             <div class="sensor">
               <div>
                 <label for="TEMP">Sensor Type</label>
@@ -233,12 +241,12 @@ def get_html_form():
                 <input class="input_number" id="TEMP_id" name="TEMP_id" type="number" value="''' + str(config.get_config("TEMP_id")) + '''" required="required" min="0" max="65535"/>
               </div>
               <div>
-                <label for="TEMP_freq">Frequency</label>
-                <input class="input_number" id="TEMP_freq" name="TEMP_freq" type="number" value="''' + str(config.get_config("TEMP_freq")) + '''" required="required" min="1" max="120" step="0.01"/>
+                <label for="TEMP_period">Period (s)</label>
+                <input class="input_number" id="TEMP_period" name="TEMP_freq" type="number" value="''' + str(config.get_config("TEMP_period")) + '''" required="required" min="1" max="120"/>
               </div>
             </div>
             <label>Particulate Matter Sensors</label>
-            <hr/>
+            <hr class="interval_hr"/>
             <div class="pm_sensors">
                 <div class="grid_item1">
                   <label class="pm_sensor_label">PM Sensor 1</label>
@@ -258,12 +266,12 @@ def get_html_form():
                     <input class="input_number" id="PM1_id" name="PM1_id" type="number" value="''' + str(config.get_config("PM1_id")) + '''" required="required" min="0" max="65535"/>
                   </div>
                   <div>
-                    <label for="PM1_init">Setup Time</label>
-                    <input class="input_number" id="PM1_init" name="PM1_init" type="number" value="''' + str(config.get_config("PM1_init")) + '''" required="required" min="0" max="3600" step="0.01"/>
+                    <label for="PM1_init">Setup Time (s)</label>
+                    <input class="input_number" id="PM1_init" name="PM1_init" type="number" value="''' + str(config.get_config("PM1_init")) + '''" required="required" min="1" max="3600" step="0.01"/>
                   </div>
                 </div>
                 <div class="grid_item3">
-                  <label for="interval">Interval</label>
+                  <label for="interval">Interval (m)</label>
                   <input class="input_number" id="PM_interval" name="interval" type="number" value="''' + str(config.get_config("interval")) + '''" required="required" min="1" max="120" step="0.01"/>
                 </div>
                 <div class="grid_item4">
@@ -284,16 +292,16 @@ def get_html_form():
                     <input class="input_number" id="PM2_id" name="PM2_id" type="number" value="''' + str(config.get_config("PM2_id")) + '''" required="required" min="0" max="65535"/>
                   </div>
                   <div>
-                    <label for="PM2_init">Setup Time</label>
-                    <input class="input_number" id="PM2_init" name="PM2_init" type="number" value="''' + str(config.get_config("PM2_init")) + '''" required="required" min="0" max="3600" step="0.01"/>
+                    <label for="PM2_init">Setup Time (s)</label>
+                    <input class="input_number" id="PM2_init" name="PM2_init" type="number" value="''' + str(config.get_config("PM2_init")) + '''" required="required" min="1" max="3600" step="0.01"/>
                   </div>
                 </div>
               </div>
             <label>GPS</label>
-            <hr/>
+            <hr class="gps_hr"/>
             <div class="sensor">
               <div>
-                <label for="GPS">State</label>
+                <label for="GPS">Sensor Type</label>
                 <select name="GPS">
                   <option'''+str(selected_GPS["SIM28"])+'''>SIM28</option>
                   <option'''+str(selected_GPS["OFF"])+'''>OFF</option>
@@ -304,29 +312,31 @@ def get_html_form():
                 <input class="input_number" id="GPS_id" name="GPS_id" type="number" value="''' + str(config.get_config("GPS_id")) + '''" required="required" min="0" max="65535"/>
               </div>
               <div>
-                <label for="GPS_timeout">Timeout</label>
-                <input class="input_number" id="GPS_timeout" name="GPS_timeout" type="number" value="''' + str(config.get_config("GPS_timeout")) + '''" required="required" min="0" max="120" step="0.01"/>
+                <label for="GPS_timeout">Timeout (m)</label>
+                <input class="input_number" id="GPS_timeout" name="GPS_timeout" type="number" value="''' + str(config.get_config("GPS_timeout")) + '''" required="required" min="5" max="120" step="0.01"/>
               </div>
               <div>
-                <label for="GPS_freq">Frequency</label>
-                <input class="input_number" id="GPS_freq" name="GPS_freq" type="number" value="''' + str(config.get_config("GPS_freq")) + '''" required="required" min="0" max="8760" step="0.01"/>
+                <label for="GPS_period">Period (h)</label>
+                <input class="input_number" id="GPS_period" name="GPS_period" type="number" value="''' + str(config.get_config("GPS_period")) + '''" required="required" min="0.1" max="8760" step="0.01"/>
               </div>
             </div>
-            <hr class="p_line sensor_settings"/>
-            <label for="logging_lvl">Select Logging Level</label>
-            <select id="logging_lvl" name="logging_lvl">
-              <option'''+str(selected_logging["Critical"])+'''>Critical</option>
-              <option'''+str(selected_logging["Error"])+'''>Error</option>
-              <option'''+str(selected_logging["Warning"])+'''>Warning</option>
-              <option'''+str(selected_logging["Info"])+'''>Info</option>
-              <option'''+str(selected_logging["Debug"])+'''>Debug</option>
-            </select>
-            <br><br>
-            <button type="submit">Save</button>
+          </div>
+          <hr class="p_line sensor_settings"/>
+          <label for="logging_lvl">Select Logging Level</label>
+          <select id="logging_lvl" name="logging_lvl">
+            <option'''+str(selected_logging["Critical"])+'''>Critical</option>
+            <option'''+str(selected_logging["Error"])+'''>Error</option>
+            <option'''+str(selected_logging["Warning"])+'''>Warning</option>
+            <option'''+str(selected_logging["Info"])+'''>Info</option>
+            <option'''+str(selected_logging["Debug"])+'''>Debug</option>
+          </select>
+          <br><br>
+          <button type="submit">Save</button>
         </form>
       </body>
       <script>
-
+        //Source: https://lengstorf.com/get-form-values-as-json/
+        
         const isValidElement = element => {
           return element.name && element.value;
         };

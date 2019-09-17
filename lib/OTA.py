@@ -10,7 +10,6 @@
 
 import network
 import socket
-import machine
 import ujson
 import uhashlib
 import ubinascii
@@ -18,6 +17,7 @@ import gc
 import pycom
 import os
 import machine
+
 
 class OTA():
     # The following two methods need to be implemented in a subclass for the
@@ -48,7 +48,7 @@ class OTA():
         manifest = self.get_update_manifest()
         if manifest is None:
             self.logger.info("Already on the latest version")
-            return
+            return False
 
         # Download new files and verify hashes
         for f in manifest['new'] + manifest['update']:
@@ -84,6 +84,11 @@ class OTA():
         # Flash firmware
         if "firmware" in manifest:
             self.write_firmware(manifest['firmware'])
+
+        # new version is the updated version
+        self.version = manifest['version']
+
+        return True
 
     def get_file(self, f):
         new_path = "{}.new".format(f['dst_path'])

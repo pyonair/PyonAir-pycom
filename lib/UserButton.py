@@ -6,6 +6,11 @@ import _thread
 
 class UserButton:
     def __init__(self, logger):
+        """
+        Initialises the config button on the expansion board, which can be used to configure or reboot the device
+        :param logger: status logger
+        :type logger: LoggerFactory object
+        """
 
         self.logger = logger
         self.debounce_timer = Timer.Chrono()
@@ -54,11 +59,14 @@ class UserButton:
             led_lock.release()
             _thread.start_new_thread(new_config, (self.logger, arg))
 
+    # if the device is in configuration mode, it does not reboot automatically when exception is caught
     def get_reboot(self):
         return self.reboot
 
+    # configuration does not run in a thread, it blocks main execution rather
     def set_config_blocking(self, config_blocking):
         self.config_blocking = config_blocking
 
+    # button can be used to trigger configuration mode
     def set_config_enabled(self, config_enabled):
         self.config_enabled = config_enabled

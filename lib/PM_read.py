@@ -8,6 +8,17 @@ import time
 
 
 def pm_thread(sensor_name, status_logger, pins, serial_id):
+    """
+    Method to run as a thread that reads, processes and logs readings form pm sensors according to their type
+    :param sensor_name: PM1 or PM2
+    :type sensor_name: str
+    :param status_logger: status logger
+    :type status_logger: LoggerFactory object
+    :param pins: serial bus pins (TX, RX)
+    :type pins: tuple(int, int)
+    :param serial_id: serial bus id (0, 1 or 2)
+    :type serial_id: int
+    """
 
     status_logger.debug("Thread {} started".format(sensor_name))
 
@@ -20,7 +31,7 @@ def pm_thread(sensor_name, status_logger, pins, serial_id):
 
     if sensor_type == "PMS5003":
 
-        # initialize sensor
+        # initialise sensor
         sensor = Plantower(pins=pins, id=serial_id)
 
         time.sleep(1)
@@ -37,7 +48,7 @@ def pm_thread(sensor_name, status_logger, pins, serial_id):
 
     elif sensor_type == "SPS030":
 
-        # initialize sensor
+        # initialise sensor
         while True:
             try:
                 sensor = Sensirion(retries=1, pins=pins, id=serial_id)  # automatically starts measurement
@@ -62,6 +73,12 @@ def pm_thread(sensor_name, status_logger, pins, serial_id):
 
 
 def process_readings(args):
+    """
+    Method to be evoked by a timed alarm, which reads and processes data from the PM sensor, and logs it to the sd card
+    :param args: sensor_type, sensor, sensor_logger, status_logger
+    :type args: str, str, SensorLogger object, LoggerFactory object
+    """
+
     sensor_type, sensor, sensor_logger, status_logger = args[0], args[1], args[2], args[3]
 
     try:

@@ -1,7 +1,6 @@
 from RtcDS1307 import clock
 import GpsSIM28
 from PM_read import pm_thread
-from SensorLogger import SensorLogger
 from loggingpycom import INFO, WARNING, CRITICAL, DEBUG, ERROR
 from Configuration import config
 import _thread
@@ -10,7 +9,19 @@ import os
 import pycom
 
 
-def initialize_time(rtc, gps_on, logger):
+def initialise_time(rtc, gps_on, logger):
+    """
+    Acquire UTC timestamp from RTC module or GPS
+    :param rtc: pycom real time clock
+    :type rtc: RTC object
+    :param gps_on: True or False
+    :type gps_on: bool
+    :param logger: status logger
+    :type logger: LoggerFactory object
+    :return: no_time, update_time_later
+    :rtype: bool, bool
+    """
+
     no_time = False
     update_time_later = True
     try:
@@ -61,17 +72,28 @@ def initialize_time(rtc, gps_on, logger):
     return no_time, update_time_later
 
 
-def initialize_pm_sensor(sensor_name, pins, serial_id, status_logger):
+def initialise_pm_sensor(sensor_name, pins, serial_id, status_logger):
+    """
+
+    :param sensor_name: PM1 or PM2
+    :type sensor_name: str
+    :param pins: pins for serial bus (TX, RX)
+    :type pins: tuple(int, int)
+    :param serial_id: id for serial bus (0, 1 or 2)
+    :type serial_id: int
+    :param status_logger: status logger
+    :type status_logger: LoggerFactory object
+    """
     try:
         # Start PM sensor thread
         _thread.start_new_thread(pm_thread, (sensor_name, status_logger, pins, serial_id))
 
-        status_logger.info("Sensor " + sensor_name + " initialized")
+        status_logger.info("Sensor " + sensor_name + " initialised")
     except Exception as e:
-        status_logger.exception("Failed to initialize sensor " + sensor_name)
+        status_logger.exception("Failed to initialise sensor " + sensor_name)
 
 
-def initialize_file_system():
+def initialise_file_system():
     """
     Create directories for logging, processing, archive, and sending data if they do not exist.
     """
@@ -96,6 +118,11 @@ def remove_residual_files():
 
 
 def get_logging_level():
+    """
+    Get logging level from configurations
+    :return: logging level
+    :rtype: str
+    """
     logging_lvl = config.get_config("logging_lvl")
     if logging_lvl == "Critical":
         return CRITICAL
