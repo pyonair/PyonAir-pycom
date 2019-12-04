@@ -39,7 +39,7 @@ def get_html_form():
       <head>
       <title>PyonAir Configuration</title>
       <style>
-        
+
       body{
           background-color: #252525;
           margin-left: 25px;
@@ -49,12 +49,12 @@ def get_html_form():
           color: white;
           font-size: 15px;
           }
-    
+
         h1{
           margin-bottom: 0px;
           max-height: 999999px; //disables font boost in android
         }
-          
+
         p{
           font-size: 20px;
           margin-left: 5px;
@@ -62,7 +62,7 @@ def get_html_form():
           margin-top: 2em;
           max-height: 999999px; //disables font boost in android
         }
-    
+
         hr {
             display: block;
             height: 1px;
@@ -72,43 +72,43 @@ def get_html_form():
             margin-top: 0.1em;
             margin-left: -5px;
         }
-    
+
         .p_line{
           padding-bottom: 0.8em;
         }
-    
+
         form {
           margin-left: 5px;
         }
-    
+
         label {
           display: block;
           margin-top: 1em;
           max-height: 999999px; //disables font boost in android
         }
-    
+
         .settings{
           margin-left: 30px;
         }
-    
+
         .settings hr{
           width: 380px;
         }
-    
+
         .pm_sensors{
           margin-left: 15px;
           display: grid;
           grid-template-columns: 260px 110px;
         }
-    
+
         .pm_sensors .pm_sensor_label{
           margin-top: 1em;
         }
-    
+
         .pm_sensors hr{
           width: 230px;
         }
-    
+
         input{
           margin-top: 5px;
           box-sizing: border-box;
@@ -116,13 +116,13 @@ def get_html_form():
           padding: 2px 4px;
           width: 200px;
         }
-    
+
         select{
           margin-top: 5px;
           width: 110px;
           height: 1.8em;
         }
-    
+
         .sensor{
           display: grid;
           grid-template-columns: 150px 110px 110px;
@@ -130,18 +130,18 @@ def get_html_form():
           margin-top: -0.5em;
           margin-bottom: 1.8em;
         }
-    
+
         .input_number{
           width: 70px;
         }
-    
+
         .pm_sensors .sensor{
             grid-template-columns: 150px 110px;
             margin-left: -5px;
             margin-bottom: 0;
             margin-top: -1.3em;
         }
-    
+
         .grid_item3{
           grid-column-start: 2;
           grid-column-end: 3;
@@ -150,7 +150,7 @@ def get_html_form():
           margin-top: 50%;
           margin-left: -5px;
         }
-    
+
         .sensor_settings{
           width: 450px;
         }
@@ -212,7 +212,7 @@ def get_html_form():
                 <input class="input_number" id="TEMP_id" name="TEMP_id" type="number" value="''' + str(config.get_config("TEMP_id")) + '''" required="required" min="0" max="65535"/>
               </div>
               <div>
-                <label for="TEMP_freq">Frequency</label>
+                <label for="TEMP_freq">Frequency (sec)</label>
                 <input class="input_number" id="TEMP_freq" name="TEMP_freq" type="number" value="''' + str(config.get_config("TEMP_freq")) + '''" required="required" min="1" max="120" step="0.01"/>
               </div>
             </div>
@@ -238,7 +238,7 @@ def get_html_form():
                   </div>
                 </div>
                 <div class="grid_item3">
-                  <label for="interval">Interval</label>
+                  <label for="interval">LoRA transmit interval (Min)</label>
                   <input class="input_number" id="PM_interval" name="interval" type="number" value="''' + str(config.get_config("interval")) + '''" required="required" min="1" max="120" step="0.01"/>
                 </div>
                 <div class="grid_item4">
@@ -275,7 +275,7 @@ def get_html_form():
                 <input class="input_number" id="GPS_id" name="GPS_id" type="number" value="''' + str(config.get_config("GPS_id")) + '''" required="required" min="0" max="65535"/>
               </div>
               <div>
-                <label for="GPS_freq">Frequency</label>
+                <label for="GPS_freq">Frequency (Min)</label>
                 <input class="input_number" id="GPS_freq" name="GPS_freq" type="number" value="''' + str(config.get_config("GPS_freq")) + '''" required="required" min="0" max="8760" step="0.01"/>
               </div>
             </div>
@@ -284,7 +284,7 @@ def get_html_form():
             <select id="logging_lvl" name="logging_lvl">
               <option'''+str(selected_logging["Critical"])+'''>Critical</option>
               <option'''+str(selected_logging["Error"])+'''>Error</option>
-              <option'''+str(selected_logging["Warning"])+'''>Warning</option>
+              <option'''+str(selected_logging["Warning"])+'''>Warning</option> 
               <option'''+str(selected_logging["Info"])+'''>Info</option>
               <option'''+str(selected_logging["Debug"])+'''>Debug</option>
             </select>
@@ -293,46 +293,46 @@ def get_html_form():
         </form>
       </body>
       <script>
-    
+
         const isValidElement = element => {
           return element.name && element.value;
         };
-    
+
         const isValidValue = element => {
           return (!['checkbox'].includes(element.type) || element.checked);
         };
-    
+
         const formToJSON = elements => [].reduce.call(elements, (data, element) => {
-    
+
           // Make sure the element has the required properties and should be added.
           if (isValidElement(element) && isValidValue(element)) {
               data[element.name] = element.value;
           }
           return data;
         }, {});
-    
+
         const handleFormSubmit = event => {
-    
+
           // Stop the form from submitting since we’re handling that with AJAX.
           event.preventDefault();
-    
+
           // Call our function to get the form data.
           const data = formToJSON(form.elements);
-    
+
           // Use `JSON.stringify()` to make the output valid, human-readable JSON.
           var json_data = "json_str_begin" + JSON.stringify(data, null, "") + "json_str_end";
-    
+
           json_data.replace(/\\n/g, '');
-    
+
           var date = new Date();
           var now = 'time_begin'+date.getUTCFullYear()+':'+(date.getUTCMonth()+1)+':'+date.getUTCDate()+':'+date.getUTCHours()+":"+date.getUTCMinutes()+":"+date.getUTCSeconds()+'time_end';
-    
+
           // ...this is where we’d actually do something with the form data...
           var xhttp = new XMLHttpRequest();
           xhttp.open("POST", "", true);
           xhttp.send(json_data+now);
         };
-    
+
         const form = document.getElementsByClassName('config_form')[0];
         form.addEventListener('submit', handleFormSubmit);
     </script>

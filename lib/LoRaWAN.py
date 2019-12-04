@@ -32,6 +32,8 @@ class LoRaWAN:
         self.lora = LoRa(mode=LoRa.LORAWAN, region=region, adr=True)
 
         # create an OTAA authentication parameters
+        print(config.get_config("application_eui"))
+        print(config.get_config("app_key"))
         app_eui = ubinascii.unhexlify(config.get_config("application_eui"))
         app_key = ubinascii.unhexlify(config.get_config("app_key"))
 
