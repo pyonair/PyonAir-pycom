@@ -2,6 +2,11 @@
 import pycom
 from helper import blink_led
 
+#Disable default wifi
+from network import WLAN
+wlan = WLAN()
+wlan.deinit()
+
 pycom.heartbeat(False)  # disable the heartbeat LED
 pycom.rgbled(0x552000)  # flash orange to indicate startup
 
