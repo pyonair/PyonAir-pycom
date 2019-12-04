@@ -11,12 +11,11 @@ import time
 
 def get_sensor_averages(logger, lora):
     """
-    Gets averages for specific columns of defined sensor data, loads them into a line and appends it to the file which
-    the LoRa thread sends data from.
-    A sensor is defined if it is ticked in the configuration and has data to be sent (has a current.csv file).
-    :type logger: LoggerFactory object (status_logger)
-    :param is_def: Stores which sensors are defined in the form "sensor_name" : True/False
-    :type is_def: dict
+    Takes the averages of sensor readings and constructs a line to log to the SD card, terminal and lora buffer
+    :param logger: status logger
+    :type logger: LoggerFactory object
+    :param lora: LoRaWAN object, False if lora is not enabled
+    :type lora: LoRaWAN object
     """
 
     logger.debug("Calculating averages")
@@ -43,7 +42,7 @@ def get_sensor_averages(logger, lora):
 
         # Logs line_to_log to archive and places copies into relevant to_send folders
         log_averages(line_to_log.format(timestamp + ','))
-        if config.get_config("LORA") == "ON":
+        if lora is not False:
             year_month = timestamp[2:4] + "," + timestamp[5:7] + ','
             lora.lora_buffer.write(line_to_log.format(year_month))
 
@@ -55,7 +54,7 @@ def get_sensor_averages(logger, lora):
                 try:
                     os.remove(path + filename)
                 except Exception as e:
-                    logger.exception("Failed to remove " + filename + " in " + path)
+                    pass
 
     except Exception as e:
         logger.exception("Failed to flash averages")
@@ -64,11 +63,11 @@ def get_sensor_averages(logger, lora):
 
 def calculate_average(sensor_name, logger):
     """
-    Calculates averages for specific columns of a sensor log data to be sent over LoRa.
-    :param sensor_name: sensor name
-    :sensor_type sensor_name: str
-    :return: average readings of specific columns
-    :rtype: str
+    Calculates averages for specific columns of sensor data to be sent over LoRa. Sets placeholders if it fails.
+    :param sensor_name: PM1, PM2 or TEMP
+    :type sensor_name: str
+    :param logger: status logger
+    :type logger: LoggerFactory object
     """
 
     filename = sensor_name + '.csv'
@@ -110,7 +109,7 @@ def calculate_average(sensor_name, logger):
                         f.write(line)
 
     except Exception as e:
-        logger.exception("No readings from sensor {}".format(sensor_name))
+        logger.error("No readings from sensor {}".format(sensor_name))
         logger.warning("Setting 0 as a place holder")
         blink_led((0x550000, 0.4, True))
     finally:
@@ -118,6 +117,11 @@ def calculate_average(sensor_name, logger):
 
 
 def log_averages(line_to_log):
+    """
+    Logs averages to the 'Averages' folder in 'Archive' separated by each month
+    :param line_to_log: line of averages to log
+    :type line_to_log: str
+    """
 
     # Save averages to a new file each month
     archive_filename = "{:04d}_{:02d}".format(*time.gmtime()[:2]) + "_Sensor_Averages"  # yyyy_mm_Sensor_Averages

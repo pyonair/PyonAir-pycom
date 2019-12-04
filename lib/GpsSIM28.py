@@ -9,7 +9,7 @@ import uos
 import sys
 import _thread
 
-# Initialize GPS power circuitry
+# Initialise GPS power circuitry
 GPS_transistor = Pin('P19', mode=Pin.OUT)
 GPS_transistor.value(0)
 
@@ -20,8 +20,15 @@ gps = MicropyGPS()
 gps_lock = _thread.allocate_lock()
 
 
-# delete serial used for terminal out and initialize serial for GPS
+# delete serial used for terminal out and initialise serial for GPS
 def gps_init(logger):
+    """
+    De-initialises terminal output, and opens serial for the GPS
+    :param logger: status logger
+    :type logger: LoggerFactory object
+    :return: serial, chrono, inidcator_led
+    :rtype: UART object, Chrono object, Alarm object
+    """
 
     logger.info("Turning GPS on - Terminal output is disabled until GPS finishes")
     uos.dupterm(None)  # deinit terminal output on serial bus 0
@@ -40,16 +47,27 @@ def gps_init(logger):
     return serial, chrono, indicator_led
 
 
-# delete serial used for GPS and re-initialize terminal out
+# delete serial used for GPS and re-initialise terminal out
 def gps_deinit(serial, logger, message, indicator_led):
+    """
+    De-initialises GPS serial bus, initialises terminal output and prints message to the terminal
+    :param serial: GPS serial bus
+    :type serial: UART object
+    :param logger: status logger
+    :type logger: LoggerFactory object
+    :param message: message to display after terminal output was enabled
+    :type message: str
+    :param indicator_led: Timer for led indicator
+    :type indicator_led: Timer object
+    """
 
     # turn off GPS via turning off transistor
     GPS_transistor.value(0)
 
-    # de-initialize GPS serial
+    # de-initialise GPS serial
     serial.deinit()
 
-    # re-initialize terminal out
+    # re-initialise terminal out
     terminal = UART(0, 115200)
     uos.dupterm(terminal)
 
@@ -62,14 +80,24 @@ def gps_deinit(serial, logger, message, indicator_led):
 
 
 def get_time(rtc, logger):
+    """
+    Acquires UTC date time from the GPS
+    :param rtc: pycom real time clock
+    :type rtc: RTC object
+    :param logger: status logger
+    :type logger: LoggerFactory object
+    :return: True of False
+    :rtype: bool
+    """
 
     if gps_lock.locked():
         logger.debug("Waiting for other gps thread to finish")
     with gps_lock:
         logger.info("Getting UTC datetime via GPS")
 
-        serial, chrono, indicator_led = gps_init(logger)  # initialize serial and timer
+        serial, chrono, indicator_led = gps_init(logger)  # initialise serial and timer
         com_counter = int(chrono.read())  # counter for checking whether gps is connected
+        timeout = int(float(config.get_config("GPS_timeout")) * 60)
         message = False  # no message while terminal is disabled (by default)
 
         while True:
@@ -112,7 +140,7 @@ def get_time(rtc, logger):
                             return True
 
             # If timeout elapsed exit function or thread
-            if chrono.read() >= int(config.get_config("GPS_timeout")):
+            if chrono.read() >= timeout:
                 gps_deinit(serial, logger, message, indicator_led)
                 logger.error("""GPS timeout
                 Check if GPS module is connected
@@ -122,6 +150,15 @@ def get_time(rtc, logger):
 
 
 def get_position(logger, lora):
+    """
+    Acquires latitude, longitude and altitude from GPS based on HDOP
+    :param logger: status logger
+    :type logger: LoggerFactory object
+    :param lora: LoRaWAN object, False if lora is not enabled
+    :type lora: LoRaWAN object
+    :return: True or False
+    :rtype: bool
+    """
 
     if gps_lock.locked():
         logger.debug("Waiting for other gps thread to finish")
@@ -130,6 +167,7 @@ def get_position(logger, lora):
 
         serial, chrono, indicator_led = gps_init(logger)
         com_counter = int(chrono.read())  # counter for checking whether gps is connected
+        timeout = int(float(config.get_config("GPS_timeout")) * 60)
         message = False
 
         while True:
@@ -150,7 +188,7 @@ def get_position(logger, lora):
                         com_counter = int(chrono.read())
 
                         # set aim for the quality of the signal based on the time elapsed
-                        elapsed = chrono.read() / int(config.get_config("GPS_timeout"))
+                        elapsed = chrono.read() / timeout
 
                         hdop_aim = [1, 1.2, 1.5, 1.8, 2, 2.5, 3, 4, 5, 6, 7]
                         time_limit = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
@@ -188,7 +226,7 @@ def get_position(logger, lora):
                             with open(s.archive_path + s.GPS + '.csv', 'a') as f_archive:
                                 f_archive.write(line_to_log)
 
-                            if config.get_config("LORA") == "ON":
+                            if lora is not False:
                                 # get year and month from timestamp
                                 year_month = timestamp[2:4] + "," + timestamp[5:7] + ','
 
@@ -206,7 +244,7 @@ def get_position(logger, lora):
                             return True
 
             # If timeout elapsed exit function or thread
-            if chrono.read() >= int(config.get_config("GPS_timeout")):
+            if chrono.read() >= timeout:
                 gps_deinit(serial, logger, message, indicator_led)
                 logger.error("""GPS timeout
                 Check if GPS module is connected

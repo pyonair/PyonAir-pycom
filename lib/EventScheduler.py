@@ -10,6 +10,16 @@ import time
 
 class EventScheduler:
     def __init__(self, logger, data_type, lora):
+        """
+        Schedules events for calculating averages or getting GPS position and also schedules random LoRa messages for
+        each interval
+        :param logger: status logger
+        :type logger: LoggerFactory object
+        :param data_type: "sensors" or "gps"
+        :type data_type: str
+        :param lora: LoRaWan object, False if lora is not enabled
+        :type lora: LoRaWAN object
+        """
 
         #  Arguments
         self.logger = logger
@@ -22,7 +32,7 @@ class EventScheduler:
             if self.interval_s < 15 * 60:
                 self.logger.warning("Interval is less than 15 mins - real time transmission is not guaranteed")
         elif self.data_type == "gps":
-            self.interval_s = int(float(config.get_config("GPS_freq"))*3600)
+            self.interval_s = int(float(config.get_config("GPS_period"))*3600)
         self.s_to_next_lora = None
         self.first_alarm = None
         self.periodic_alarm = None
@@ -57,18 +67,21 @@ class EventScheduler:
                 if self.lora.transmission_date != date:
                     self.lora.message_count = 0
                     self.lora.transmission_date = date
-                    config.save_configuration({"message_count": self.lora.message_count, "transmission_date": date})
+                    config.save_config({"message_count": self.lora.message_count, "transmission_date": date})
 
                 # send 2, 3 or at most 4 messages per interval based on length of interval
                 lora_slot = int(float(config.get_config("interval"))*60) // 30  # lora_rate changes for each 30 seconds
+                max_lora_slot = self.lora.message_limit // 96  # max number of msg per interval optimized around 15 min
+                if max_lora_slot < 2:
+                    max_lora_slot = 2
                 if lora_slot < 2:
                     raise Exception("Interval has to be at least a minute")
                 else:
                     lora_rate = lora_slot
-                    if lora_slot > 4:
-                        lora_rate = 4
+                    if lora_slot > max_lora_slot:
+                        lora_rate = max_lora_slot
 
-                waiting = self.lora.lora_buffer.size(lora_rate)  # check how many messages are waiting (up to 4)
+                waiting = self.lora.lora_buffer.size(lora_rate)  # check number of messages in stack (up to max to send)
                 remaining = self.lora.message_limit - self.lora.message_count  # check how many more we can send today
                 if remaining <= 0:
                     self.logger.info("LoRa message limit reached for the day")
@@ -77,7 +90,7 @@ class EventScheduler:
                 else:
                     count = remaining  # if we have less than we want to send, send up to the limit
                 for val in range(count):  # Schedule up to 4 randomly timed messages within interval
-                    self.random_alarm = Timer.Alarm(self.random_event, s=self.get_random_time(), periodic=False)
+                    self.random_alarm = Timer.Alarm(self.random_event, s=get_random_time(), periodic=False)
 
         else:
             raise Exception("Non existent data type")
@@ -87,8 +100,15 @@ class EventScheduler:
         arg1, arg2 = 0, 0  # threading library not fully implemented - only works with a tuple of at least 2 args
         _thread.start_new_thread(self.lora.lora_send, (arg1, arg2))
 
-    def get_random_time(self):
-        # get random number of seconds within interval, add one so it cannot be zero
-        s_to_next_lora = int(machine.rng() / (2 ** 24) * int(float(config.get_config("interval"))*60)) + 1
 
-        return s_to_next_lora
+def get_random_time():
+    """
+    Get random number of seconds within interval
+    :return: s_to_next_lora
+    :rtype: int
+    """
+
+    # get random number of seconds within (interval - lora_timeout) and add one so it cannot be zero
+    s_to_next_lora = int((machine.rng() / (2 ** 24)) * (int(float(config.get_config("interval"))*60) -
+                                                        int(config.get_config("lora_timeout")))) + 1
+    return s_to_next_lora

@@ -17,10 +17,10 @@ class TempSHT35(object):
         self.i2c = I2C(0, I2C.MASTER, baudrate=9600, pins=('P9', 'P10'))
         self.address = 0x45
 
-        # get one sensor reading upon init
-        self.process_readings(None)
+        # get one sensor reading upon init to catch any errors and calibrate the sensor
+        self.read()
         # start a periodic timer interrupt to poll readings at a frequency
-        self.processing_alarm = Timer.Alarm(self.process_readings, s=int(config.get_config("TEMP_freq")), periodic=True)
+        self.processing_alarm = Timer.Alarm(self.process_readings, s=int(config.get_config("TEMP_period")), periodic=True)
 
     def read(self):
         # high repeatability, clock stretching disabled
@@ -42,6 +42,10 @@ class TempSHT35(object):
         return [celsius, humidity]
 
     def process_readings(self, arg):
+        """
+        Processes readings form the temperature sensor and logs it to the terminal and the SD card.
+        Takes a dummy argument required by the timed interrupt callback.
+        """
         # read and log pm sensor data
         try:
             timestamp = csv_timestamp_template.format(*time.gmtime())  # get current time in desired format

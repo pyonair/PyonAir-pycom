@@ -10,7 +10,6 @@
 
 import network
 import socket
-import machine
 import ujson
 import uhashlib
 import ubinascii
@@ -19,16 +18,14 @@ import pycom
 import os
 import machine
 
-# Try to get version number
-try:
-    from OTA_VERSION import VERSION
-except ImportError:
-    VERSION = '1.0.0'
-
 
 class OTA():
     # The following two methods need to be implemented in a subclass for the
     # specific transport mechanism e.g. WiFi
+
+    def __init__(self, logger, version):
+        self.logger = logger
+        self.version = version
 
     def connect(self):
         raise NotImplementedError()
@@ -37,9 +34,8 @@ class OTA():
         raise NotImplementedError()
 
     # OTA methods
-
     def get_current_version(self):
-        return VERSION
+        return self.version
 
     def get_update_manifest(self):
         req = "manifest.json?current_ver={}".format(self.get_current_version())
@@ -51,20 +47,20 @@ class OTA():
     def update(self):
         manifest = self.get_update_manifest()
         if manifest is None:
-            print("Already on the latest version")
-            return
+            self.logger.info("Already on the latest version")
+            return False
 
         # Download new files and verify hashes
         for f in manifest['new'] + manifest['update']:
-            # Upto 5 retries
+            # Up to 5 retries
             for _ in range(5):
                 try:
                     self.get_file(f)
                     break
                 except Exception as e:
-                    print(e)
+                    self.logger.exception(str(e))
                     msg = "Error downloading `{}` retrying..."
-                    print(msg.format(f['URL']))
+                    self.logger.error(msg.format(f['URL']))
             else:
                 raise Exception("Failed to download `{}`".format(f['URL']))
 
@@ -89,17 +85,10 @@ class OTA():
         if "firmware" in manifest:
             self.write_firmware(manifest['firmware'])
 
-        # Save version number
-        try:
-            self.backup_file({"dst_path": "/flash/OTA_VERSION.py"})
-        except OSError:
-            pass  # There isnt a previous file to backup
-        with open("/flash/OTA_VERSION.py", 'w') as fp:
-            fp.write("VERSION = '{}'".format(manifest['version']))
-        from OTA_VERSION import VERSION
+        # new version is the updated version
+        self.version = manifest['version']
 
-        # Reboot the device to run the new decode
-        machine.reset()
+        return True
 
     def get_file(self, f):
         new_path = "{}.new".format(f['dst_path'])
@@ -118,7 +107,7 @@ class OTA():
 
         # Hash mismatch
         if hash != f['hash']:
-            print(hash, f['hash'])
+            self.logger.info(hash, f['hash'])
             msg = "Downloaded file's hash does not match expected hash"
             raise Exception(msg)
 
@@ -156,11 +145,13 @@ class OTA():
 
 
 class WiFiOTA(OTA):
-    def __init__(self, ssid, password, ip, port):
+    def __init__(self, logger, ssid, password, ip, port, version):
         self.SSID = ssid
         self.password = password
         self.ip = ip
         self.port = port
+
+        OTA.__init__(self, logger, version)
 
     def connect(self):
         self.wlan = network.WLAN(mode=network.WLAN.STA)
@@ -187,7 +178,7 @@ class WiFiOTA(OTA):
         h = None
 
         # Connect to server
-        print("Requesting: {}".format(req))
+        self.logger.info("Requesting: {}".format(req))
         s = socket.socket(socket.AF_INET,
                           socket.SOCK_STREAM,
                           socket.IPPROTO_TCP)

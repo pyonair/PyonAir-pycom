@@ -19,7 +19,7 @@ try:
     status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, terminal_out=True,
                                                         filename='status_log.txt')
 
-    # Initialize button interrupt on pin 14 for user interaction
+    # Initialise button interrupt on pin 14 for user interaction
     user_button = UserButton(status_logger)
     pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
     pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
@@ -40,7 +40,7 @@ except Exception as e:
 
 try:
     from machine import RTC, unique_id
-    from initialisation import initialize_time
+    from initialisation import initialise_time
     from ubinascii import hexlify
     from Configuration import config
     from new_config import new_config
@@ -51,13 +51,15 @@ try:
     # Read configuration file to get preferences
     config.read_configuration()
 
-    """SET FORMAT VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in 
+    """SET CODE VERSION NUMBER - if new tag is added on git, update code version number accordingly"""
+    # ToDo: Update OTA.py so if version is 0.0.0, it backs up all existing files, and adds all files as new.
+    # ToDo: Set code_version to '0.0.0' in default config, and remove the line below
+    config.save_config({"code_version": "0.2.6"})
+
+    """SET FORMAT VERSION NUMBER - version number is used to indicate the data format used to decode LoRa messages in
     the back end. If the structure of the LoRa message is changed during update, increment the version number and
     add a corresponding decoder to the back-end."""
-    config.save_configuration({"fmt_version": 1})
-
-    """SET CODE VERSION NUMBER - if new tag is added on git, update code version number below accordingly"""
-    config.save_configuration({"code_version": "v0.2.2"})
+    config.save_config({"fmt_version": 1})
 
     # Override Preferences - DEVELOPER USE ONLY - keep all overwrites here
     if 'debug_config.json' in os.listdir('/flash'):
@@ -73,7 +75,7 @@ try:
 
     # Get current time
     rtc = RTC()
-    no_time, update_time_later = initialize_time(rtc, gps_on, status_logger)
+    no_time, update_time_later = initialise_time(rtc, gps_on, status_logger)
 
     # Check if device is configured, or SD card has been moved to another device
     device_id = hexlify(unique_id()).upper().decode("utf-8")
@@ -85,7 +87,7 @@ try:
     # User button will enter configurations page from this point on
     user_button.set_config_enabled(True)
 
-    # If initialize time failed to acquire exact time, halt initialization
+    # If initialise time failed to acquire exact time, halt initialisation
     if no_time:
         raise Exception("Could not acquire UTC timestamp")
 
@@ -110,7 +112,7 @@ except Exception as e:
 
 pycom.rgbled(0x552000)  # flash orange until its loaded
 
-# If sd, time, logger and configurations were set, continue with initialization
+# If sd, time, logger and configurations were set, continue with initialisation
 try:
     from machine import Timer
     from SensorLogger import SensorLogger
@@ -120,17 +122,17 @@ try:
     from TempSHT35 import TempSHT35
     import GpsSIM28
     import _thread
-    from initialisation import initialize_pm_sensor, initialize_file_system, remove_residual_files, get_logging_level
+    from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
     from LoRaWAN import LoRaWAN
 
     # Configurations are entered parallel to main execution upon button press for 2.5 secs
     user_button.set_config_blocking(False)
 
-    # Set debug level - has to be set after logger was initialized and device was configured
+    # Set debug level - has to be set after logger was initialised and device was configured
     logger_factory.set_level('status_logger', get_logging_level())
 
-    # Initialize file system
-    initialize_file_system()
+    # Initialise file system
+    initialise_file_system()
 
     # Remove residual files from the previous run (removes all files in the current and processing dir)
     remove_residual_files()
@@ -148,9 +150,9 @@ try:
         TEMP_logger = SensorLogger(sensor_name=s.TEMP, terminal_out=True)
         if config.get_config(s.TEMP) == "SHT35":
             temp_sensor = TempSHT35(TEMP_logger, status_logger)
-    status_logger.info("Temperature and humidity sensor initialized")
+    status_logger.info("Temperature and humidity sensor initialised")
 
-    # Initialize PM power circuitry
+    # Initialise PM power circuitry
     PM_transistor = Pin('P20', mode=Pin.OUT)
     PM_transistor.value(0)
     if config.get_config(s.PM1) != "OFF" or config.get_config(s.PM2) != "OFF":
@@ -158,9 +160,9 @@ try:
 
     # Initialise PM sensor threads
     if sensors[s.PM1]:
-        initialize_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1, status_logger=status_logger)
+        initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1, status_logger=status_logger)
     if sensors[s.PM2]:
-        initialize_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2, status_logger=status_logger)
+        initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2, status_logger=status_logger)
 
     # Start scheduling lora messages if any of the sensors are defined
     if True in sensors.values():
@@ -168,13 +170,13 @@ try:
     if gps_on:
         GPS_Events = EventScheduler(logger=status_logger, data_type="gps", lora=lora)
 
-    status_logger.info("Initialization finished")
+    status_logger.info("Initialisation finished")
 
     # Blink green three times to identify that the device has been initialised
     for val in range(3):
         blink_led((0x005500, 0.5, True))
         time.sleep(0.5)
-    # Initialize custom yellow heartbeat that triggers every 5 seconds
+    # Initialise custom yellow heartbeat that triggers every 5 seconds
     heartbeat = Timer.Alarm(blink_led, s=5, arg=(0x005500, 0.1, True), periodic=True)
 
     # Try to update RTC module with accurate UTC datetime if GPS is enabled and has not yet synchronized

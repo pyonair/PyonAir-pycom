@@ -13,6 +13,11 @@ import machine
 
 class LoRaWAN:
     def __init__(self, logger):
+        """
+        Connects to LoRaWAN using OTAA and sets up a ring buffer for storing messages.
+        :param logger: status logger
+        :type logger: LoggerFactory object
+        """
 
         self.logger = logger
         self.message_limit = int(float(config.get_config("fair_access")) / (float(config.get_config("air_time")) / 1000))
@@ -24,7 +29,7 @@ class LoRaWAN:
         else:
             self.message_count = 0  # if device was last transmitting a day or more ago, reset message_count for the day
             self.transmission_date = date
-            config.save_configuration({"message_count": self.message_count, "transmission_date": date})
+            config.save_config({"message_count": self.message_count, "transmission_date": date})
 
         regions = {"Europe": LoRa.EU868, "Asia": LoRa.AS923, "Australia": LoRa.AU915, "United States": LoRa.US915}
         region = regions[config.get_config("region")]
@@ -53,7 +58,7 @@ class LoRaWAN:
         # set up callback for receiving downlink messages
         self.lora.callback(trigger=LoRa.RX_PACKET_EVENT, handler=self.lora_recv)
 
-        # initializes circular lora stack to back up data up to about 22.5 days depending on the length of the month
+        # initialises circular lora stack to back up data up to about 22.5 days depending on the length of the month
         self.lora_buffer = RingBuffer(self.logger, s.processing_path, s.lora_file_name, 31 * self.message_limit, 100)
 
         try:  # this fails if the buffer is empty
@@ -62,26 +67,34 @@ class LoRaWAN:
             pass
 
     def lora_recv(self, arg):
+        """
+        Callback for receiving packets through LoRaWAN. Decodes messages to commands for updating over WiFi.
+        Requires a dummy argument.
+        """
 
         payload = self.lora_socket.recv(600)  # receive bytes message
         self.logger.info("Lora message received")
         msg = payload.decode()  # convert to string
 
         try:
-            if msg == "0":  # start software update
+            if msg == "0":  # reboot device
+                self.logger.info("Reset triggered over LoRa")
+                self.logger.info("Rebooting...")
+                machine.reset()
+            elif msg == "1":  # start software update
                 self.logger.info("Software update triggered over LoRa")
-                config.save_configuration({"update": True})
+                config.save_config({"update": True})
                 machine.reset()
             else:
                 split_msg = msg.split(":")
-                if split_msg[0] == "1":  # update wifi credentials
+                if split_msg[0] == "2":  # update wifi credentials
                     self.logger.info("WiFi credentials updated over LoRa")
-                    config.save_configuration({"SSID": split_msg[1], "wifi_password": split_msg[2]})
-                elif split_msg[0] == "2":  # update wifi credentials and start software update
+                    config.save_config({"SSID": split_msg[1], "wifi_password": split_msg[2]})
+                elif split_msg[0] == "3":  # update wifi credentials and start software update
                     self.logger.info("WiFi credentials updated over LoRa")
-                    config.save_configuration({"SSID": split_msg[1], "wifi_password": split_msg[2]})
+                    config.save_config({"SSID": split_msg[1], "wifi_password": split_msg[2]})
                     self.logger.info("Software update triggered over LoRa")
-                    config.save_configuration({"update": True})
+                    config.save_config({"update": True})
                     machine.reset()
                 else:
                     self.logger.error("Unknown command received over LoRa")
@@ -89,6 +102,9 @@ class LoRaWAN:
             self.logger.exception("Failed to interpret message received over LoRa")
 
     def lora_send(self, arg1, arg2):
+        """Lora send method to run as a thread. Checks if messages are up to date in the lora buffer, pops the one on
+        top of the stack, encodes it to a message and sends it to the right port.
+        Takes two dummy arguments required by the threading library"""
 
         if lora_lock.locked():
             self.logger.debug("Waiting for other lora thread to finish")
@@ -113,7 +129,7 @@ class LoRaWAN:
                     self.logger.debug("LoRa - sent payload")
 
                     self.message_count += 1  # increment number of files sent over LoRa today
-                    config.save_configuration({"message_count": self.message_count})  # save number of messages today
+                    config.save_config({"message_count": self.message_count})  # save number of messages today
 
                     # remove message sent
                     self.lora_buffer.remove_head()
@@ -123,6 +139,11 @@ class LoRaWAN:
                 blink_led((0x550000, 0.4, True))
 
     def get_sending_details(self):
+        """
+        Gets message sitting on top of the lora stack, and constructs payload according to its format
+        :return: port, payload
+        :rtype: int, bytes
+        """
 
         buffer_line = self.lora_buffer.read()
         buffer_lst = buffer_line.split(',')  # convert string to a list of strings
@@ -151,6 +172,10 @@ class LoRaWAN:
 
     # removes messages from end of lora stack until they are all within a month
     def check_date(self):
+        """
+        Checks recursively if the message on the bottom of the stack is within a month
+        """
+
         buffer_line = self.lora_buffer.read(read_tail=True)  # read the tail of the lora_buffer
         buffer_lst = buffer_line.split(',')  # convert string to a list of strings
         time_now = time.gmtime()  # get current date
