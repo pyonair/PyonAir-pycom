@@ -56,7 +56,8 @@ class UserButton:
 
         # config_blocking is True by default, and set False in main once all critical failures were dealt with
         if not self.config_blocking:  # Configurations are entered parallel to main execution
-            led_lock.release()
+            if led_lock.locked():
+                led_lock.release() #was not checked before -- runtiem error SJJ
             _thread.start_new_thread(new_config, (self.logger, arg))
 
     # if the device is in configuration mode, it does not reboot automatically when exception is caught

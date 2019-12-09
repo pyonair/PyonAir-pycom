@@ -14,11 +14,10 @@ pycom.rgbled(0x552000)  # flash orange to indicate startup
 try:
     from machine import SD, Pin, reset
     import os
+    import time
     from loggingpycom import DEBUG
     from LoggerFactory import LoggerFactory
     from UserButton import UserButton
-    import time
-
     # Initialise LoggerFactory and status logger
     logger_factory = LoggerFactory()
     status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, terminal_out=True,
@@ -34,7 +33,7 @@ try:
     os.mount(sd, '/sd')
 
 except Exception as e:
-    print(str(e))
+    print(str(e))    
     reboot_counter = 0
     while True:
         blink_led((0x550000, 0.5, True))  # blink red LED
