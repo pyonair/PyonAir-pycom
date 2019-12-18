@@ -31,7 +31,7 @@ def seconds_to_first_event(interval_s):
 
 def minutes_of_the_month():
     """
-    :return: Number of seconds from the start of the month
+    :return: Number of minutes from the start of the month
     :rtype: int
     """
     t = time.gmtime()

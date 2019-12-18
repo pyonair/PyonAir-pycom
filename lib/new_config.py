@@ -9,7 +9,8 @@ from Configuration import config
 from helper import wifi_lock, led_lock, blink_led
 from RtcDS1307 import clock
 import ujson
-
+import ubinascii
+import machine
 
 def new_config(logger, arg):
     """
@@ -28,16 +29,16 @@ def new_config(logger, arg):
 
             # Config uses LED colours to indicate the state of the connection - lock is necessary to disable error pings
             led_lock.acquire(1)
-
+            unique_id = ubinascii.hexlify(machine.unique_id()).decode()
             # set pycom up as access point
-            wlan = network.WLAN(mode=WLAN.AP, ssid=config.get_config("device_name"))
+            wlan = network.WLAN(mode=WLAN.AP, ssid=config.get_config("device_name")+ unique_id)
             # Connect to PmSensor using password set by the user
-            wlan.init(mode=WLAN.AP, ssid=config.get_config("device_name"), auth=(WLAN.WPA2, config.get_config("password")), channel=1,
+            wlan.init(mode=WLAN.AP, ssid=config.get_config("device_name")+ unique_id, auth=(WLAN.WPA2, config.get_config("password")), channel=1,
                       antenna=WLAN.INT_ANT)
             # Load HTML via entering 192,168.4.10 to browser
             wlan.ifconfig(id=1, config=('192.168.4.10', '255.255.255.0', '192.168.4.1', '192.168.4.1'))
 
-            logger.info('Access point turned on as {}'.format(config.get_config("device_name")))
+            logger.info('Access point turned on as {}'.format(config.get_config("device_name")  + unique_id))
             logger.info('Configuration website can be accessed at 192.168.4.10')
 
             address = socket.getaddrinfo('0.0.0.0', 80)[0][-1]  # Accept stations from all addresses

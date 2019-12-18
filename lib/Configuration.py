@@ -73,6 +73,7 @@ class Configuration:
         else:
             with open('/sd/' + s.config_filename, 'r') as f:
                 self.set_config(ujson.loads(f.read()))
+                print(self.configuration)#TODO logger missing here, use debug logger. 
 
     # Returns True if the configuration file is complete
     def is_complete(self, logger):
