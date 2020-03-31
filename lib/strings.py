@@ -36,7 +36,7 @@ default_configuration = {"device_id": "", "device_name": "NewPyonAir", "password
                          "PM2_init": 30, "logging_lvl": "Warning", "lora_timeout": 20, "GPS_timeout": 20,
                          "config_timeout": 10, "fair_access": 30, "air_time": 75, "message_count": 0,
                          "transmission_date": 0, "LORA": "ON", "update": False, "port": 8000,
-                         "server": "10.15.40.51"}
+                         "server": "pyonair.org/OTA/developOTA.list"}
 
 # Sensor names
 PM1 = 'PM1'

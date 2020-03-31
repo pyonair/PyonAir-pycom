@@ -38,7 +38,7 @@ class OTA():
         return self.version
 
     def get_update_manifest(self):
-        req = "manifest.json?current_ver={}".format(self.get_current_version())
+        req = "?current_ver={}".format(self.get_current_version())
         manifest_data = self.get_data(req).decode()
         manifest = ujson.loads(manifest_data)
         gc.collect()
