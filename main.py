@@ -19,10 +19,15 @@ try:
     from LoggerFactory import LoggerFactory
     from UserButton import UserButton
     # Initialise LoggerFactory and status logger
+    
     logger_factory = LoggerFactory()
-    status_logger = logger_factory.create_status_logger('status_logger', level=DEBUG, terminal_out=True,
+    logFormat = "[%(levelname)s] [%(asctime)s] - %(message)s" # NOPE %(lineno)s SAME - %(name)s 
+    status_logger = logger_factory.create_status_logger('status_logger', 
+                                                        level=DEBUG, 
+                                                        fmt=logFormat,
+                                                        terminal_out=True,
                                                         filename='status_log.txt')
-
+    
     # Initialise button interrupt on pin 14 for user interaction
     user_button = UserButton(status_logger)
     pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
@@ -33,7 +38,7 @@ try:
     os.mount(sd, '/sd')
 
 except Exception as e:
-    print(str(e))    
+    print(str(e))
     reboot_counter = 0
     while True:
         blink_led((0x550000, 0.5, True))  # blink red LED
@@ -96,7 +101,7 @@ try:
         raise Exception("Could not acquire UTC timestamp")
 
     # Check if updating was triggered over LoRa
-    if config.get_config("update"):
+    if (1==1): #DO UPDATE config.get_config("update"):
         software_update(status_logger)
 
 except Exception as e:
