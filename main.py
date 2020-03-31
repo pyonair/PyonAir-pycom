@@ -21,7 +21,7 @@ try:
     # Initialise LoggerFactory and status logger
     
     logger_factory = LoggerFactory()
-    logFormat = "[%(levelname)s] [%(asctime)s] - %(message)s" # NOPE %(lineno)s SAME - %(name)s 
+    logFormat = "[%(levelname)s] [%(asctime)s] - %(message)s %(levelname)s  " # NOPE %(lineno)s  %(module)s - %(funcName)s: |  SAME - %(name)s 
     status_logger = logger_factory.create_status_logger('status_logger', 
                                                         level=DEBUG, 
                                                         fmt=logFormat,

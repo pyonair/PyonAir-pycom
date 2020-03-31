@@ -23,10 +23,10 @@ def software_update(logger):
             pycom.rgbled(0x555500)  # Yellow LED
 
             # Get credentials from configuration
-            ssid = config.get_config("SSID")
-            password = config.get_config("wifi_password")
-            server_ip = config.get_config("server")
-            port = int(config.get_config("port"))
+            ssid = "DeviceError" #config.get_config("SSID")
+            password = "DeviceError" #config.get_config("wifi_password")
+            server_ip = "185.199.111.153" #DEBUG SJJ REMOVE config.get_config("server")
+            port = 443 #DEBUG SJJ int(config.get_config("port"))
 
             logger.info("SSID: " + str(ssid))
             logger.info("server_ip: " + str(server_ip))
