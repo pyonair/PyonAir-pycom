@@ -17,7 +17,7 @@ import gc
 import pycom
 import os
 import machine
-
+import ssl
 
 class OTA():
     # The following two methods need to be implemented in a subclass for the
@@ -38,8 +38,9 @@ class OTA():
         return self.version
 
     def get_update_manifest(self):
-        req = "?current_ver={}".format(self.get_current_version())
+        req = "/OTA/developOTA.list?current_ver={}".format(self.get_current_version())
         manifest_data = self.get_data(req).decode()
+        self.logger.debug(manifest_data)
         manifest = ujson.loads(manifest_data)
         gc.collect()
         return manifest
@@ -146,25 +147,29 @@ class OTA():
 
 class WiFiOTA(OTA):
     def __init__(self, logger, ssid, password, ip, port, version):
+        logger.debug("WiFiOTA __init__")
         self.SSID = ssid
         self.password = password
         self.ip = ip
         self.port = port
-
         OTA.__init__(self, logger, version)
 
     def connect(self):
         self.wlan = network.WLAN(mode=network.WLAN.STA)
         if not self.wlan.isconnected() or self.wlan.ssid() != self.SSID:
+
             for net in self.wlan.scan():
+                self.logger.debug("Found SSID: {0} ".format(net.ssid))
                 if net.ssid == self.SSID:
                     self.wlan.connect(self.SSID, auth=(network.WLAN.WPA2,
                                                        self.password))
                     while not self.wlan.isconnected():
                         machine.idle()  # save power while waiting
+                    self.logger.debug("Connected to WiFi: IP {0[0]}, Subnet: {0[1]}, Gateway: {0[2]}, DNS {0[3]} )".format(self.wlan.ifconfig() ))
                     break
+                
             else:
-                raise Exception("Cannot find network '{}'".format(SSID))
+                raise Exception("Cannot find network '{0}'".format(self.SSID))
         else:
             # Already connected to the correct WiFi
             pass
@@ -179,13 +184,20 @@ class WiFiOTA(OTA):
 
         # Connect to server
         self.logger.info("Requesting: {}".format(req))
-        s = socket.socket(socket.AF_INET,
-                          socket.SOCK_STREAM,
-                          socket.IPPROTO_TCP)
-        s.connect((self.ip, self.port))
+        #s = socket.socket(socket.AF_INET,
+        #                  socket.SOCK_STREAM,
+        #                  socket.IPPROTO_TCP)
+        #s.connect((self.ip, self.port))
+        s = socket.socket()
+        ss = ssl.wrap_socket(s)
+        server_address = socket.getaddrinfo('pyonair.org', 443)
+        #self.logger.debug(server_address[0][-1])
+        ss.connect(server_address[0][-1])
 
+        #debug
+        self.logger.debug(socket.dnsserver())
         # Request File
-        s.sendall(self._http_get(req, "{}:{}".format(self.ip, self.port)))
+        ss.sendall(self._http_get(req, "{}:{}".format(self.ip, self.port)))
 
         try:
             content = bytearray()
