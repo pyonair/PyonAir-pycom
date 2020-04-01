@@ -10,6 +10,8 @@ import machine
    
 ###
 #Use this instead https://docs.pycom.io/advance/cli/
+# short pin 23 and GND, hit reset (check in console for correct mode) then run -
+# command : pycom-fwtool-cli.exe -v -d --ftdi -p COM6 -s 115200  flash -t LoPy-1.20.0.rc13.tar 
 ###
 class FirmwareUpdate:
     def __init__(self, logger):
