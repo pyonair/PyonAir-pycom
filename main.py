@@ -41,8 +41,8 @@ try:
             fw = FirmwareUpdate(status_logger)
             fw.DoTheUpdate()
     except:
-        status_logger.debug("No update.bin or SD root -- no update")
-        
+        status_logger.debug("No update.bin on SD root -- no update")
+
     # Initialise button interrupt on pin 14 for user interaction
     user_button = UserButton(status_logger)
     pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
