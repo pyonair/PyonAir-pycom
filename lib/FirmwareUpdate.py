@@ -9,12 +9,7 @@ from micropython import const
 import machine
    
 ###
-# Mount SD card
-# sd = SD()
-# os.mount(sd, '/sd')
-# from FirmwareUpdate import FirmwareUpdate
-# fw = FirmwareUpdate()
-# fw.DoTheUpdate()
+#Use this instead https://docs.pycom.io/advance/cli/
 ###
 class FirmwareUpdate:
     def __init__(self, logger):
@@ -55,7 +50,7 @@ class FirmwareUpdate:
                     break
             self.logger.info("Finishing update...")
             ota_finish()
-        #os.remove(self.APPIMG)  
+        os.remove(self.APPIMG)  
         self.logger.info("Complete, rebooting...")  
         #machine.reset()
 
