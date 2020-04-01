@@ -18,24 +18,37 @@ try:
     from loggingpycom import DEBUG
     from LoggerFactory import LoggerFactory
     from UserButton import UserButton
+    from FirmwareUpdate import FirmwareUpdate
     # Initialise LoggerFactory and status logger
     
     logger_factory = LoggerFactory()
-    logFormat = "[%(levelname)s] [%(asctime)s] - %(message)s %(levelname)s  " # NOPE %(lineno)s  %(module)s - %(funcName)s: |  SAME - %(name)s 
+    logFormat = "[%(levelname)s] [%(asctime)s] - %(message)s " # NOPE %(lineno)s  %(module)s - %(funcName)s: |  SAME - %(name)s 
     status_logger = logger_factory.create_status_logger('status_logger', 
                                                         level=DEBUG, 
                                                         fmt=logFormat,
                                                         terminal_out=True,
                                                         filename='status_log.txt')
-    
+    # Mount SD card
+    sd = SD()
+    os.mount(sd, '/sd')
+
+    #check for firmware update
+    status_logger.debug("Looking for update firmware on SD card")
+    try:
+        status_logger.debug("{}".format(str(os.stat('/sd/update.bin'))))
+        if( os.stat('/sd/update.bin')[6] > 0): #there is an update   
+            status_logger.warning("SD card contains firmware!") 
+            fw = FirmwareUpdate(status_logger)
+            fw.DoTheUpdate()
+    except:
+        status_logger.debug("No update.bin or SD root -- no update")
+        
     # Initialise button interrupt on pin 14 for user interaction
     user_button = UserButton(status_logger)
     pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
     pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
 
-    # Mount SD card
-    sd = SD()
-    os.mount(sd, '/sd')
+    
 
 except Exception as e:
     print(str(e))
