@@ -221,19 +221,23 @@ class WiFiOTA(OTA):
                     ss.do_handshake()
                     self.logger.debug("Handshake Done")
                     #ss.send(b"GET / HTTP/1.0\r\n\r\n")
+                    self.logger.debug("Request file: {}: {}:{}".format(req , self.server, self.port))
                     ss.sendall(self._http_get(req, "{}:{}".format(self.server, self.port)))
                     poller.modify(s,select.POLLIN)
                     continue
             if res[0][1] & select.POLLIN:
+                ss.makefile()
                 pollinresult = ss.recv(4092)
                 print(pollinresult)
+                data = bytearray(pollinresult) 
+                print(data)
                 #print(ss.recv(4092))
                 #self.logger.debug("Result {}".format(str(pollinresult.decode())))
                 break
             break
         # Request File
-        self.logger.debug("Request file: {}: {}:{}".format(req , self.server, self.port))
-        ss.sendall(self._http_get(req, "{}:{}".format(self.server, self.port)))
+        
+        
 
         try:
             content = bytearray()
