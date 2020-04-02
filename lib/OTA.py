@@ -39,11 +39,11 @@ class OTA():
         return self.version
 
     def get_update_manifest(self):
-        req = "OTA/developOTA.list"#?current_ver={}".format(self.get_current_version())
-        manifest_data = self.get_data(req).decode()
+        req = "pyonair/pyonair.github.io/master/OTA/developOTA.list" #?current_ver={}".format(self.get_current_version())
+        manifest_data, hash = self.get_data(req,None,True)
         self.logger.debug("Got manifest data: {}".format(manifest_data))
         manifest = ujson.loads(manifest_data)
-        gc.collect()
+        gc.collect()        
         return manifest
 
     def update(self):
@@ -103,7 +103,7 @@ class OTA():
 
         # Download new file with a .new extension to not overwrite the existing
         # file until the hash is verified.
-        hash = self.get_data(f['URL'].split("/", 3)[-1],
+        hash = self.get_data(f['URL'], #.split("/", 3)[-1],
                              dest_path=new_path,
                              hash=True)
 
@@ -186,20 +186,13 @@ class WiFiOTA(OTA):
         h = None
 
         # Connect to server
-        self.logger.info("Requesting: {}".format(req))
-        #s = socket.socket(socket.AF_INET,
-        #                  socket.SOCK_STREAM),
-                          #socket.IPPROTO_TCP)
-        #s.connect((self.ip, self.port))
+        self.logger.info("Requesting: {}".format(req))        
         s = socket.socket()
         server_address = socket.getaddrinfo(self.server, 443)[0][-1]# This works for DNS -> IP
-        #s.setblocking(True) #why?
         ss = ssl.wrap_socket(s)
-        #ss = ssl.wrap_socket(s, cert_reqs=ssl.CERT_REQUIRED, ca_certs='/flash/cert/ca.pem')
-        
         self.logger.debug("Server address: {}".format(str(server_address)))
         
-        try:
+        try: # to connect
             ss.connect(server_address)
         except OSError as e:
             self.logger.debug("OSERROR connecting to SSL: {} ".format(str(e)))
@@ -208,94 +201,92 @@ class WiFiOTA(OTA):
             else:
                 raise e
 
-        #debug
-        self.logger.debug("Connected?")
-
+        #http://docs.micropython.org/en/v1.8.7/pyboard/library/select.html
         poller = select.poll()
         poller.register(s, select.POLLOUT | select.POLLIN)
         while True:
-            res = poller.poll(1000)
+            res = poller.poll(1000) #Returns list of (obj, event, ...) 
             if res:
                 if res[0][1] & select.POLLOUT:
                     self.logger.debug("Doing Handshake")
                     ss.do_handshake()
                     self.logger.debug("Handshake Done")
-                    #ss.send(b"GET / HTTP/1.0\r\n\r\n")
                     self.logger.debug("Request file: {}: {}:{}".format(req , self.server, self.port))
                     ss.sendall(self._http_get(req, "{}:{}".format(self.server, self.port)))
                     poller.modify(s,select.POLLIN)
                     continue
-            if res[0][1] & select.POLLIN:
-                ss.makefile()
-                pollinresult = ss.recv(4092)
-                print(pollinresult)
-                data = bytearray(pollinresult) 
-                print(data)
-                #print(ss.recv(4092))
-                #self.logger.debug("Result {}".format(str(pollinresult.decode())))
-                break
+                if res[0][1] & select.POLLIN: #Data ready to read
+                    #pollinresult = ss.recv(4092)
+                    #print(pollinresult)
+                    #data = bytearray(pollinresult) 
+                    #print(data)
+                    try:
+                        content = bytearray()
+                        fp = None
+                        if dest_path is not None:
+                            self.logger.debug("Writing file: {}".format(dest_path))
+                            fp = open(dest_path, 'wb')
+
+                        h = uhashlib.sha1()
+
+                        # Get data from server
+                        result = ss.recv(100)
+                        self.logger.debug("Got chunk of data")
+
+                        start_writing = False
+                        while (len(result) > 0):
+                            # Ignore the HTTP headers
+                            if not start_writing:
+                                self.logger.debug("Ignoring chunk header: {}".format(result))
+                                if "\r\n\r\n" in result:
+                                    start_writing = True
+                                    self.logger.debug("Start writing file")
+                                    result = result.decode().split("\r\n\r\n")[1].encode()
+
+                            #if all headers are done, then write file
+                            if start_writing:
+                                if fp is None:
+                                    self.logger.debug("Extending file in memory")
+                                    content.extend(result)
+                                else:
+                                    self.logger.debug("Writing to file")
+                                    fp.write(result)
+
+                                if hash:
+                                    self.logger.debug("Updating hash")
+                                    h.update(result)
+                            self.logger.debug("Getting next chunk")
+                            result = ss.recv(100)
+                        self.logger.debug("Close socket")
+                        s.close()
+
+                        if fp is not None:
+                            self.logger.debug("Close file")
+                            fp.close()
+
+
+                    except Exception as e:
+                        # Since only one hash operation is allowed at Once
+                        # ensure we close it if there is an error
+                        if h is not None:
+                            h.digest()
+                        raise e
+                    
+                    hash_val = ubinascii.hexlify(h.digest()).decode()
+                    self.logger.debug("Hash is : {}".format(hash_val))
+
+                    #if you just want the content and not a file , then dont specify a file name    
+                    if dest_path is None:
+                        self.logger.debug("Returning in memory data")
+                        if hash:
+                            return (bytes(content), hash_val)
+                        else:
+                            return (bytes(content), None)
+                    elif hash:
+                        return hash_val
+                    break
             break
-        # Request File
+        # Request File while
         
         
 
-        try:
-            content = bytearray()
-            fp = None
-            if dest_path is not None:
-                if firmware:
-                    raise Exception("Cannot write firmware to a file")
-                fp = open(dest_path, 'wb')
-
-            if firmware:
-                pycom.ota_start()
-
-            h = uhashlib.sha1()
-
-            # Get data from server
-            result = s.recv(100)
-
-            start_writing = False
-            while (len(result) > 0):
-                # Ignore the HTTP headers
-                if not start_writing:
-                    if "\r\n\r\n" in result:
-                        start_writing = True
-                        result = result.decode().split("\r\n\r\n")[1].encode()
-
-                if start_writing:
-                    if firmware:
-                        pycom.ota_write(result)
-                    elif fp is None:
-                        content.extend(result)
-                    else:
-                        fp.write(result)
-
-                    if hash:
-                        h.update(result)
-
-                result = s.recv(100)
-
-            s.close()
-
-            if fp is not None:
-                fp.close()
-            if firmware:
-                pycom.ota_finish()
-
-        except Exception as e:
-            # Since only one hash operation is allowed at Once
-            # ensure we close it if there is an error
-            if h is not None:
-                h.digest()
-            raise e
-
-        hash_val = ubinascii.hexlify(h.digest()).decode()
-
-        if dest_path is None:
-            if hash:
-                return (bytes(content), hash_val)
-            else:
-                return bytes(content)
-        elif hash:
-            return hash_val
