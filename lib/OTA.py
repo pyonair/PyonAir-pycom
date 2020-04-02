@@ -18,6 +18,7 @@ import pycom
 import os
 import machine
 import ssl
+import uselect as select #For ssl
 
 class OTA():
     # The following two methods need to be implemented in a subclass for the
@@ -38,9 +39,9 @@ class OTA():
         return self.version
 
     def get_update_manifest(self):
-        req = "/OTA/developOTA.list?current_ver={}".format(self.get_current_version())
+        req = "OTA/developOTA.list"#?current_ver={}".format(self.get_current_version())
         manifest_data = self.get_data(req).decode()
-        self.logger.debug(manifest_data)
+        self.logger.debug("Got manifest data: {}".format(manifest_data))
         manifest = ujson.loads(manifest_data)
         gc.collect()
         return manifest
@@ -146,11 +147,11 @@ class OTA():
 
 
 class WiFiOTA(OTA):
-    def __init__(self, logger, ssid, password, ip, port, version):
+    def __init__(self, logger, ssid, password, server, port, version):
         logger.debug("WiFiOTA __init__")
         self.SSID = ssid
-        self.password = password
-        self.ip = ip
+        self.password = password         
+        self.server = server
         self.port = port
         OTA.__init__(self, logger, version)
 
@@ -159,13 +160,13 @@ class WiFiOTA(OTA):
         if not self.wlan.isconnected() or self.wlan.ssid() != self.SSID:
 
             for net in self.wlan.scan():
-                self.logger.debug("Found SSID: {0} ".format(net.ssid))
+                self.logger.debug("Found SSID: {0} - ".format(net.ssid))
                 if net.ssid == self.SSID:
                     self.wlan.connect(self.SSID, auth=(network.WLAN.WPA2,
                                                        self.password))
                     while not self.wlan.isconnected():
                         machine.idle()  # save power while waiting
-                    self.logger.debug("Connected to WiFi: IP {0[0]}, Subnet: {0[1]}, Gateway: {0[2]}, DNS {0[3]} )".format(self.wlan.ifconfig() ))
+                    self.logger.debug("Connected to WiFi (IP , Subnet , Gateway, DNS): {0}".format(self.wlan.ifconfig() ))
                     break
                 
             else:
@@ -175,8 +176,10 @@ class WiFiOTA(OTA):
             pass
 
     def _http_get(self, path, host):
+        self.logger.debug("Enter : _http_get")
         req_fmt = 'GET /{} HTTP/1.0\r\nHost: {}\r\n\r\n'
         req = bytes(req_fmt.format(path, host), 'utf8')
+        self.logger.debug("Req : {}".format(req))
         return req
 
     def get_data(self, req, dest_path=None, hash=False, firmware=False):
@@ -185,19 +188,52 @@ class WiFiOTA(OTA):
         # Connect to server
         self.logger.info("Requesting: {}".format(req))
         #s = socket.socket(socket.AF_INET,
-        #                  socket.SOCK_STREAM,
-        #                  socket.IPPROTO_TCP)
+        #                  socket.SOCK_STREAM),
+                          #socket.IPPROTO_TCP)
         #s.connect((self.ip, self.port))
         s = socket.socket()
+        server_address = socket.getaddrinfo(self.server, 443)[0][-1]# This works for DNS -> IP
+        #s.setblocking(True) #why?
         ss = ssl.wrap_socket(s)
-        server_address = socket.getaddrinfo('pyonair.org', 443)
-        #self.logger.debug(server_address[0][-1])
-        ss.connect(server_address[0][-1])
+        #ss = ssl.wrap_socket(s, cert_reqs=ssl.CERT_REQUIRED, ca_certs='/flash/cert/ca.pem')
+        
+        self.logger.debug("Server address: {}".format(str(server_address)))
+        
+        try:
+            ss.connect(server_address)
+        except OSError as e:
+            self.logger.debug("OSERROR connecting to SSL: {} ".format(str(e)))
+            if str(e) == '119': # For non-Blocking sockets 119 is EINPROGRESS
+                self.logger.debug("Connect to server in progress...")
+            else:
+                raise e
 
         #debug
-        self.logger.debug(socket.dnsserver())
+        self.logger.debug("Connected?")
+
+        poller = select.poll()
+        poller.register(s, select.POLLOUT | select.POLLIN)
+        while True:
+            res = poller.poll(1000)
+            if res:
+                if res[0][1] & select.POLLOUT:
+                    self.logger.debug("Doing Handshake")
+                    ss.do_handshake()
+                    self.logger.debug("Handshake Done")
+                    #ss.send(b"GET / HTTP/1.0\r\n\r\n")
+                    ss.sendall(self._http_get(req, "{}:{}".format(self.server, self.port)))
+                    poller.modify(s,select.POLLIN)
+                    continue
+            if res[0][1] & select.POLLIN:
+                pollinresult = ss.recv(4092)
+                print(pollinresult)
+                #print(ss.recv(4092))
+                #self.logger.debug("Result {}".format(str(pollinresult.decode())))
+                break
+            break
         # Request File
-        ss.sendall(self._http_get(req, "{}:{}".format(self.ip, self.port)))
+        self.logger.debug("Request file: {}: {}:{}".format(req , self.server, self.port))
+        ss.sendall(self._http_get(req, "{}:{}".format(self.server, self.port)))
 
         try:
             content = bytearray()

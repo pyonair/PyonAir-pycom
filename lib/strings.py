@@ -28,7 +28,10 @@ status_header = ['type', 'timestamp', 'message']
 
 config_filename = 'config.txt'
 
-default_configuration = {"device_id": "", "device_name": "NewPyonAir", "password": "newpyonair", "region": "Europe",
+default_configuration = {"device_id": "", 
+                         "device_name": "NewPyonAir", 
+                         "password": "newpyonair", #WiFI-AP password -- not the wifi connection (station)
+                         "region": "Europe",
                          "device_eui": "", "application_eui": "", "app_key": "", "SSID": "", "fmt_version": "",
                          "wifi_password": "", "TEMP": "SHT35", "PM1": "PMS5003", "code_version": "",
                          "PM2": "SPS030", "GPS": "OFF", "PM1_id": "002", "PM2_id": "003", "TEMP_id": "001",
