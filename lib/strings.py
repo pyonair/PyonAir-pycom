@@ -44,6 +44,9 @@ PM2 = 'PM2'
 TEMP = 'TEMP'
 GPS = 'GPS'
 
+#ID
+devIDKey = "device_id"
+
 # Directories in /sd/
 current = 'Current'
 processing = 'Processing'
