@@ -98,6 +98,7 @@ def get_sensors():
     sensors = {s.TEMP: False, s.PM1: False, s.PM2: False}
 
     for sensor in sensors:
+        #TODO: remove case sensitivity
         if config.get_config(sensor) != "OFF":
             sensors[sensor] = True
 
