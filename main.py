@@ -82,9 +82,9 @@ try:
     no_time, update_time_later = initialise_time(rtc, gps_on, status_logger)
 
     # Check if device is configured, or SD card has been moved to another device
-    device_id = hexlify(unique_id()).upper().decode("utf-8")
-    if not config.is_complete(status_logger) or config.get_config("device_id") != device_id:
-        status_logger.warning("Config does not match device ID (DevID incorrect or SD card swapped from another device")
+    device_id = hexlify(unique_id()).decode("utf-8")
+    if not config.is_complete(status_logger) or config.get_config("device_id").lower() != device_id:
+        status_logger.warning("Config does not match device ID (DevID incorrect or SD card swapped from another device)")
         config.reset_configuration(status_logger)
         #  Force user to configure device, then reboot
         new_config(status_logger, arg=0)
