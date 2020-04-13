@@ -164,10 +164,14 @@ try:
         PM_transistor.value(1)
 
     # Initialise PM sensor threads
+    #TODO: This seems a strange way to odd things, why no use config file directly?
+    #Eg if config(s.PM1) == 'OFF' ?
     if sensors[s.PM1]:
+        status_logger.debug("PM1")
         initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1, status_logger=status_logger)
     if sensors[s.PM2]:
         initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2, status_logger=status_logger)
+        status_logger.debug("PM2")
 
     # Start scheduling lora messages if any of the sensors are defined
     if True in sensors.values():
