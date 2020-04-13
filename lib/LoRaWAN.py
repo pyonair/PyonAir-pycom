@@ -34,15 +34,19 @@ class LoRaWAN:
         regions = {"Europe": LoRa.EU868, "Asia": LoRa.AS923, "Australia": LoRa.AU915, "United States": LoRa.US915}
         region = regions[config.get_config("region")]
 
+        self.logger.debug("Attempt LoRa connect: {}".format(region))
         self.lora = LoRa(mode=LoRa.LORAWAN, region=region, adr=True)
+
 
         # create an OTAA authentication parameters
         app_eui = ubinascii.unhexlify(config.get_config("application_eui"))
+        self.logger.debug("Attempt LoRa application_eui: {}".format(config.get_config("application_eui") ))
         app_key = ubinascii.unhexlify(config.get_config("app_key"))
+        self.logger.debug("Attempt LoRa app_key: {}".format(config.get_config("app_key")))
 
         # join a network using OTAA (Over the Air Activation)
         self.lora.join(activation=LoRa.OTAA, auth=(app_eui, app_key), timeout=0)
-
+        self.logger.debug("Attempt LoRa join...")
         # create a LoRa socket
         self.lora_socket = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
 
