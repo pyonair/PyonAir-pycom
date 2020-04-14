@@ -34,17 +34,31 @@ class LoRaWAN:
         regions = {"Europe": LoRa.EU868, "Asia": LoRa.AS923, "Australia": LoRa.AU915, "United States": LoRa.US915}
         region = regions[config.get_config("region")]
 
-        self.lora = LoRa(mode=LoRa.LORAWAN, region=region, adr=True)
+        self.logger.debug("Attempt LoRa connect: {}".format(region))
+        self.lora = LoRa(mode=LoRa.LORAWAN, region=region)#, adr=True)
+
 
         # create an OTAA authentication parameters
         app_eui = ubinascii.unhexlify(config.get_config("application_eui"))
+        self.logger.debug("Attempt LoRa application_eui: {}".format(config.get_config("application_eui") ))
         app_key = ubinascii.unhexlify(config.get_config("app_key"))
+        self.logger.debug("Attempt LoRa app_key: {}".format(config.get_config("app_key")))
 
+        #This is not security, rather a sanity check
+        devEUIhardware = ubinascii.hexlify(LoRa().mac()) # This is the Device EUI you need to join with!
+        devEUIConfig = config.get_config(s.devIDKey)
+        if(devEUIhardware.upper() is devEUIConfig.upper()):
+            self.logger.warning("Device EUI is not as expected :: using hardware EUI not CONFIG: {}, {}".format(devEUIhardware,devEUIConfig))
+        else:
+            self.logger.warning("Attempt LoRa Device EUI {}".format(devEUIhardware))
         # join a network using OTAA (Over the Air Activation)
-        self.lora.join(activation=LoRa.OTAA, auth=(app_eui, app_key), timeout=0)
-
+        #Note Dev EUI will be LoraMAC by default if not specified 
+        #loraMAC 70B3D5499556C603
+        self.lora.join(activation=LoRa.OTAA, auth=(app_eui, app_key), timeout=0)# force lora MAC as Dev ID
+        
         # create a LoRa socket
         self.lora_socket = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
+        self.logger.debug("Attempt LoRa : got socket...")
 
         # request acknowledgment of data sent
         # self.lora_socket.setsockopt(socket.SOL_LORA, socket.SO_CONFIRMED, True)
@@ -60,6 +74,13 @@ class LoRaWAN:
 
         # initialises circular lora stack to back up data up to about 22.5 days depending on the length of the month
         self.lora_buffer = RingBuffer(self.logger, s.processing_path, s.lora_file_name, 31 * self.message_limit, 100)
+        self.logger.debug("Setup ring buffer...")
+
+        self.logger.debug("Attempt LoRa join...")
+
+        while not self.lora.has_joined():
+            time.sleep(2.5)
+            self.logger.debug('Not yet joined...')
 
         try:  # this fails if the buffer is empty
             self.check_date()  # remove messages that are over a month old
@@ -75,7 +96,7 @@ class LoRaWAN:
         payload = self.lora_socket.recv(600)  # receive bytes message
         self.logger.info("Lora message received")
         msg = payload.decode()  # convert to string
-
+        self.logger.debug("Got message : {}".format(msg))
         try:
             if msg == "0":  # reboot device
                 self.logger.info("Reset triggered over LoRa")

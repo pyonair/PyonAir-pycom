@@ -111,7 +111,9 @@ class Configuration:
 
             self.set_config({"device_id": hexlify(unique_id()).upper().decode("utf-8")})  # set new device_id
 
-            lora = LoRa(mode=LoRa.LORAWAN)
+            #TODO : why is this like this? use config? needs a region
+            lora = LoRa(mode=LoRa.LORAWAN, region=LoRa.EU868, adr=True)
+            #lora = LoRa(mode=LoRa.LORAWAN)
             self.set_config({"device_eui": hexlify(lora.mac()).upper().decode('utf-8')})  # set new device_EUI
             del lora
 
