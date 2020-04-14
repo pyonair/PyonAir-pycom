@@ -36,10 +36,10 @@ def new_config(logger, arg):
             wlan.init(mode=WLAN.AP, ssid=config.get_config("device_name")+ unique_id, auth=(WLAN.WPA2, config.get_config("password")), channel=1,
                       antenna=WLAN.INT_ANT)
             # Load HTML via entering 192,168.4.10 to browser
-            wlan.ifconfig(id=1, config=('192.168.4.10', '255.255.255.0', '192.168.4.1', '192.168.4.1'))
+            wlan.ifconfig(id=1, config=('192.168.99.10', '255.255.255.0', '192.168.99.1', '192.168.99.1'))
 
             logger.info('Access point turned on as {}'.format(config.get_config("device_name")  + unique_id))
-            logger.info('Configuration website can be accessed at 192.168.4.10')
+            logger.info('Configuration website can be accessed at 192.168.99.10')
 
             address = socket.getaddrinfo('0.0.0.0', 80)[0][-1]  # Accept stations from all addresses
             sct = socket.socket()  # Create socket for communication
