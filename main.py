@@ -123,7 +123,7 @@ try:
     from SensorLogger import SensorLogger
     from EventScheduler import EventScheduler
     from helper import blink_led, get_sensors, led_lock
-    from averages import get_sensor_averages
+    #from averages import get_sensor_averages#ugly , def method import to run????
     from TempSHT35 import TempSHT35
     import GpsSIM28
     import _thread
