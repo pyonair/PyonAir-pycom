@@ -175,7 +175,7 @@ try:
 
     # Start scheduling lora messages if any of the sensors are defined
     if True in sensors.values():
-        PM_Events = EventScheduler(logger=status_logger, data_type="sensors", lora=lora)
+        PM_Events =1# EventScheduler(logger=status_logger, data_type="sensors", lora=lora)
     if gps_on:
         GPS_Events = EventScheduler(logger=status_logger, data_type="gps", lora=lora)
 
