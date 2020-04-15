@@ -2,7 +2,7 @@
 
 #Do the average in a single pass!
 
-class welford_average:
+class Welford_Average:
     def __init__(self, logger, count=0, mean=0,M2=0):
         self.logger = logger
         self.count = count
@@ -30,10 +30,10 @@ class welford_average:
 
 
 
-test = welford_average(logger=None)
-for i in range(1,10):
-    #print(i)
-    test.update(i)
+#test = welford_average(logger=None)
+#for i in range(1,10):
+#    #print(i)
+#    test.update(i)
 
-print(test.averages())
+#print(test.averages())
 

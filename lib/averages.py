@@ -87,7 +87,7 @@ def calculate_average(sensor_name, logger):
 
             with open(s.processing_path + filename, 'r') as f:
                 # read all lines from processing
-                lines = f.readlines()
+                lines = f.readlines()#?????????????????
                 lines_lst = []  # list of lists that store average sensor readings from specific columns
                 for line in lines:
                     stripped_line = line[:-1]  # strip \n

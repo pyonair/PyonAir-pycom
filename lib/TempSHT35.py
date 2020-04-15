@@ -3,6 +3,7 @@ from Configuration import config
 from helper import blink_led
 from strings import csv_timestamp_template
 import time
+from WelfordAverage import Welford_Average
 
 
 # Temp Res: 0.01C, Temp Acc: +/-0.1C, Humid Res: 0.01%, Humid Acc: +/-1.5%
@@ -12,6 +13,8 @@ class TempSHT35(object):
 
         self.sensor_logger = sensor_logger
         self.status_logger = status_logger
+        self.temp_welford_average = Welford_Average(self.status_logger)#start at zero
+        self.humidity_welford_average = Welford_Average(self.status_logger)#start at zero
 
         # Initialise i2c - bus no., type, baudrate, i2c pins
         self.i2c = I2C(0, I2C.MASTER, baudrate=9600, pins=('P9', 'P10'))
@@ -50,6 +53,9 @@ class TempSHT35(object):
         try:
             timestamp = csv_timestamp_template.format(*time.gmtime())  # get current time in desired format
             read_lst = self.read()  # read SHT35 sensor - [celsius, humidity] to ~5 significant figures
+            #update average
+            self.temp_welford_average.update(read_lst[0])
+            self.humidity_welford_average.update(read_lst[1])
             round_lst = [int(round(x, 1)*10) for x in read_lst]  # round readings to 1 significant figure, shift left, cast to int
             str_round_lst = list(map(str, round_lst))  # cast int to string
             lst_to_log = [timestamp] + str_round_lst
