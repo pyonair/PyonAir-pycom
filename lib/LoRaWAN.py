@@ -147,7 +147,8 @@ class LoRaWAN:
 
                     self.lora_socket.bind(port)  # bind to port to decode at backend
                     self.lora_socket.send(payload)  # send payload to the connected socket
-                    self.logger.debug("LoRa - sent payload port: {}, Payload: {}".format(port,payload))
+                    self.logger.debug("LoRa - sent payload port: {}".format(port))
+                    self.logger.debug("LoRa - sent payload Payload: {}".format(payload))
 
                     self.message_count += 1  # increment number of files sent over LoRa today
                     config.save_config({"message_count": self.message_count})  # save number of messages today
