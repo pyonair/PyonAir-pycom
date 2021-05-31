@@ -1,6 +1,6 @@
 import utime
-import uio
 import sys
+import uio
 
 CRITICAL = 50
 ERROR    = 40
@@ -17,6 +17,8 @@ _level_dict = {
     DEBUG: "DEBUG",
 }
 
+def addLevelName(level, name):
+    _level_dict[level] = name
 
 class Logger:
 
@@ -25,6 +27,7 @@ class Logger:
     def __init__(self, name):
         self.name = name
         self.handlers = None
+        self.parent = None
 
     def _level_str(self, level):
         l = _level_dict.get(level)
@@ -36,16 +39,19 @@ class Logger:
         self.level = level
 
     def isEnabledFor(self, level):
-        return level >= (self.level or _level)
+        return level >= self.level
 
     def log(self, level, msg, *args):
-        if level >= (self.level or _level):
+        dest = self
+        while dest.level == NOTSET and dest.parent:
+            dest = dest.parent
+        if level >= dest.level:
             record = LogRecord(
                 self.name, level, None, None, msg, args, None, None, None
             )
 
-            if self.handlers:
-                for hdlr in self.handlers:
+            if dest.handlers:
+                for hdlr in dest.handlers:
                     hdlr.emit(record)
 
     def debug(self, msg, *args):
@@ -56,6 +62,8 @@ class Logger:
 
     def warning(self, msg, *args):
         self.log(WARNING, msg, *args)
+
+    warn = warning
 
     def error(self, msg, *args):
         self.log(ERROR, msg, *args)
@@ -77,22 +85,14 @@ class Logger:
         self.handlers.append(hdlr)
 
 
-_level = INFO
-_loggers = {}
-
-
 def getLogger(name=None):
     if name is None:
         name = "root"
     if name in _loggers:
         return _loggers[name]
-    if name == "root":
-        l = Logger(name)
-        sh = StreamHandler()
-        sh.formatter = Formatter()
-        l.addHandler(sh)
-    else:
-        l = Logger(name)
+    l = Logger(name)
+    # For now, we have shallow hierarchy, where parent of each logger is root.
+    l.parent = root
     _loggers[name] = l
     return l
 
@@ -102,14 +102,27 @@ def info(msg, *args):
 def debug(msg, *args):
     getLogger(None).debug(msg, *args)
 
+def warning(msg, *args):
+    getLogger(None).warning(msg, *args)
+
+warn = warning
+
+def error(msg, *args):
+    getLogger(None).error(msg, *args)
+
+def critical(msg, *args):
+    getLogger(None).critical(msg, *args)
+
+def exception(msg, *args):
+    getLogger(None).exception(msg, *args)
+
 def basicConfig(level=INFO, filename=None, stream=None, format=None, style="%"):
-    global _level
-    _level = level
+    root.setLevel(level)
     if filename:
         h = FileHandler(filename)
     else:
         h = StreamHandler(stream)
-    h.setFormatter(Formatter(format, style=style))
+    h.setFormatter(Formatter(format or "%(levelname)s:%(name)s:%(message)s", style=style))
     root.handlers.clear()
     root.addHandler(h)
 
@@ -124,40 +137,39 @@ class Handler:
 
 class StreamHandler(Handler):
     def __init__(self, stream=None):
+        super().__init__()
         self._stream = stream or sys.stderr
         self.terminator = "\n"
-        self.formatter = Formatter()
 
     def emit(self, record):
         self._stream.write(self.formatter.format(record) + self.terminator)
+        self.flush()
 
     def flush(self):
-        pass
+        self._stream.flush()
 
 
-class FileHandler(Handler):
+class FileHandler(StreamHandler):
     def __init__(self, filename, mode="a", encoding=None, delay=False):
-        super().__init__()
+        super().__init__(None)
 
         self.encoding = encoding
         self.mode = mode
         self.delay = delay
-        self.terminator = "\n"
         self.filename = filename
 
-        self._f = None
         if not delay:
-            self._f = open(self.filename, self.mode)
+            self._stream = open(self.filename, self.mode)
 
     def emit(self, record):
-        if self._f is None:
-            self._f = open(self.filename, self.mode)
+        if self._stream is None:
+            self._stream = open(self.filename, self.mode)
 
-        self._f.write(self.formatter.format(record) + self.terminator)
+        super().emit(record)
 
     def close(self):
-        if self._f is not None:
-            self._f.close()
+        if self._stream is not None:
+            self._stream.close()
 
 
 class Formatter:
@@ -209,16 +221,13 @@ class Formatter:
     def formatTime(self, record, datefmt=None):
         assert datefmt is None  # datefmt is not supported
         ct = utime.localtime(record.created)
-        return "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}".format(*ct)
+        return "{0}-{1}-{2} {3}:{4}:{5}".format(*ct)
 
     def formatException(self, exc_info):
         raise NotImplementedError()
 
     def formatStack(self, stack_info):
         raise NotImplementedError()
-
-
-root = getLogger()
 
 
 class LogRecord:
@@ -238,3 +247,11 @@ class LogRecord:
         self.exc_info = exc_info
         self.func = func
         self.sinfo = sinfo
+
+
+root = Logger("root")
+root.setLevel(WARNING)
+sh = StreamHandler()
+sh.formatter = Formatter()
+root.addHandler(sh)
+_loggers = {"root": root}
