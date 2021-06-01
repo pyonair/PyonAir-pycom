@@ -34,4 +34,4 @@ jobs:
         files: "*.md"
 
     - name: Fail if there were link errors
-        run: exit ${{ steps.lychee.outputs.exit_code }}
+      run: exit ${{ steps.lychee.outputs.exit_code }}
