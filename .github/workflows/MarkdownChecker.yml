@@ -9,7 +9,7 @@ on:
     - "docs/**" #all docs
 
 jobs:
-  markdown-link-check:
+  Check-MD:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@master
