@@ -11,10 +11,10 @@ on:
 jobs:
   Check-MD:
     runs-on: ubuntu-20.04
-    steps:    
+    steps:
     - uses: actions/checkout@v2
 
-    - name: Link Checker
+    - name: HTML and MD Link Checker
       uses: lycheeverse/lychee-action@v1.0.8
       with:
         args: --verbose --no-progress **/*.md **/*.html
@@ -32,3 +32,6 @@ jobs:
       uses: nosborn/github-action-markdown-cli@v1.1.1
       with:
         files: "*.md"
+
+    - name: Fail if there were link errors
+        run: exit ${{ steps.lychee.outputs.exit_code }}
