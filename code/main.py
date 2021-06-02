@@ -1,9 +1,31 @@
 
-pybytes.send_signal(1, "0")
-# #!/usr/bin/env python
+#!/usr/bin/env python
+#import pdb # python debugger
+import pycom
+from _pybytes import Pybytes
+from _pybytes_config import PybytesConfig
+import RTC
+
+#pdb.set_trace()
+pycom.nvs_set('pybytes_debug',50 ) #0 warning - 99 all
+
+pycom.pybytes_on_boot(False)
+conf = PybytesConfig().read_config()
+print("CONFIG:  ")
+print(conf)
+pybytes = Pybytes(conf)
+
+#TIME
+# Get current time
+rtc = RTC()
+no_time, update_time_later = initialise_time(rtc, gps_on, status_logger)
+
+
+pybytes.start(autoconnect=False)
+pybytes.send_signal(1, 0) # Sort of similar to uptime, sent to note reboot
+
 # import pycom
 # from helper import blink_led
-
 # #Disable default wifi
 # from network import WLAN
 # wlan = WLAN()
