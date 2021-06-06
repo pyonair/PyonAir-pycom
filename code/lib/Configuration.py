@@ -4,6 +4,7 @@ from machine import unique_id
 from network import LoRa
 import os
 import ujson
+from Constants import *
 
 
 class ConfigurationException(Exception):
@@ -18,7 +19,7 @@ class Configuration:
     def __init__(self):
 
         self.configuration = {}
-        self.default_configuration = s.default_configuration
+        #RM self.default_configuration = s.default_configuration
 
     # Configuration Accessor/Getter
     def get_config(self, keys=None):
@@ -68,8 +69,8 @@ class Configuration:
 
         if s.config_filename not in os.listdir('/sd'):
             with open('/sd/' + s.config_filename, 'w') as f:  # create new config file
-                f.write(ujson.dumps(self.default_configuration))
-                self.set_config(self.default_configuration)
+                f.write(ujson.dumps(DEFAULT_CONFIG))
+                self.set_config(DEFAULT_CONFIG)
         else:
             with open('/sd/' + s.config_filename, 'r') as f:
                 self.set_config(ujson.loads(f.read()))
@@ -107,7 +108,7 @@ class Configuration:
         """
         try:
             self.configuration.clear()  # clear configuration
-            self.set_config(self.default_configuration)  # set configuration to default
+            self.set_config(DEFAULT_CONFIG)  # set configuration to default
 
             self.set_config({"device_id": hexlify(unique_id()).upper().decode("utf-8")})  # set new device_id
 

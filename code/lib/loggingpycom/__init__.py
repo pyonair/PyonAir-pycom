@@ -146,7 +146,8 @@ class StreamHandler(Handler):
         self.flush()
 
     def flush(self):
-        self._stream.flush()
+        return
+        self._stream.flush() #TODO: Does flush exist as a method here? 
 
 
 class FileHandler(StreamHandler):

@@ -1,3 +1,4 @@
+#TODO: merge with constants
 """Code is implemented semi-modular using these strings. While it is fine to change most of these strings without any
 complication, please only do so, if you have looked at the uses and are confident that you know what you are doing."""
 
@@ -26,7 +27,7 @@ lora_sensor_headers = {
 
 status_header = ['type', 'timestamp', 'message']
 
-config_filename = 'config.txt'
+config_filename = 'Settings.cfg'
 
 default_configuration = {"device_id": "", "device_name": "NewPyonAir", "password": "newpyonair", "region": "Europe",
                          "device_eui": "", "application_eui": "", "app_key": "", "SSID": "", "fmt_version": "",
