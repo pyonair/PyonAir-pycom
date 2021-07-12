@@ -31,7 +31,7 @@ You can submit your fixes/features via [Pull requests]
 
 ## Credits and Authors
 
-* [Dr Steven J Johnston](https://www.linkedin.com/in/sjj698/).
+* [Dr Steven Ossont](https://www.linkedin.com/in/sjj698/).
 
 Special thanks to:
 
