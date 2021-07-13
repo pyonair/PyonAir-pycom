@@ -16,10 +16,11 @@ class ConfigurationException(Exception):
 
 class Configuration:
 
-    def __init__(self):
-
+    def __init__(self,logger):
+        self.logger= logger
         self.configuration = {}
-        #RM self.default_configuration = s.default_configuration
+        #RM 
+        self.default_configuration = s.default_configuration
 
     # Configuration Accessor/Getter
     def get_config(self, keys=None):
@@ -46,7 +47,7 @@ class Configuration:
         :param new_config: set of new configuration key-value pairs
         :type new_config: dict
         """
-
+        
         self.configuration.update(new_config)
 
     #  Saves keys and preferences to sd card
@@ -110,11 +111,12 @@ class Configuration:
             self.configuration.clear()  # clear configuration
             self.set_config(DEFAULT_CONFIG)  # set configuration to default
 
-            self.set_config({"device_id": hexlify(unique_id()).upper().decode("utf-8")})  # set new device_id
+            #disable Lora configs -- use pybytes
+            #self.set_config({"device_id": hexlify(unique_id()).upper().decode("utf-8")})  # set new device_id
 
-            lora = LoRa(mode=LoRa.LORAWAN)
-            self.set_config({"device_eui": hexlify(lora.mac()).upper().decode('utf-8')})  # set new device_EUI
-            del lora
+            #lora = LoRa(mode=LoRa.LORAWAN)
+            #self.set_config({"device_eui": hexlify(lora.mac()).upper().decode('utf-8')})  # set new device_EUI
+            #del lora
 
             logger.info('Configurations were reset')
             logger.warning('Please configure your device!')
@@ -122,6 +124,8 @@ class Configuration:
             logger.exception('Failed to reset configurations')
             raise ConfigurationException(str(e))
 
-
-# global configuration dictionary
-config = Configuration()
+    def getConfigDictionary(self):
+        # TODO: that is a mess
+        # global configuration dictionary
+        #config = Configuration()
+        return self.configuration

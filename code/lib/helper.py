@@ -1,6 +1,6 @@
 # Helper functions and miscellaneous globals
 
-from Configuration import config
+import Configuration #import config
 import strings as s
 import time
 import pycom
