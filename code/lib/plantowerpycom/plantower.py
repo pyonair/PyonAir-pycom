@@ -137,10 +137,10 @@ class Plantower(object):
         """
         recv = b''
         read_timeout = self.read_timeout
-        chrono = self.chrono
-        chrono.reset()  # Reset the timer
-        chrono.start()  # Start timer
-        while (chrono.read() < read_timeout):
+        #chrono = self.chrono
+        self.chrono.reset()  # Reset the timer
+        self.chrono.start()  # Start timer
+        while (self.chrono.read() < read_timeout):
             inp = self.serial.read(1)  # Read a character from the input
             if inp == MSG_CHAR_1:  # check it matches
                 recv += inp  # if it does add it to receive string
