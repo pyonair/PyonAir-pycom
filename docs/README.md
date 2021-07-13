@@ -1,4 +1,4 @@
-# Pyonair for pycom boards
+# PyonAir: Air quality sensor platform
 
 PyonAir is a low-cost open-source air pollution monitor. The monitor measures particulate matter (PM), temperature, and humidity. It also supports GPS tagged sensor reading.
 
