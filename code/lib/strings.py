@@ -41,7 +41,7 @@ config_filename = 'Settings.cfg'
 
 # Sensor names
 PM1 = 'PM1'
-PM2 = 'PM2DISABLE'
+PM2 = 'PM2'
 TEMP = 'TEMP'
 GPS = 'GPS'
 

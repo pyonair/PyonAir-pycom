@@ -5,7 +5,7 @@ Tasks to be called by event scheduler
 import os
 from helper import mean_across_arrays, minutes_of_the_month, blink_led, get_sensors, get_format, current_lock  #TODO: chenge this type of import
 
-import Configuration
+from Configuration import Configuration
 import strings as s
 import time
 
@@ -24,7 +24,7 @@ def get_sensor_averages(logger, lora):
     # get a dictionary of sensors and their status
     sensors = get_sensors(logger)
     fmt = get_format(sensors)
-    version = str(config.get_config("fmt_version"))
+    version = str( Configuration(logger).get_config("fmt_version"))
     timestamp = s.csv_timestamp_template.format(*time.gmtime())  # get current time in desired format
     minutes = str(minutes_of_the_month())  # get minutes past last midnight
 
@@ -38,7 +38,7 @@ def get_sensor_averages(logger, lora):
         line_to_log = '{}' + fmt + ',' + version + ',' + minutes
         for sensor_name in [s.TEMP, s.PM1, s.PM2]:
             if sensors[sensor_name]:
-                line_to_log += ',' + str(config.get_config(sensor_name + "_id")) + ',' + ','.join(sensor_averages[sensor_name + "_avg"]) + ',' + str(sensor_averages[sensor_name + "_count"])
+                line_to_log += ',' + str(Configuration(logger).get_config(sensor_name + "_id")) + ',' + ','.join(sensor_averages[sensor_name + "_avg"]) + ',' + str(sensor_averages[sensor_name + "_count"])
         line_to_log += '\n'
 
         # Logs line_to_log to archive and places copies into relevant to_send folders
@@ -72,8 +72,8 @@ def calculate_average(sensor_name, logger):
     """
 
     filename = sensor_name + '.csv'
-    sensor_type = config.get_config(sensor_name)
-    sensor_id = str(config.get_config(sensor_name + "_id"))
+    sensor_type = Configuration(logger).get_config(sensor_name)
+    sensor_id = str(Configuration(logger).get_config(sensor_name + "_id"))
     # headers in current file of the sensor according to its type
     headers = s.headers_dict_v4[sensor_type]
 
