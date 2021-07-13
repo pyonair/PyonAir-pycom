@@ -6,6 +6,7 @@ import os
 import ujson
 from Constants import *
 
+#TODO: memory hog, sort this class - static?
 
 class ConfigurationException(Exception):
     """

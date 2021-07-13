@@ -9,7 +9,7 @@ from _pybytes_config import PybytesConfig
 from machine import RTC, unique_id
 from machine import SD, Pin, reset
 import network # Used to disable WiFi
-from initialisation import initialise_time # TODO: clunky refactor
+from initialisation import initialisation #initialise_time # TODO: clunky refactor
 from helper import blink_led
 
 import loggingpycom 
@@ -123,7 +123,7 @@ pybytes.send_signal(1, 0) # Sort of similar to uptime, sent to note reboot
 
 try:
     from machine import RTC, unique_id
-    from initialisation import initialise_time
+    #from initialisation import initialise_time
     from ubinascii import hexlify
     import Configuration
     from new_config import new_config
@@ -159,7 +159,7 @@ try:
 
     # Get current time
     rtc = RTC()
-    no_time, update_time_later = initialise_time(rtc, gps_on, status_logger)
+    no_time, update_time_later =  initialisation(status_logger).initialise_time(rtc, gps_on, status_logger)
 
     #=======REmove this config stuff === warn this devide id may be used -- check
     # Check if device is configured, or SD card has been moved to another device
@@ -209,7 +209,7 @@ try:
     from TempSHT35 import TempSHT35
     import GpsSIM28
     import _thread
-    from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
+    #from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
     from LoRaWAN import LoRaWAN
 
     # Configurations are entered parallel to main execution upon button press for 2.5 secs
