@@ -242,7 +242,7 @@ try:
     # Initialise PM power circuitry
     PM_transistor = Pin('P20', mode=Pin.OUT)
     PM_transistor.value(0)
-    if config.get_config(s.PM1) != "OFF" or config.get_config(s.PM2) != "OFF":
+    if config.get_config(s.PM1) != "OFF" or config.get_config(s.PM2) != "OFF": #Turn on sensors (power)
         PM_transistor.value(1)
 
     # Initialise PM sensor threads
