@@ -24,7 +24,7 @@ class RingBuffer:
 
         with self.buffer_lock:
             if file_name not in os.listdir(path[:-1]):  # if file does not exist, create one with details
-                self.logger.error("Cannot find buffer file")
+                self.logger.error("Cannot find buffer file -- will make one")
                 self.make_file()
             else:
                 try:
