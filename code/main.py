@@ -216,16 +216,16 @@ try:
     user_button.set_config_blocking(False)
 
     # Set debug level - has to be set after logger was initialised and device was configured
-    logger_factory.set_level('status_logger', get_logging_level())
+    logger_factory.set_level(DEFAULT_LOG_NAME, initialisation(status_logger).get_logging_level())
 
     # Initialise file system
-    initialise_file_system()
+    initialisation(status_logger).initialise_file_system()
 
     # Remove residual files from the previous run (removes all files in the current and processing dir)
-    remove_residual_files()
+    initialisation(status_logger).remove_residual_files()
 
     # Get a dictionary of sensors and their status
-    sensors = get_sensors()
+    sensors = get_sensors(status_logger)
 
     # Join the LoRa network
     lora = False

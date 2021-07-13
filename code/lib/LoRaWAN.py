@@ -20,25 +20,26 @@ class LoRaWAN:
         """
 
         self.logger = logger
-        self.message_limit = int(float(config.get_config("fair_access")) / (float(config.get_config("air_time")) / 1000))
-        self.transmission_date = config.get_config("transmission_date")  # last date when lora was transmitting
+        self.config = Configuration(logger)
+        self.message_limit = int(float(self.config.get_config("fair_access")) / (float(self.config.get_config("air_time")) / 1000))
+        self.transmission_date = self.config.get_config("transmission_date")  # last date when lora was transmitting
         today = time.gmtime()
         date = str(today[0]) + str(today[1]) + str(today[2])
         if self.transmission_date == date:  # if device was last transmitting today
-            self.message_count = config.get_config("message_count")  # get number of messages sent today
+            self.message_count = self.config.get_config("message_count")  # get number of messages sent today
         else:
             self.message_count = 0  # if device was last transmitting a day or more ago, reset message_count for the day
             self.transmission_date = date
-            config.save_config({"message_count": self.message_count, "transmission_date": date})
+            self.config.save_config({"message_count": self.message_count, "transmission_date": date})
 
         regions = {"Europe": LoRa.EU868, "Asia": LoRa.AS923, "Australia": LoRa.AU915, "United States": LoRa.US915}
-        region = regions[config.get_config("region")]
+        region = regions[self.config.get_config("region")]
 
         self.lora = LoRa(mode=LoRa.LORAWAN, region=region, adr=True)
 
         # create an OTAA authentication parameters
-        app_eui = ubinascii.unhexlify(config.get_config("application_eui"))
-        app_key = ubinascii.unhexlify(config.get_config("app_key"))
+        app_eui = ubinascii.unhexlify(self.config.get_config("application_eui"))
+        app_key = ubinascii.unhexlify(self.config.get_config("app_key"))
 
         # join a network using OTAA (Over the Air Activation)
         self.lora.join(activation=LoRa.OTAA, auth=(app_eui, app_key), timeout=0)
@@ -53,7 +54,7 @@ class LoRaWAN:
         self.lora_socket.setsockopt(socket.SOL_LORA, socket.SO_CONFIRMED, False)
 
         # sets timeout for sending data
-        self.lora_socket.settimeout(int(config.get_config("lora_timeout")) * 1000)
+        self.lora_socket.settimeout(int(self.config.get_config("lora_timeout")) * 1000)
 
         # set up callback for receiving downlink messages
         self.lora.callback(trigger=LoRa.RX_PACKET_EVENT, handler=self.lora_recv)
@@ -83,18 +84,18 @@ class LoRaWAN:
                 machine.reset()
             elif msg == "1":  # start software update
                 self.logger.info("Software update triggered over LoRa")
-                config.save_config({"update": True})
+                self.config.save_config({"update": True})
                 machine.reset()
             else:
                 split_msg = msg.split(":")
                 if split_msg[0] == "2":  # update wifi credentials
                     self.logger.info("WiFi credentials updated over LoRa")
-                    config.save_config({"SSID": split_msg[1], "wifi_password": split_msg[2]})
+                    self.config.save_config({"SSID": split_msg[1], "wifi_password": split_msg[2]})
                 elif split_msg[0] == "3":  # update wifi credentials and start software update
                     self.logger.info("WiFi credentials updated over LoRa")
-                    config.save_config({"SSID": split_msg[1], "wifi_password": split_msg[2]})
+                    self.config.save_config({"SSID": split_msg[1], "wifi_password": split_msg[2]})
                     self.logger.info("Software update triggered over LoRa")
-                    config.save_config({"update": True})
+                    self.config.save_config({"update": True})
                     machine.reset()
                 else:
                     self.logger.error("Unknown command received over LoRa")
@@ -129,7 +130,7 @@ class LoRaWAN:
                     self.logger.debug("LoRa - sent payload")
 
                     self.message_count += 1  # increment number of files sent over LoRa today
-                    config.save_config({"message_count": self.message_count})  # save number of messages today
+                    self.config.save_config({"message_count": self.message_count})  # save number of messages today
 
                     # remove message sent
                     self.lora_buffer.remove_head()

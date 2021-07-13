@@ -22,7 +22,8 @@ class Configuration:
         self.logger= logger
         self.configuration = {} 
         #RM 
-        self.default_configuration = s.default_configuration
+        
+        self.read_configuration()
 
     # Configuration Accessor/Getter
     def get_config(self, keys=None):
@@ -69,7 +70,7 @@ class Configuration:
         """
         Read config file on SD card and load it to the configuration dict
         """
-
+        self.default_configuration = s.default_configuration #this is from constants/strings
         if s.config_filename not in os.listdir('/sd'):
             with open('/sd/' + s.config_filename, 'w') as f:  # create new config file
                 f.write(ujson.dumps(DEFAULT_CONFIG))

@@ -3,7 +3,7 @@ Tasks to be called by event scheduler
 """
 
 import os
-from helper import mean_across_arrays, minutes_of_the_month, blink_led, get_sensors, get_format, current_lock
+from helper import mean_across_arrays, minutes_of_the_month, blink_led, get_sensors, get_format, current_lock  #TODO: chenge this type of import
 
 import Configuration
 import strings as s
@@ -22,7 +22,7 @@ def get_sensor_averages(logger, lora):
     logger.debug("Calculating averages")
 
     # get a dictionary of sensors and their status
-    sensors = get_sensors()
+    sensors = get_sensors(logger)
     fmt = get_format(sensors)
     version = str(config.get_config("fmt_version"))
     timestamp = s.csv_timestamp_template.format(*time.gmtime())  # get current time in desired format
