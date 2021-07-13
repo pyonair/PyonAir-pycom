@@ -5,7 +5,7 @@ from config_page import get_html_form
 import machine
 import pycom
 import gc
-from Configuration import config
+import Configuration
 from helper import wifi_lock, led_lock, blink_led
 from RtcDS1307 import clock
 import ujson

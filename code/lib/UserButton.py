@@ -1,8 +1,10 @@
 from machine import Timer, reset
-from new_config import new_config
+#from new_config import new_config
 from helper import led_lock
 import _thread
 
+
+#TODO: user button is now disabled -- do something other than this
 
 class UserButton:
     def __init__(self, logger):
@@ -28,15 +30,16 @@ class UserButton:
             self.debounce_timer.reset()
             value = pin.value()
             if value == 1:  # Button pressed
-                if self.config_enabled:
-                    self.config_press = Timer.Alarm(self.start_config, s=2.5, periodic=False)
-                self.reboot_timer.reset()
+                self.logger.warning("Button1")
+                #if self.config_enabled:
+                #    self.config_press = Timer.Alarm(self.start_config, s=2.5, periodic=False)
+                #self.reboot_timer.reset()
 
             elif value == 0:  # Button released
-
+                self.logger.warning("Button1")
                 # Cancel alarm to enter config, since button was not held for 2.5 seconds continuously
-                if self.config_press is not False:
-                    self.config_press.cancel()
+                #if self.config_press is not False:
+                #    self.config_press.cancel()
 
                 # If button was pressed and released within 1.5 seconds, then reboot the device
                 if self.reboot_timer.read() < 1.5:
@@ -44,6 +47,7 @@ class UserButton:
                         self.logger.info("Button press - rebooting...")
                     except Exception as e:
                         pass
+                    self.logger.warning("Reset button pressed")
                     reset()
 
     # this handler is called when button was held for 2.5 sec

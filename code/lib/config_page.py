@@ -1,6 +1,9 @@
-from Configuration import config
+#from  
+import Configuration
 import strings as s
 
+
+#TODO: get rid of thsi config page -- pybytes all the way
 
 def get_html_form():
     """

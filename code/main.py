@@ -8,24 +8,35 @@ from _pybytes import Pybytes
 from _pybytes_config import PybytesConfig
 from machine import RTC, unique_id
 from machine import SD, Pin, reset
+import network # Used to disable WiFi
 from initialisation import initialise_time # TODO: clunky refactor
-
+from helper import blink_led
 
 import loggingpycom 
 from LoggerFactory import LoggerFactory
+
+from UserButton import UserButton
 
 from Constants import *
 
 
 #===================Disable default wifi===================
-import network
-wlan = network.WLAN()
-wlan.deinit()
+
+try:
+    wlan = network.WLAN()
+    wlan.deinit()
+except Exception as e:
+    print("Unable to disable WiFi")
 
 
-#=========================Mount SD card
-sd = SD()
-os.mount(sd, '/sd')
+#=========================Mount SD card=======
+try:
+    sd = SD()
+    os.mount(sd, '/sd')
+    #TODO: Error catch , set led for no SD card
+except Exception as e:
+    print("SD did not mount")
+
 
 #===================Get a logger up and running asap!
 logger_factory = LoggerFactory()
@@ -48,13 +59,10 @@ pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
 
 #set connect to false in config file?
 
-
+#========Pybytes
 pycom.nvs_set('pybytes_debug',99 ) #0 warning - 99 all
 Pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
-
 #pdb.set_trace()
-
-
 pycom.pybytes_on_boot(False)
 conf = PybytesConfig().read_config()
 print("CONFIG:  ")
@@ -73,42 +81,42 @@ pybytes.send_signal(1, 0) # Sort of similar to uptime, sent to note reboot
 
 #==========================
 
-from helper import blink_led
+
 
 
 pycom.heartbeat(False)  # disable the heartbeat LED
 pycom.rgbled(0x552000)  # flash orange to indicate startup
 
 # Try to mount SD card, if this fails, keep blinking red and do not proceed
-try:
+#try:
    
     
     #from loggingpycom import DEBUG
-    from LoggerFactory import LoggerFactory
-    from UserButton import UserButton
+    #from LoggerFactory import LoggerFactory
+    #from UserButton import UserButton#
     # Initialise LoggerFactory and status logger
-    logger_factory = LoggerFactory()
-    status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
-                                                        filename=LOG_FILENAME)
+    #logger_factory = LoggerFactory()
+    #status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
+    #                                                    filename=LOG_FILENAME)
 
     # Initialise button interrupt on pin 14 for user interaction
-    user_button = UserButton(status_logger)
-    pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
-    pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
+    #user_button = UserButton(status_logger)
+    #pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
+    #pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
 
     # Mount SD card
-    sd = SD()
-    os.mount(sd, '/sd')
+    #sd = SD()
+    #os.mount(sd, '/sd')
 
-except Exception as e:
-    print(str(e))    
-    reboot_counter = 0
-    while True:
-        blink_led((0x550000, 0.5, True))  # blink red LED
-        time.sleep(0.5)
-        reboot_counter += 1
-        if reboot_counter >= 180:
-            reset()
+# except Exception as e:
+#     print(str(e))    
+#     reboot_counter = 0
+#     while True:
+#         blink_led((0x550000, 0.5, True))  # blink red LED
+#         time.sleep(0.5)
+#         reboot_counter += 1
+#         if reboot_counter >= 180:
+#             reset()
 
 try:
     from machine import RTC, unique_id
@@ -121,6 +129,7 @@ try:
     import ujson
 
     # Read configuration file to get preferences
+    config = Configuration()
     config.read_configuration()
 
     """SET CODE VERSION NUMBER - if new tag is added on git, update code version number accordingly"""
