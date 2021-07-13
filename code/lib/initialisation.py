@@ -2,7 +2,7 @@ from RtcDS1307 import clock
 import GpsSIM28
 from PM_read import pm_thread
 from loggingpycom import INFO, WARNING, CRITICAL, DEBUG, ERROR
-from Configuration import config
+import Configuration
 import _thread
 import strings as s
 import os

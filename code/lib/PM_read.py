@@ -1,7 +1,7 @@
 from plantowerpycom import Plantower, PlantowerException
 from sensirionpycom import Sensirion, SensirionException
 from helper import mean_across_arrays, blink_led
-from Configuration import config
+import Configuration
 from machine import Timer
 from SensorLogger import SensorLogger
 import time

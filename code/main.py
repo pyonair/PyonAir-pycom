@@ -12,9 +12,36 @@ from initialisation import initialise_time # TODO: clunky refactor
 
 
 import loggingpycom 
-
+from LoggerFactory import LoggerFactory
 
 from Constants import *
+
+
+#===================Disable default wifi===================
+import network
+wlan = network.WLAN()
+wlan.deinit()
+
+
+#=========================Mount SD card
+sd = SD()
+os.mount(sd, '/sd')
+
+#===================Get a logger up and running asap!
+logger_factory = LoggerFactory()
+#TODO: Set log level to level in config file
+status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
+                                                        filename=LOG_FILENAME)
+status_logger.warning("Rebooted")
+
+
+#======================== Setup user interupt button
+user_button = UserButton(status_logger)
+pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
+pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
+
+
+
 
 
 #TODO: provision if key on sd card
@@ -47,10 +74,7 @@ pybytes.send_signal(1, 0) # Sort of similar to uptime, sent to note reboot
 #==========================
 
 from helper import blink_led
-#Disable default wifi
-from network import WLAN
-wlan = WLAN()
-wlan.deinit()
+
 
 pycom.heartbeat(False)  # disable the heartbeat LED
 pycom.rgbled(0x552000)  # flash orange to indicate startup
@@ -90,7 +114,7 @@ try:
     from machine import RTC, unique_id
     from initialisation import initialise_time
     from ubinascii import hexlify
-    from Configuration import config
+    import Configuration
     from new_config import new_config
     from software_update import software_update
     import strings as s
