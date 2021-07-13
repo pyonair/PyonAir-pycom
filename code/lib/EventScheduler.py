@@ -2,7 +2,8 @@ import machine
 from machine import RTC, Timer
 from averages import get_sensor_averages
 from helper import seconds_to_first_event
-from Configuration import config
+ 
+import Configuration
 import GpsSIM28
 import _thread
 import time

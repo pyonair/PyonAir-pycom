@@ -28,6 +28,10 @@ try:
 except Exception as e:
     print("Unable to disable WiFi")
 
+#===============LED
+pycom.heartbeat(False)  # disable the heartbeat LED
+pycom.rgbled(0x552000)  # flash orange to indicate startup
+
 
 #=========================Mount SD card=======
 try:
@@ -84,8 +88,7 @@ pybytes.send_signal(1, 0) # Sort of similar to uptime, sent to note reboot
 
 
 
-pycom.heartbeat(False)  # disable the heartbeat LED
-pycom.rgbled(0x552000)  # flash orange to indicate startup
+
 
 # Try to mount SD card, if this fails, keep blinking red and do not proceed
 #try:
@@ -158,16 +161,16 @@ try:
     rtc = RTC()
     no_time, update_time_later = initialise_time(rtc, gps_on, status_logger)
 
-    #=======REmove this config stuff
+    #=======REmove this config stuff === warn this devide id may be used -- check
     # Check if device is configured, or SD card has been moved to another device
-    device_id = hexlify(unique_id()).upper().decode("utf-8")
-    if not config.is_complete(status_logger) or config.get_config("device_id") != device_id:
-        config.reset_configuration(status_logger)
-        #  Force user to configure device, then reboot
-        new_config(status_logger, arg=0)
+    # device_id = hexlify(unique_id()).upper().decode("utf-8")
+    # if not config.is_complete(status_logger) or config.get_config("device_id") != device_id:
+    #     config.reset_configuration(status_logger)
+    #     #  Force user to configure device, then reboot
+    #     new_config(status_logger, arg=0)
     #=======REmove this config stuff
 
-    
+
     # User button will enter configurations page from this point on
     user_button.set_config_enabled(True)
 

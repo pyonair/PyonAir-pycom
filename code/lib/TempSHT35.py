@@ -1,5 +1,6 @@
 from machine import I2C, Timer
-from Configuration import config
+
+import Configuration 
 from helper import blink_led
 from strings import csv_timestamp_template
 import time

@@ -4,7 +4,8 @@ Tasks to be called by event scheduler
 
 import os
 from helper import mean_across_arrays, minutes_of_the_month, blink_led, get_sensors, get_format, current_lock
-from Configuration import config
+
+import Configuration
 import strings as s
 import time
 

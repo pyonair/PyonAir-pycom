@@ -1,4 +1,4 @@
-from Configuration import config
+from Configuration import Configuration 
 import strings as s
 from helper import blink_led, lora_lock, minutes_of_the_month
 from RingBuffer import RingBuffer
