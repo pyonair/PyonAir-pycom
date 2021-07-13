@@ -9,13 +9,20 @@ from _pybytes_config import PybytesConfig
 from machine import RTC, unique_id
 from machine import SD, Pin, reset
 from initialisation import initialise_time # TODO: clunky refactor
+
+
+import loggingpycom 
+
+
 from Constants import *
+
+
 #TODO: provision if key on sd card
 
 #set connect to false in config file?
 
 
-pycom.nvs_set('pybytes_debug',70 ) #0 warning - 99 all
+pycom.nvs_set('pybytes_debug',99 ) #0 warning - 99 all
 Pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
 
 #pdb.set_trace()

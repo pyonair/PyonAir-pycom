@@ -1,6 +1,8 @@
 # Pyonair for pycom boards
 
-PyonAir is a low-cost open-source air pollution monitor developed at the University of Southampton. The monitor measures particulate matter (PM), temperature, and humidity. It also associates the readings with location pulled from GPS.
+PyonAir is a low-cost open-source air pollution monitor. The monitor measures particulate matter (PM), temperature, and humidity. It also supports GPS tagged sensor reading.
+
+> We are refactoring the code and website so please be patient 
 
 ## User guide
  
