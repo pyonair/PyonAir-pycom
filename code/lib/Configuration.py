@@ -11,6 +11,7 @@ class ConfigurationException(Exception):
     """
     Exception to be thrown if Exception occurs in configuration
     """
+    #TODO: why?
     pass
 
 
@@ -18,21 +19,21 @@ class Configuration:
 
     def __init__(self,logger):
         self.logger= logger
-        self.configuration = {}
+        self.configuration = {} 
         #RM 
         self.default_configuration = s.default_configuration
 
     # Configuration Accessor/Getter
     def get_config(self, keys=None):
         """
-        If keys are given, return corresponding values in a list, if on key is given, return the corresponding value,
+        If keys are given, return corresponding values in a list, if one key is given, return the corresponding value,
         if no arguments are given, return the config dictionary
         :param keys: keys in configuration dictionary
         :type keys: None, list of keys or a single key
         :return: values in configuration dictionary
         :rtype: dict, list of any, any
         """
-
+        #TODO: Warn if key not in dict
         if keys is None:
             return self.configuration
         if isinstance(keys, list):

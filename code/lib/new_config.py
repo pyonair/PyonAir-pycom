@@ -20,7 +20,7 @@ def new_config(logger, arg):
     :param logger: status logger
     :type logger: LoggerFactory
     """
-
+    config = Configuration.Configuration(logger) #TODO: fix
     #  Only one of this thread is allowed to run at a time
     if not wifi_lock.locked():
         with wifi_lock:

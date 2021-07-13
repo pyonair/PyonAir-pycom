@@ -129,7 +129,7 @@ try:
     import ujson
 
     # Read configuration file to get preferences
-    config = Configuration()
+    config = Configuration.Configuration(status_logger)
     config.read_configuration()
 
     """SET CODE VERSION NUMBER - if new tag is added on git, update code version number accordingly"""
@@ -158,13 +158,16 @@ try:
     rtc = RTC()
     no_time, update_time_later = initialise_time(rtc, gps_on, status_logger)
 
+    #=======REmove this config stuff
     # Check if device is configured, or SD card has been moved to another device
     device_id = hexlify(unique_id()).upper().decode("utf-8")
     if not config.is_complete(status_logger) or config.get_config("device_id") != device_id:
         config.reset_configuration(status_logger)
         #  Force user to configure device, then reboot
         new_config(status_logger, arg=0)
+    #=======REmove this config stuff
 
+    
     # User button will enter configurations page from this point on
     user_button.set_config_enabled(True)
 
