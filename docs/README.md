@@ -33,7 +33,7 @@ You can submit your fixes/features via [Pull requests]
 
 ## Credits and Authors
 
-* [Dr Steven J Johnston](https://www.linkedin.com/in/sjj698/).
+* [Dr Steven Ossont](https://www.linkedin.com/in/sjj698/).
 
 Special thanks to:
 
@@ -41,6 +41,6 @@ Special thanks to:
 * [Florentin Bulot](https://www.southampton.ac.uk/smmi/about/our_students/florentin-bulot.page)
 * [Daniel Hausner](https://github.com/danhaus)
 * [Peter Varga](https://github.com/pe-varga)
-* [Hazel Mitchell](https://github.com/CeruleanMars
+* [Hazel Mitchell](https://github.com/CeruleanMars)
 
 
