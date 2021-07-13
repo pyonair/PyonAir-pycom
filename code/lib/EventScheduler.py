@@ -3,7 +3,7 @@ from machine import RTC, Timer
 from averages import get_sensor_averages
 from helper import seconds_to_first_event
  
-import Configuration
+from Configuration import Configuration
 import GpsSIM28
 import _thread
 import time
@@ -26,14 +26,15 @@ class EventScheduler:
         self.logger = logger
         self.data_type = data_type
         self.lora = lora
+        self.config = Configuration(logger)
 
         #  Attributes
         if self.data_type == "sensors":
-            self.interval_s = int(float(config.get_config("interval"))*60)
+            self.interval_s = int(float(self.config.get_config("interval"))*60)
             if self.interval_s < 15 * 60:
                 self.logger.warning("Interval is less than 15 mins - real time transmission is not guaranteed")
         elif self.data_type == "gps":
-            self.interval_s = int(float(config.get_config("GPS_period"))*3600)
+            self.interval_s = int(float(self.config.get_config("GPS_period"))*3600)
         self.s_to_next_lora = None
         self.first_alarm = None
         self.periodic_alarm = None
@@ -68,10 +69,10 @@ class EventScheduler:
                 if self.lora.transmission_date != date:
                     self.lora.message_count = 0
                     self.lora.transmission_date = date
-                    config.save_config({"message_count": self.lora.message_count, "transmission_date": date})
+                    self.config.save_config({"message_count": self.lora.message_count, "transmission_date": date})
 
                 # send 2, 3 or at most 4 messages per interval based on length of interval
-                lora_slot = int(float(config.get_config("interval"))*60) // 30  # lora_rate changes for each 30 seconds
+                lora_slot = int(float(self.config.get_config("interval"))*60) // 30  # lora_rate changes for each 30 seconds
                 max_lora_slot = self.lora.message_limit // 96  # max number of msg per interval optimized around 15 min
                 if max_lora_slot < 2:
                     max_lora_slot = 2
@@ -110,6 +111,8 @@ def get_random_time():
     """
 
     # get random number of seconds within (interval - lora_timeout) and add one so it cannot be zero
-    s_to_next_lora = int((machine.rng() / (2 ** 24)) * (int(float(config.get_config("interval"))*60) -
-                                                        int(config.get_config("lora_timeout")))) + 1
+    s_to_next_lora = int((machine.rng() / (2 ** 24)) * (int(float(self.config.get_config("interval"))*60) -
+                                                        int(self.config.get_config("lora_timeout")))) + 1
     return s_to_next_lora
+
+    #TODO: stop gettign config values so ofter -- look once -- static
