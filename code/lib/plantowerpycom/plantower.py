@@ -34,18 +34,22 @@ class PlantowerReading(object):
             an object containing the data
         """
         self.timestamp = timestamp_template.format(*time.gmtime())
-        self.pm10_cf1 = round(line[4] * 256 + line[5], 1)
-        self.pm25_cf1 = round(line[6] * 256 + line[7], 1)
-        self.pm100_cf1 = round(line[8] * 256 + line[9], 1)
-        self.pm10_std = round(line[10] * 256 + line[11], 1)
-        self.pm25_std = round(line[12] * 256 + line[13], 1)
-        self.pm100_std = round(line[14] * 256 + line[15], 1)
-        self.gr03um = round(line[16] * 256 + line[17], 1)
-        self.gr05um = round(line[18] * 256 + line[19], 1)
-        self.gr10um = round(line[20] * 256 + line[21], 1)
-        self.gr25um = round(line[22] * 256 + line[23], 1)
-        self.gr50um = round(line[24] * 256 + line[25], 1)
-        self.gr100um = round(line[26] * 256 + line[27], 1)
+        self.pm10_cf1 = round(line[4] * 256 + line[5])
+
+        self.pm25_cf1 = round(line[6] * 256 + line[7])
+        self.pm100_cf1 = round(line[8] * 256 + line[9])
+        self.pm10_std = round(line[10] * 256 + line[11])
+
+        self.pm25_std = round(line[12] * 256 + line[13])
+        self.pm100_std = round(line[14] * 256 + line[15])
+        self.gr03um = round(line[16] * 256 + line[17])
+        self.gr05um = round(line[18] * 256 + line[19])
+        self.gr10um = round(line[20] * 256 + line[21])
+        self.gr25um = round(line[22] * 256 + line[23])
+
+        self.gr50um = round(line[24] * 256 + line[25])
+        self.gr100um = round(line[26] * 256 + line[27])
+
 
     def __str__(self):
         return (
@@ -137,12 +141,11 @@ class Plantower(object):
         """
         recv = b''
         read_timeout = self.read_timeout
-        #chrono = self.chrono
-        self.chrono.reset()  # Reset the timer
-        self.chrono.start()  # Start timer
-        while (self.chrono.read() < read_timeout):
+        chrono = self.chrono
+        chrono.reset()  # Reset the timer
+        chrono.start()  # Start timer
+        while (chrono.read() < read_timeout):
             inp = self.serial.read(1)  # Read a character from the input
-            #print("READ:"+str(inp))
             if inp == MSG_CHAR_1:  # check it matches
                 recv += inp  # if it does add it to receive string
                 inp = self.serial.read(1)  # read the next character
@@ -153,6 +156,6 @@ class Plantower(object):
                     chrono.stop()  # Stop the timer
                     return PlantowerReading(recv)  # convert to reading object
             # If the character isn't what we are expecting loop until timeout
-        self.chrono.stop()  # Stop the timer (in case the while loop timed out)
+        chrono.stop()  # Stop the timer (in case the while loop timed out)
 
         raise PlantowerException("No message received")

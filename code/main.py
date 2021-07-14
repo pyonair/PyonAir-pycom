@@ -249,9 +249,9 @@ try:
         status_logger.info("Power ON both PM sensors")
 
     # Initialise PM sensor threads
-    if sensors[s.PM1]:
+    if False: #sensors[s.PM1]:
         initialisation(status_logger).initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1, status_logger=status_logger)
-    if sensors[s.PM2]:
+    if False: #sensors[s.PM2]:
         initialisation(status_logger).initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2, status_logger=status_logger)
 
     # Start scheduling lora messages if any of the sensors are defined
