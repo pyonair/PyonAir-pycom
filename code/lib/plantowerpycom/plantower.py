@@ -33,8 +33,6 @@ class PlantowerReading(object):
             Takes a line from the Plantower serial port and converts it into
             an object containing the data
         """
-        print(time.gmtime())
-        print(line)
         self.timestamp = timestamp_template.format(*time.gmtime())
         self.pm10_cf1 = round(line[4] * 256 + line[5], 1)
         self.pm25_cf1 = round(line[6] * 256 + line[7], 1)
@@ -139,12 +137,11 @@ class Plantower(object):
         """
         recv = b''
         read_timeout = self.read_timeout
-        #chrono = self.chrono
-        self.chrono.reset()  # Reset the timer
-        self.chrono.start()  # Start timer
-        while (self.chrono.read() < read_timeout):
+        chrono = self.chrono
+        chrono.reset()  # Reset the timer
+        chrono.start()  # Start timer
+        while (chrono.read() < read_timeout):
             inp = self.serial.read(1)  # Read a character from the input
-            #print("READ:"+str(inp))
             if inp == MSG_CHAR_1:  # check it matches
                 recv += inp  # if it does add it to receive string
                 inp = self.serial.read(1)  # read the next character
@@ -152,9 +149,9 @@ class Plantower(object):
                     recv += inp  # att it to the receive string
                     recv += self.serial.read(30)  # read the remaining 30 bytes
                     self._verify(recv)  # verify the checksum
-                    self.chrono.stop()  # Stop the timer
+                    chrono.stop()  # Stop the timer
                     return PlantowerReading(recv)  # convert to reading object
             # If the character isn't what we are expecting loop until timeout
-        self.chrono.stop()  # Stop the timer (in case the while loop timed out)
+        chrono.stop()  # Stop the timer (in case the while loop timed out)
 
         raise PlantowerException("No message received")
