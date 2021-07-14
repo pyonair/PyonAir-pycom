@@ -1,4 +1,4 @@
-from Configuration import config
+import Configuration
 from helper import wifi_lock, led_lock
 import machine
 import pycom
@@ -6,6 +6,7 @@ import time
 from network import WLAN
 from OTA import WiFiOTA
 
+#TODO: this is not used -- migrate to pybytes!
 
 def software_update(logger):
     """

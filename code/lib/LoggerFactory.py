@@ -11,6 +11,7 @@ class LoggerFactory:
             self,
             path='/sd/'
     ):
+        print("Logger factory starting.....")
         self.path = path
         self.loggers = {}  # dictionary to store loggers
 
@@ -51,6 +52,7 @@ class LoggerFactory:
         :return: reference to the logger stored in the class
         :rtype: object
         """
+        print("Logger creating .....")
         status_logger = logging.getLogger(name)
         status_logger.setLevel(level)
         formatter = logging.Formatter(fmt=fmt)
@@ -63,6 +65,7 @@ class LoggerFactory:
             file_handler.setFormatter(formatter)
             status_logger.addHandler(file_handler)
         self.loggers[name] = status_logger
+        print("LoggerDONE")
         return self.loggers[name]
 
     def set_level(self, name, level):

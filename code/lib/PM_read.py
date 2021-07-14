@@ -1,7 +1,7 @@
 from plantowerpycom import Plantower, PlantowerException
 from sensirionpycom import Sensirion, SensirionException
 from helper import mean_across_arrays, blink_led
-from Configuration import config
+from Configuration import Configuration
 from machine import Timer
 from SensorLogger import SensorLogger
 import time
@@ -22,8 +22,8 @@ def pm_thread(sensor_name, status_logger, pins, serial_id):
 
     status_logger.debug("Thread {} started".format(sensor_name))
 
-    sensor_logger = SensorLogger(sensor_name=sensor_name, terminal_out=True)
-
+    sensor_logger = SensorLogger(sensor_name=sensor_name, terminal_out=True) #TODO: check this is not made every loop
+    config = Configuration(status_logger)
     sensor_type = config.get_config(sensor_name)
     init_time = int(config.get_config(sensor_name + "_init"))
 
@@ -35,7 +35,7 @@ def pm_thread(sensor_name, status_logger, pins, serial_id):
         sensor = Plantower(pins=pins, id=serial_id)
 
         time.sleep(1)
-
+        #TODO: why is this like this, why not sleep for init_time -- do i need to clear the serial buffer?
         # warm up time  - readings are not logged
         while init_count < init_time:
             try:
@@ -43,7 +43,7 @@ def pm_thread(sensor_name, status_logger, pins, serial_id):
                 sensor.read()
                 init_count += 1
             except PlantowerException as e:
-                status_logger.exception("Failed to read from sensor PMS5003")
+                status_logger.exception("Warming up PMS5003")
                 blink_led((0x550000, 0.4, True))
 
     elif sensor_type == "SPS030":
@@ -54,7 +54,7 @@ def pm_thread(sensor_name, status_logger, pins, serial_id):
                 sensor = Sensirion(retries=1, pins=pins, id=serial_id)  # automatically starts measurement
                 break
             except SensirionException as e:
-                status_logger.exception("Failed to read from sensor SPS030")
+                status_logger.exception("Warming up SPS030")
                 blink_led((0x550000, 0.4, True))
                 time.sleep(1)
 

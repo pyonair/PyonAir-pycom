@@ -8,26 +8,65 @@ from _pybytes import Pybytes
 from _pybytes_config import PybytesConfig
 from machine import RTC, unique_id
 from machine import SD, Pin, reset
-from initialisation import initialise_time # TODO: clunky refactor
-
+import network # Used to disable WiFi
+from initialisation import initialisation #initialise_time # TODO: clunky refactor
+from helper import blink_led
 
 import loggingpycom 
+from LoggerFactory import LoggerFactory
 
+from UserButton import UserButton
 
 from Constants import *
+
+
+#===================Disable default wifi===================
+
+try:
+    wlan = network.WLAN()
+    wlan.deinit()
+except Exception as e:
+    print("Unable to disable WiFi")
+
+#===============LED
+pycom.heartbeat(False)  # disable the heartbeat LED
+pycom.rgbled(0x552000)  # flash orange to indicate startup
+
+
+#=========================Mount SD card=======
+try:
+    sd = SD()
+    os.mount(sd, '/sd')
+    #TODO: Error catch , set led for no SD card
+except Exception as e:
+    print("SD did not mount")
+
+
+#===================Get a logger up and running asap!
+logger_factory = LoggerFactory()
+#TODO: Set log level to level in config file
+status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
+                                                        filename=LOG_FILENAME)
+status_logger.warning("Rebooted")
+
+
+#======================== Setup user interupt button
+user_button = UserButton(status_logger)
+pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
+pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
+
+
+
 
 
 #TODO: provision if key on sd card
 
 #set connect to false in config file?
 
-
+#========Pybytes
 pycom.nvs_set('pybytes_debug',99 ) #0 warning - 99 all
 Pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
-
 #pdb.set_trace()
-
-
 pycom.pybytes_on_boot(False)
 conf = PybytesConfig().read_config()
 print("CONFIG:  ")
@@ -46,57 +85,54 @@ pybytes.send_signal(1, 0) # Sort of similar to uptime, sent to note reboot
 
 #==========================
 
-from helper import blink_led
-#Disable default wifi
-from network import WLAN
-wlan = WLAN()
-wlan.deinit()
 
-pycom.heartbeat(False)  # disable the heartbeat LED
-pycom.rgbled(0x552000)  # flash orange to indicate startup
+
+
+
 
 # Try to mount SD card, if this fails, keep blinking red and do not proceed
-try:
+#try:
    
     
     #from loggingpycom import DEBUG
-    from LoggerFactory import LoggerFactory
-    from UserButton import UserButton
+    #from LoggerFactory import LoggerFactory
+    #from UserButton import UserButton#
     # Initialise LoggerFactory and status logger
-    logger_factory = LoggerFactory()
-    status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
-                                                        filename=LOG_FILENAME)
+    #logger_factory = LoggerFactory()
+    #status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
+    #                                                    filename=LOG_FILENAME)
 
     # Initialise button interrupt on pin 14 for user interaction
-    user_button = UserButton(status_logger)
-    pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
-    pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
+    #user_button = UserButton(status_logger)
+    #pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
+    #pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
 
     # Mount SD card
-    sd = SD()
-    os.mount(sd, '/sd')
+    #sd = SD()
+    #os.mount(sd, '/sd')
 
-except Exception as e:
-    print(str(e))    
-    reboot_counter = 0
-    while True:
-        blink_led((0x550000, 0.5, True))  # blink red LED
-        time.sleep(0.5)
-        reboot_counter += 1
-        if reboot_counter >= 180:
-            reset()
+# except Exception as e:
+#     print(str(e))    
+#     reboot_counter = 0
+#     while True:
+#         blink_led((0x550000, 0.5, True))  # blink red LED
+#         time.sleep(0.5)
+#         reboot_counter += 1
+#         if reboot_counter >= 180:
+#             reset()
 
 try:
     from machine import RTC, unique_id
-    from initialisation import initialise_time
+    #from initialisation import initialise_time
     from ubinascii import hexlify
-    from Configuration import config
+    import Configuration
     from new_config import new_config
     from software_update import software_update
     import strings as s
     import ujson
 
     # Read configuration file to get preferences
+    config = Configuration.Configuration(status_logger)
     config.read_configuration()
 
     """SET CODE VERSION NUMBER - if new tag is added on git, update code version number accordingly"""
@@ -123,14 +159,17 @@ try:
 
     # Get current time
     rtc = RTC()
-    no_time, update_time_later = initialise_time(rtc, gps_on, status_logger)
+    no_time, update_time_later =  initialisation(status_logger).initialise_time(rtc, gps_on, status_logger)
 
+    #=======REmove this config stuff === warn this devide id may be used -- check
     # Check if device is configured, or SD card has been moved to another device
-    device_id = hexlify(unique_id()).upper().decode("utf-8")
-    if not config.is_complete(status_logger) or config.get_config("device_id") != device_id:
-        config.reset_configuration(status_logger)
-        #  Force user to configure device, then reboot
-        new_config(status_logger, arg=0)
+    # device_id = hexlify(unique_id()).upper().decode("utf-8")
+    # if not config.is_complete(status_logger) or config.get_config("device_id") != device_id:
+    #     config.reset_configuration(status_logger)
+    #     #  Force user to configure device, then reboot
+    #     new_config(status_logger, arg=0)
+    #=======REmove this config stuff
+
 
     # User button will enter configurations page from this point on
     user_button.set_config_enabled(True)
@@ -170,23 +209,23 @@ try:
     from TempSHT35 import TempSHT35
     import GpsSIM28
     import _thread
-    from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
+    #from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
     from LoRaWAN import LoRaWAN
 
     # Configurations are entered parallel to main execution upon button press for 2.5 secs
     user_button.set_config_blocking(False)
 
     # Set debug level - has to be set after logger was initialised and device was configured
-    logger_factory.set_level('status_logger', get_logging_level())
+    logger_factory.set_level(DEFAULT_LOG_NAME, initialisation(status_logger).get_logging_level())
 
     # Initialise file system
-    initialise_file_system()
+    initialisation(status_logger).initialise_file_system()
 
     # Remove residual files from the previous run (removes all files in the current and processing dir)
-    remove_residual_files()
+    initialisation(status_logger).remove_residual_files()
 
     # Get a dictionary of sensors and their status
-    sensors = get_sensors()
+    sensors = get_sensors(status_logger)
 
     # Join the LoRa network
     lora = False
@@ -202,15 +241,18 @@ try:
 
     # Initialise PM power circuitry
     PM_transistor = Pin('P20', mode=Pin.OUT)
-    PM_transistor.value(0)
-    if config.get_config(s.PM1) != "OFF" or config.get_config(s.PM2) != "OFF":
+    
+    if config.get_config(s.PM1) == "OFF" and config.get_config(s.PM2) == "OFF": #Turn on sensors (power)
+        PM_transistor.value(0) #TODO: Somehow make this clear that it disables BOTH??? 
+    else:
         PM_transistor.value(1)
+        status_logger.info("Power ON both PM sensors")
 
     # Initialise PM sensor threads
     if sensors[s.PM1]:
-        initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1, status_logger=status_logger)
+        initialisation(status_logger).initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1, status_logger=status_logger)
     if sensors[s.PM2]:
-        initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2, status_logger=status_logger)
+        initialisation(status_logger).initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2, status_logger=status_logger)
 
     # Start scheduling lora messages if any of the sensors are defined
     if True in sensors.values():
