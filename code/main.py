@@ -4,8 +4,11 @@
 import os
 import time
 import pycom
+#PYBYTES
 from _pybytes import Pybytes
 from _pybytes_config import PybytesConfig
+
+
 from machine import RTC, unique_id
 from machine import SD, Pin, reset
 import network # Used to disable WiFi
@@ -69,8 +72,18 @@ logger_factory = LoggerFactory()
 #TODO: Set log level to level in config file
 status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
                                                         filename=LOG_FILENAME)
-status_logger.warning("Rebooted")
 
+
+#=========================Get time sorted
+    # Get current time
+rtc = RTC()
+no_time, update_time_later =  initialisation(status_logger).initialise_time(rtc, False, status_logger) #Dont use GPS , yet - just read RTC
+update_time_later = True #Force a gps fix
+
+#===============log  reboot
+
+
+status_logger.warning("Rebooted")
 
 #======================== Setup user interupt button
 user_button = UserButton(status_logger)
@@ -87,12 +100,19 @@ pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
 
 #========Pybytes
 pycom.nvs_set('pybytes_debug',99 ) #0 warning - 99 all
-Pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
+conf = PybytesConfig().read_config()
+
+pybytes = Pybytes(conf)
+#backup config
+#naw.... pybytes.write_config([file=’/flash/pybytes_config.json’, silent=False])
+
+pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
+
+status_logger.warning("Update")
 #pdb.set_trace()
 pycom.pybytes_on_boot(False)
 conf = PybytesConfig().read_config()
-print("CONFIG:  ")
-print(conf)
+
 pybytes = Pybytes(conf)
 
 #TIME
@@ -148,7 +168,7 @@ try:
 
     # Read configuration file to get preferences
     config = Configuration.Configuration(status_logger)
-    config.read_configuration()
+    #config.read_configuration() #Now removed from init
 
     """SET CODE VERSION NUMBER - if new tag is added on git, update code version number accordingly"""
     # ToDo: Update OTA.py so if version is 0.0.0, it backs up all existing files, and adds all files as new.
@@ -160,21 +180,22 @@ try:
     add a corresponding decoder to the back-end."""
     config.save_config({"fmt_version": 1})
 
+    #TODO: Repair overrride later
     # Override Preferences - DEVELOPER USE ONLY - keep all overwrites here
-    if 'debug_config.json' in os.listdir('/flash'):
-        status_logger.warning("Overriding configuration with the content of debug_config.json")
-        with open('/flash/debug_config.json', 'r') as f:
-            config.set_config(ujson.loads(f.read()))
-            status_logger.warning("Configuration changed to: " + str(config.get_config()))
+    # if 'debug_config.json' in os.listdir('/flash'):
+    #     status_logger.warning("Overriding configuration with the content of debug_config.json")
+    #     with open('/flash/debug_config.json', 'r') as f:
+    #         config.set_config(ujson.loads(f.read()))
+    #         status_logger.warning("Configuration changed to: " + str(config.get_config()))
 
     # Check if GPS is enabled in configurations
-    gps_on = True
+    
     if config.get_config("GPS") == "OFF":
         gps_on = False
+    else:
+        gps_on = True
 
-    # Get current time
-    rtc = RTC()
-    no_time, update_time_later =  initialisation(status_logger).initialise_time(rtc, gps_on, status_logger)
+
 
     #=======REmove this config stuff === warn this devide id may be used -- check
     # Check if device is configured, or SD card has been moved to another device
@@ -208,7 +229,7 @@ except Exception as e:
             if reboot_counter >= 180:
                 status_logger.info("rebooting...")
                 reset()
-        new_config(status_logger, arg=0)
+        new_config(status_logger, arg=0) #TODO remove this
     except Exception:
         reset()
 
@@ -242,7 +263,7 @@ try:
     if sensors[s.TEMP]:
         TEMP_logger = SensorLogger(sensor_name=s.TEMP, terminal_out=True)
         if config.get_config(s.TEMP) == "SHT35":
-            temp_sensor = TempSHT35(TEMP_logger, status_logger)
+            temp_sensor = TempSHT35(config, TEMP_logger, status_logger)
     status_logger.info("Temperature and humidity sensor initialised")
 
     # Initialise PM power circuitry
@@ -251,7 +272,7 @@ try:
     if config.get_config(s.PM1) == "OFF" and config.get_config(s.PM2) == "OFF": #Turn on sensors (power)
         PM_transistor.value(0) #TODO: Somehow make this clear that it disables BOTH??? 
     else:
-        PM_transistor.value(1)
+        #FIX PM_transistor.value(1)
         status_logger.info("Power ON both PM sensors")
 
     # Initialise PM sensor threads
@@ -279,6 +300,7 @@ try:
     if gps_on and update_time_later:
         # Start a new thread to update time from gps if available
         # https://docs.pycom.io/firmwareapi/micropython/_thread/
+        status_logger.info("Starting GPS thread...")
         _thread.start_new_thread(GpsSIM28.SetRTCtime, (rtc, status_logger))
 
 except Exception as e:

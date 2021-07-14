@@ -7,7 +7,7 @@ from SensorLogger import SensorLogger
 import time
 
 
-def pm_thread(sensor_name, status_logger, pins, serial_id):
+def pm_thread(sensor_name,config,  status_logger, pins, serial_id):
     """
     Method to run as a thread that reads, processes and logs readings form pm sensors according to their type
     :param sensor_name: PM1 or PM2
@@ -23,7 +23,7 @@ def pm_thread(sensor_name, status_logger, pins, serial_id):
     status_logger.debug("Thread {} started".format(sensor_name))
 
     sensor_logger = SensorLogger(sensor_name=sensor_name, terminal_out=True) #TODO: check this is not made every loop
-    config = Configuration(status_logger)
+    config = config
     sensor_type = config.get_config(sensor_name)
     init_time = int(config.get_config(sensor_name + "_init"))
 

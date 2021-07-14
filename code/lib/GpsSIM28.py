@@ -22,9 +22,9 @@ def logGPS(rtc,logger):
 
 class GPSSIM28:
 
-    def __init__(self,logger):
+    def __init__(self,config, logger):
         self.logger= logger
-        self.config = Configuration(logger) #TODO: Temp fix to get values in here -- but change to static
+        self.config = config # Configuration(logger) #TODO: Temp fix to get values in here -- but change to static
         # Initialise GPS power circuitry
         self.GPS_transistor = Pin('P19', mode=Pin.OUT)
         self.GPS_transistor.value(0)
@@ -166,7 +166,7 @@ class GPSSIM28:
                     return False
 
 
-    def get_position(self); # lora):
+    def get_position(self): # lora):
         """
         Acquires latitude, longitude and altitude from GPS based on HDOP
         :param logger: status logger

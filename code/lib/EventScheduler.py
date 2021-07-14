@@ -10,7 +10,7 @@ import time
 
 
 class EventScheduler:
-    def __init__(self, logger, data_type, lora):
+    def __init__(self, config, logger, data_type, lora): #TODO: reorder these parameters to be consistent!
         """
         Schedules events for calculating averages or getting GPS position and also schedules random LoRa messages for
         each interval
@@ -26,7 +26,7 @@ class EventScheduler:
         self.logger = logger
         self.data_type = data_type
         self.lora = lora
-        self.config = Configuration(logger)
+        self.config = config
 
         #  Attributes
         if self.data_type == "sensors":

@@ -9,8 +9,8 @@ import time
 # Temp Res: 0.01C, Temp Acc: +/-0.1C, Humid Res: 0.01%, Humid Acc: +/-1.5%
 class TempSHT35(object):
 
-    def __init__(self, logger, status_logger):
-        self.config = Configuration(logger)
+    def __init__(self, config, logger, status_logger):
+        self.config =config
         self.logger = logger
         self.status_logger = status_logger
 
