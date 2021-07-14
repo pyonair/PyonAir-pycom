@@ -6,7 +6,7 @@
 LOG_FILENAME="PyonAir.log"
 #The name of the logger instance -- no need to change
 DEFAULT_LOG_NAME="Pyonair"
-
+LOG_LEVEL_KEY="logging_lvl" #TODO : rename to something sensible
 
 #Str name of the config in the strings file?
 DEFAULT_CONFIG = {"device_id": "", "device_name": "NewPyonAir", "password": "newpyonair", "region": "Europe",

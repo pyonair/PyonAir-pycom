@@ -72,30 +72,30 @@ logger_factory = LoggerFactory()
 #TODO: Set log level to level in config file
 status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
                                                         filename=LOG_FILENAME)
-
+status_logger.warning("Rebooted")
 #=============Global config
 
 config = Configuration.Configuration(status_logger)
+status_logger.info("Config loaded")
 
+#=============iNIT functions
+
+init = initialisation(config, status_logger)
 
 #=========================Get time sorted
     # Get current time
 rtc = RTC()
-no_time, update_time_later =  initialisation(config, status_logger).initialise_time(rtc, False) #Dont use GPS , yet - just read RTC
+no_time, update_time_later =  init.initialise_time(rtc, False) #Dont use GPS , yet - just read RTC
 update_time_later = True #Force a gps fix
+status_logger.info("RTC read")
 
-#===============log  reboot
-
-
-status_logger.warning("Rebooted")
 
 #======================== Setup user interupt button
 user_button = UserButton(status_logger)
 pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
 pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
-
-
-
+user_button.set_config_enabled(True)
+status_logger.warning("User button enabled")
 
 
 #TODO: provision if key on sd card
@@ -128,7 +128,7 @@ pybytes = Pybytes(conf)
 pybytes.start(autoconnect=False)
 pybytes.send_signal(1, 0) # Sort of similar to uptime, sent to note reboot
 
-
+status_logger.warning("Pybytes config done")
 #==========================
 
 
@@ -212,7 +212,7 @@ try:
 
 
     # User button will enter configurations page from this point on
-    user_button.set_config_enabled(True)
+  
 
     # If initialise time failed to acquire exact time, halt initialisation
     if no_time:
@@ -242,18 +242,17 @@ pycom.rgbled(0x552000)  # flash orange until its loaded
 # If sd, time, logger and configurations were set, continue with initialisation
 try:
 
-
+    status_logger.info("Filesystem.......")
     # Configurations are entered parallel to main execution upon button press for 2.5 secs
     user_button.set_config_blocking(False)
-
     # Set debug level - has to be set after logger was initialised and device was configured
-    logger_factory.set_level(DEFAULT_LOG_NAME, initialisation(status_logger).get_logging_level())
+    logger_factory.set_level(DEFAULT_LOG_NAME, config.get_config(LOG_LEVEL_KEY) ) # initialisation(config, status_logger).get_logging_level())
 
     # Initialise file system
-    initialisation(status_logger).initialise_file_system()
+    init.initialise_file_system()
 
     # Remove residual files from the previous run (removes all files in the current and processing dir)
-    initialisation(status_logger).remove_residual_files()
+    init.remove_residual_files()
 
     # Get a dictionary of sensors and their status
     sensors = get_sensors(status_logger)
@@ -263,7 +262,9 @@ try:
     if (True in sensors.values() or gps_on) and config.get_config("LORA") == "ON":
         lora = LoRaWAN(status_logger)
 
+
     # Initialise temperature and humidity sensor thread with id: TEMP
+    status_logger.info("Starting Temp logger...")
     if sensors[s.TEMP]:
         TEMP_logger = SensorLogger(sensor_name=s.TEMP, terminal_out=True)
         if config.get_config(s.TEMP) == "SHT35":
@@ -281,9 +282,9 @@ try:
 
     # Initialise PM sensor threads
     if False: #sensors[s.PM1]:
-        initialisation(status_logger).initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1, status_logger=status_logger)
+        init.initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1, status_logger=status_logger)
     if False: #sensors[s.PM2]:
-        initialisation(status_logger).initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2, status_logger=status_logger)
+        init.initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2, status_logger=status_logger)
 
     # Start scheduling lora messages if any of the sensors are defined
     if True in sensors.values():
@@ -307,6 +308,7 @@ try:
         status_logger.info("Starting GPS thread...")
         _thread.start_new_thread(GpsSIM28.SetRTCtime, (rtc, status_logger))
 
+    #TODO:  delete init object?
 except Exception as e:
     status_logger.exception("Exception in the main")
     led_lock.acquire()
