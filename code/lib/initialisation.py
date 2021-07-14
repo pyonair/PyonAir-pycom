@@ -11,10 +11,11 @@ import pycom
 
 class initialisation:
 
-    def __init__(self, logger):
+    def __init__(self,config,  logger):
         self.logger = logger
+        self.config = config
 
-    def initialise_time(self, rtc, gps_on, config, logger):
+    def initialise_time(self, rtc, gps_on):
         """
         Acquire UTC timestamp from RTC module or GPS
         :param rtc: pycom real time clock
@@ -26,7 +27,7 @@ class initialisation:
         :return: no_time, update_time_later
         :rtype: bool, bool
         """
-        self.config = config
+        
         no_time = False
         update_time_later = True
         try:
@@ -78,7 +79,7 @@ class initialisation:
         return no_time, update_time_later
 
 
-    def initialise_pm_sensor(self, sensor_name, pins, serial_id, status_logger):
+    def initialise_pm_sensor(self, sensor_name, pins, serial_id):
         """
 
         :param sensor_name: PM1 or PM2
@@ -94,9 +95,9 @@ class initialisation:
             # Start PM sensor thread
             _thread.start_new_thread(pm_thread, (sensor_name,self.config,  status_logger, pins, serial_id))
 
-            status_logger.info("Sensor " + sensor_name + " initialised")
+            self.logger.info("Sensor " + sensor_name + " initialised")
         except Exception as e:
-            status_logger.exception("Failed to initialise sensor " + sensor_name)
+            self.exception("Failed to initialise sensor " + sensor_name)
 
 
     def initialise_file_system(self):

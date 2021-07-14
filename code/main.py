@@ -73,11 +73,15 @@ logger_factory = LoggerFactory()
 status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
                                                         filename=LOG_FILENAME)
 
+#=============Global config
+
+config = Configuration.Configuration(status_logger)
+
 
 #=========================Get time sorted
     # Get current time
 rtc = RTC()
-no_time, update_time_later =  initialisation(status_logger).initialise_time(rtc, False, status_logger) #Dont use GPS , yet - just read RTC
+no_time, update_time_later =  initialisation(config, status_logger).initialise_time(rtc, False) #Dont use GPS , yet - just read RTC
 update_time_later = True #Force a gps fix
 
 #===============log  reboot
@@ -167,7 +171,7 @@ try:
 
 
     # Read configuration file to get preferences
-    config = Configuration.Configuration(status_logger)
+    #config = Configuration.Configuration(status_logger)
     #config.read_configuration() #Now removed from init
 
     """SET CODE VERSION NUMBER - if new tag is added on git, update code version number accordingly"""
