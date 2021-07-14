@@ -139,3 +139,4 @@ class initialisation:
             return INFO
         elif logging_lvl == "Debug":
             return DEBUG
+        #TODO: just use this in the config! dont translate

@@ -241,14 +241,17 @@ try:
 
     # Initialise PM power circuitry
     PM_transistor = Pin('P20', mode=Pin.OUT)
-    PM_transistor.value(0)
-    if config.get_config(s.PM1) != "OFF" or config.get_config(s.PM2) != "OFF": #Turn on sensors (power)
+    
+    if config.get_config(s.PM1) == "OFF" and config.get_config(s.PM2) == "OFF": #Turn on sensors (power)
+        PM_transistor.value(0) #TODO: Somehow make this clear that it disables BOTH??? 
+    else:
         PM_transistor.value(1)
+        status_logger.info("Power ON both PM sensors")
 
     # Initialise PM sensor threads
     if sensors[s.PM1]:
         initialisation(status_logger).initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1, status_logger=status_logger)
-    if False: #TODO: sensors[s.PM2]:
+    if sensors[s.PM2]:
         initialisation(status_logger).initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2, status_logger=status_logger)
 
     # Start scheduling lora messages if any of the sensors are defined

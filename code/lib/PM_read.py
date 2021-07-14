@@ -35,7 +35,7 @@ def pm_thread(sensor_name, status_logger, pins, serial_id):
         sensor = Plantower(pins=pins, id=serial_id)
 
         time.sleep(1)
-
+        #TODO: why is this like this, why not sleep for init_time -- do i need to clear the serial buffer?
         # warm up time  - readings are not logged
         while init_count < init_time:
             try:
