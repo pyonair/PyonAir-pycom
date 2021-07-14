@@ -20,6 +20,28 @@ from UserButton import UserButton
 from Constants import *
 
 
+from machine import Timer
+from SensorLogger import SensorLogger
+from EventScheduler import EventScheduler
+from helper import blink_led, get_sensors, led_lock
+from averages import get_sensor_averages
+from TempSHT35 import TempSHT35
+import GpsSIM28
+import _thread
+#from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
+from LoRaWAN import LoRaWAN
+
+
+from machine import RTC, unique_id
+#from initialisation import initialise_time
+from ubinascii import hexlify
+import Configuration
+from new_config import new_config
+from software_update import software_update
+import strings as s
+import ujson
+
+
 #===================Disable default wifi===================
 
 try:
@@ -122,14 +144,7 @@ pybytes.send_signal(1, 0) # Sort of similar to uptime, sent to note reboot
 #             reset()
 
 try:
-    from machine import RTC, unique_id
-    #from initialisation import initialise_time
-    from ubinascii import hexlify
-    import Configuration
-    from new_config import new_config
-    from software_update import software_update
-    import strings as s
-    import ujson
+
 
     # Read configuration file to get preferences
     config = Configuration.Configuration(status_logger)
@@ -201,16 +216,7 @@ pycom.rgbled(0x552000)  # flash orange until its loaded
 
 # If sd, time, logger and configurations were set, continue with initialisation
 try:
-    from machine import Timer
-    from SensorLogger import SensorLogger
-    from EventScheduler import EventScheduler
-    from helper import blink_led, get_sensors, led_lock
-    from averages import get_sensor_averages
-    from TempSHT35 import TempSHT35
-    import GpsSIM28
-    import _thread
-    #from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
-    from LoRaWAN import LoRaWAN
+
 
     # Configurations are entered parallel to main execution upon button press for 2.5 secs
     user_button.set_config_blocking(False)
@@ -272,7 +278,8 @@ try:
     # Try to update RTC module with accurate UTC datetime if GPS is enabled and has not yet synchronized
     if gps_on and update_time_later:
         # Start a new thread to update time from gps if available
-        _thread.start_new_thread(GpsSIM28.get_time, (rtc, status_logger))
+        # https://docs.pycom.io/firmwareapi/micropython/_thread/
+        _thread.start_new_thread(GpsSIM28.SetRTCtime, (rtc, status_logger))
 
 except Exception as e:
     status_logger.exception("Exception in the main")
