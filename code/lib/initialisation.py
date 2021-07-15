@@ -93,11 +93,11 @@ class initialisation:
         """
         try:
             # Start PM sensor thread
-            _thread.start_new_thread(pm_thread, (sensor_name,self.config,  status_logger, pins, serial_id))
+            _thread.start_new_thread(pm_thread, (sensor_name,self.config,  self.logger, pins, serial_id))
 
-            self.logger.info("Sensor " + sensor_name + " initialised")
+            self.logger.info("THREAD - Sensor " + sensor_name + " initialised")
         except Exception as e:
-            self.exception("Failed to initialise sensor " + sensor_name)
+            self.exception("Failed to initialise sensor thread " + sensor_name)
 
 
     def initialise_file_system(self):

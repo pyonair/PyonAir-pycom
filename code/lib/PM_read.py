@@ -5,25 +5,29 @@ from Configuration import Configuration
 from machine import Timer
 from SensorLogger import SensorLogger
 import time
+from WelfordAverage import WelfordAverage
 
 
-def pm_thread(sensor_name,config,  status_logger, pins, serial_id):
+def pm_thread(sensor_name,config,  debugLogger, pins, serial_id):
     """
     Method to run as a thread that reads, processes and logs readings form pm sensors according to their type
     :param sensor_name: PM1 or PM2
     :type sensor_name: str
-    :param status_logger: status logger
-    :type status_logger: LoggerFactory object
+    :param debugLogger: status logger
+    :type debugLogger: LoggerFactory object
     :param pins: serial bus pins (TX, RX)
     :type pins: tuple(int, int)
     :param serial_id: serial bus id (0, 1 or 2)
     :type serial_id: int
     """
 
-    status_logger.debug("Thread {} started".format(sensor_name))
+    debugLogger.debug("Thread {} started".format(sensor_name))
+    #Welfords variables
+    pm1Average = WelfordAverage(debugLogger)
+
 
     sensor_logger = SensorLogger(sensor_name=sensor_name, terminal_out=True) #TODO: check this is not made every loop
-    config = config
+    
     sensor_type = config.get_config(sensor_name)
     init_time = int(config.get_config(sensor_name + "_init"))
 
@@ -43,7 +47,7 @@ def pm_thread(sensor_name,config,  status_logger, pins, serial_id):
                 sensor.read()
                 init_count += 1
             except PlantowerException as e:
-                status_logger.exception("Warming up PMS5003")
+                debugLogger.exception("Error warming up PMS5003")
                 blink_led((0x550000, 0.4, True))
 
     elif sensor_type == "SPS030":
@@ -54,7 +58,7 @@ def pm_thread(sensor_name,config,  status_logger, pins, serial_id):
                 sensor = Sensirion(retries=1, pins=pins, id=serial_id)  # automatically starts measurement
                 break
             except SensirionException as e:
-                status_logger.exception("Warming up SPS030")
+                debugLogger.exception("Error warming up SPS030")
                 blink_led((0x550000, 0.4, True))
                 time.sleep(1)
 
@@ -65,21 +69,29 @@ def pm_thread(sensor_name,config,  status_logger, pins, serial_id):
                 sensor.read()
                 init_count += 1
             except SensirionException as e:
-                status_logger.exception("Failed to read from sensor SPS030")
+                debugLogger.exception("Failed to read from sensor SPS030")
                 blink_led((0x550000, 0.4, True))
 
     # start a periodic timer interrupt to poll readings every second
-    processing_alarm = Timer.Alarm(process_readings, arg=(sensor_type, sensor, sensor_logger, status_logger), s=1, periodic=True)
+
+
+    #Use welford here : https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+    #Average variables? -- pass them in
+
+    processing_alarm = Timer.Alarm(process_readings, arg=(sensor_type, sensor, sensor_logger, debugLogger,pm1Average), s=1, periodic=True)
+
+    #DO averaging here? -- timer
+
 
 
 def process_readings(args):
     """
     Method to be evoked by a timed alarm, which reads and processes data from the PM sensor, and logs it to the sd card
-    :param args: sensor_type, sensor, sensor_logger, status_logger
+    :param args: sensor_type, sensor, sensor_logger, debugLogger
     :type args: str, str, SensorLogger object, LoggerFactory object
     """
 
-    sensor_type, sensor, sensor_logger, status_logger = args[0], args[1], args[2], args[3]
+    sensor_type, sensor, sensor_logger, debugLogger, pm1Average   = args[0], args[1], args[2], args[3] ,  args[4]   #TODO: this looks clunky and in need of a fix
 
     try:
         recv = sensor.read()
@@ -88,9 +100,16 @@ def process_readings(args):
             curr_timestamp = recv_lst[0]
             sensor_reading_float = [float(i) for i in recv_lst[1:]]
             sensor_reading_round = [round(i) for i in sensor_reading_float]
-            lst_to_log = [curr_timestamp] + [str(i) for i in sensor_reading_round]
+            lst_to_log = [curr_timestamp] + [str(i) for i in sensor_reading_round] #TODO: check that round is sane here
             line_to_log = ','.join(lst_to_log)
             sensor_logger.log_row(line_to_log)
+
+            ##attempt averaging
+            pm1Average.update(1)
+
     except Exception as e:
-        status_logger.error("Failed to read from sensor {}".format(sensor_type))
+        debugLogger.error("Failed to read from sensor {}".format(sensor_type))
         blink_led((0x550000, 0.4, True))
+ 
+
+    

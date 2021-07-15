@@ -12,13 +12,15 @@ import _thread
 
 #good for thread
 #take rtc and update time if get fix
-def SetRTCtime(rtc,logger):
-    gps = GPSSIM28(logger)
+def SetRTCtime(rtc,config, logger):
+    gps = GPSSIM28(config, logger)
     gps.get_time(rtc)
 
-def logGPS(rtc,logger):
-    gps = GPSSIM28(logger)
-    gps.get_position(rtc)
+def logGPS(rtc,config, logger):
+    logger.info("Not implemented")
+    #gps = GPSSIM28(config, logger)
+    #gps.get_position(rtc)
+    #TODO: not implemented
 
 class GPSSIM28:
 

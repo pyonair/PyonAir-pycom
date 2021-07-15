@@ -273,22 +273,22 @@ try:
     if config.get_config(s.PM1) == "OFF" and config.get_config(s.PM2) == "OFF": #Turn on sensors (power)
         PM_transistor.value(0) #TODO: Somehow make this clear that it disables BOTH??? 
     else:
-        #FIX PM_transistor.value(1)
-        status_logger.info("Power ON both PM sensors")
+        PM_transistor.value(1)
+        status_logger.info("Enable power on for BOTH PM sensors")
 
     # Initialise PM sensor threads
-    if False: #sensors[s.PM1]:
-        init.initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1, status_logger=status_logger)
+    if sensors[s.PM1]:
+        init.initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1)
     if False: #sensors[s.PM2]:
-        init.initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2, status_logger=status_logger)
+        init.initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2)
 
     # Start scheduling lora messages if any of the sensors are defined
-    if True in sensors.values():
+    if False: # True in sensors.values():
         PM_Events = EventScheduler(config , logger=status_logger, data_type="sensors", lora=lora)
-    if gps_on:
+    if False: #gps_on:
         GPS_Events = EventScheduler(config, logger=status_logger, data_type="gps", lora=lora)
 
-    status_logger.info("Initialisation finished")
+    
 
     # Blink green three times to identify that the device has been initialised
     for val in range(3):
@@ -298,12 +298,15 @@ try:
     heartbeat = Timer.Alarm(blink_led, s=5, arg=(0x005500, 0.1, True), periodic=True)
 
     # Try to update RTC module with accurate UTC datetime if GPS is enabled and has not yet synchronized
-    if gps_on and update_time_later:
+    if False: #  gps_on and update_time_later: #TODO: gps bugs, but rememebr shared serial so check logger file!
         # Start a new thread to update time from gps if available
         # https://docs.pycom.io/firmwareapi/micropython/_thread/
         status_logger.info("Starting GPS thread...")
-        _thread.start_new_thread(GpsSIM28.SetRTCtime, (rtc, status_logger))
+        _thread.start_new_thread(GpsSIM28.SetRTCtime, (rtc,config,  status_logger))
 
+
+
+    status_logger.info("Initialisation finished")
     #TODO:  delete init object?
 except Exception as e:
     status_logger.exception("Exception in the main")
