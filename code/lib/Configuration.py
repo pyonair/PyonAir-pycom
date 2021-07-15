@@ -41,6 +41,7 @@ class Configuration:
             return self.configuration
         if isinstance(keys, list):
             return list(self.configuration[k] for k in keys if k in self.configuration)
+            #TODO remove this multi option
         else:
             return self.configuration[keys]
 
@@ -63,7 +64,7 @@ class Configuration:
         """
         self.set_config(new_config)
 
-        with open(s.root_path + s.config_filename, 'w') as f:  # save credentials to sd card
+        with open(s.root_path + CONFIG_FILE_NAME, 'w') as f:  # save credentials to sd card
             f.write(ujson.dumps(self.configuration))
 
     #  Reads and returns keys and preferences from sd card
@@ -71,16 +72,34 @@ class Configuration:
         """
         Read config file on SD card and load it to the configuration dict
         """
-        print("Loading Config...")
-        self.default_configuration = DEFAULT_CONFIG # s.default_configuration #this is from constants/strings
-        if s.config_filename not in os.listdir('/sd'):
-            with open('/sd/' + s.config_filename, 'w') as f:  # create new config file
-                f.write(ujson.dumps(DEFAULT_CONFIG))
-                self.set_config(DEFAULT_CONFIG)
-        else:
-            with open('/sd/' + s.config_filename, 'r') as f:
+        #set to default
+        self.configuration = DEFAULT_CONFIG
+        CONFIG_FILE_FULL_NAME = os.path.join(CONFIG_FILE_DIRECTORY + CONFIG_FILE_NAME)
+
+        #if no config file
+        if CONFIG_FILE_NAME not in os.listdir(CONFIG_FILE_DIRECTORY):
+            with open(CONFIG_FILE_FULL_NAME, 'w') as f:  # create new config file
+                f.write(ujson.dumps(self.configuration))
+                self.set_config(self.configuration)
+
+        #load config
+        if CONFIG_FILE_NAME in os.listdir(CONFIG_FILE_DIRECTORY):
+            with open(CONFIG_FILE_FULL_NAME, 'r') as f:
                 self.set_config(ujson.loads(f.read()))
-                print(self.configuration)#TODO logger missing here, use debug logger. 
+                self.logger.debug(self.configuration)
+
+
+        #check for debug force overwrite.
+
+        
+        #Override Preferences - DEVELOPER USE ONLY - keep all overwrites here
+        if DEBUG_CONFIG_FILE_NAME in os.listdir(DEBUG_CONFIG_FILE_DIRECTORY):
+            self.logger.warning("Overriding configuration with the content of debug_config.json")
+            DEBUG_CONFIG_FILE_FULL_NAME = os.path.join(DEBUG_CONFIG_FILE_DIRECTORY + DEBUG_CONFIG_FILE_NAME)
+            with open(DEBUG_CONFIG_FILE_FULL_NAME, 'r') as f:
+                self.set_config(ujson.loads(f.read()))
+                self.warning("Configuration changed to: " + str(self.configuration))
+
 
     # Returns True if the configuration file is complete
     def is_complete(self, logger):
@@ -113,6 +132,7 @@ class Configuration:
         :type logger: LoggerFactory object
         """
         try:
+            self.logger.warning("This wont work ") #TODO: this method needs sorting
             self.configuration.clear()  # clear configuration
             self.set_config(DEFAULT_CONFIG)  # set configuration to default
 

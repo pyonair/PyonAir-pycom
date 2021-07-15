@@ -245,17 +245,18 @@ try:
     status_logger.info("Filesystem.......")
     # Configurations are entered parallel to main execution upon button press for 2.5 secs
     user_button.set_config_blocking(False)
+    status_logger.debug("LOG_LEVEL_KEY" + config.get_config(LOG_LEVEL_KEY))
     # Set debug level - has to be set after logger was initialised and device was configured
     logger_factory.set_level(DEFAULT_LOG_NAME, config.get_config(LOG_LEVEL_KEY) ) # initialisation(config, status_logger).get_logging_level())
-
+    status_logger.debug("Filesystem init start")
     # Initialise file system
     init.initialise_file_system()
 
     # Remove residual files from the previous run (removes all files in the current and processing dir)
     init.remove_residual_files()
-
+    status_logger.debug("Filesystem init completed")
     # Get a dictionary of sensors and their status
-    sensors = get_sensors(status_logger)
+    sensors = get_sensors(config, status_logger)
 
     # Join the LoRa network
     lora = False

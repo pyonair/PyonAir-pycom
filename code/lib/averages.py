@@ -10,7 +10,7 @@ import strings as s
 import time
 
 
-def get_sensor_averages(logger, lora):
+def get_sensor_averages(config, logger, lora):
     """
     Takes the averages of sensor readings and constructs a line to log to the SD card, terminal and lora buffer
     :param logger: status logger
@@ -22,7 +22,7 @@ def get_sensor_averages(logger, lora):
     logger.debug("Calculating averages")
 
     # get a dictionary of sensors and their status
-    sensors = get_sensors(logger)
+    sensors = get_sensors(config, logger)
     fmt = get_format(sensors)
     version = str( config.get_config("fmt_version"))
     timestamp = s.csv_timestamp_template.format(*time.gmtime())  # get current time in desired format
