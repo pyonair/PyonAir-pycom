@@ -7,6 +7,7 @@ from SensorLogger import SensorLogger
 import time
 from WelfordAverage import WelfordAverage
 
+#This important code, keep it fast are reliable. 
 
 def pm_thread(sensor_name,config,  debugLogger, pins, serial_id):
     """
@@ -100,7 +101,7 @@ def process_averages(args):
     #log to file
     if(gr03umCount == gr03umCount == gr03umCount):
 
-        averageLogger.log_row("".join([str(gr03umMean) , "," ,str(gr05umMean) , "," ,str(gr10umMean)]))
+        averageLogger.log_row("".join([str(gr03umMean) , "," ,str(gr05umMean) , "," ,str(gr10umMean), "," , str(gr10umCount)]))
     else: 
         averageLogger.log_row("".join([str(gr03umMean) , "," ,str(gr05umMean) , "," ,str(gr10umMean) , "," , str(gr03umCount) , "," , str(gr05umCount) , "," , str(gr10umCount)]))
     
@@ -127,7 +128,9 @@ def process_readings(args):
             sensor_reading_round = [round(i) for i in sensor_reading_float]  #TODO: this looks VERY processor intensive (remember 1hz here! x number of sensors)
             lst_to_log = [curr_timestamp] + [str(i) for i in sensor_reading_round] #TODO: check that round is sane here
             line_to_log = ','.join(lst_to_log)
+            
             sensor_logger.log_row(line_to_log)
+            
 
             ##attempt averaging
             #ROWS: "timestamp", "pm10_cf1", "PM1", "pm25_cf1", "PM25", "pm100_cf1", "PM10", "gr03um", "gr05um", "gr10um", "gr25um", "gr50um", "gr100um", ""
@@ -138,6 +141,8 @@ def process_readings(args):
 
     except Exception as e:
         debugLogger.error("Failed to read from sensor {}".format(sensor_type))
+        debugLogger.info(e)
+    
         blink_led((0x550000, 0.4, True))
  
 

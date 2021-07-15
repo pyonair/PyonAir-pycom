@@ -1,6 +1,6 @@
 import machine
 from machine import RTC, Timer
-from averages import get_sensor_averages
+#from averages import get_sensor_averages
 from helper import seconds_to_first_event
  
 from Configuration import Configuration
@@ -56,11 +56,12 @@ class EventScheduler:
     def periodic_event(self, arg):
         if self.data_type == "gps":
             #  get position from gps to be sent over LoRA
-            _thread.start_new_thread(GpsSIM28.get_position, (self.config, self.logger, self.lora))
+            _thread.start_new_thread(GpsSIM28.logGPS, (self.config, self.logger, self.lora))
 
         elif self.data_type == "sensors":
             #  flash averages of PM data to sd card to be sent over LoRa
-            get_sensor_averages(logger=self.logger, lora=self.lora)
+            #TODO: do you own agerages here
+            # #get_sensor_averages(logger=self.logger, lora=self.lora)
 
             if self.lora is not False:  # Schedule LoRa messages if LoRa is enabled
                 # if device was last transmitting a day or more ago, reset message_count for the day

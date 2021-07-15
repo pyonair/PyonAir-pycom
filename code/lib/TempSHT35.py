@@ -2,7 +2,8 @@ from machine import I2C, Timer
 
 from Configuration import Configuration 
 from helper import blink_led
-from strings import csv_timestamp_template
+#from strings import csv_timestamp_template
+from Constants import TIME_ISO8601_FMT
 import time
 
 
@@ -49,7 +50,7 @@ class TempSHT35(object):
         """
         # read and log pm sensor data
         try:
-            timestamp = csv_timestamp_template.format(*time.gmtime())  # get current time in desired format
+            timestamp = TIME_ISO8601_FMT.format(*time.gmtime())  # get current time in desired format
             read_lst = self.read()  # read SHT35 sensor - [celsius, humidity] to ~5 significant figures
             round_lst = [int(round(x, 1)*10) for x in read_lst]  # round readings to 1 significant figure, shift left, cast to int
             str_round_lst = list(map(str, round_lst))  # cast int to string

@@ -2,8 +2,8 @@ import loggingpycom as logging
 from loggingpycom import handlers
 
 STATUS_FMT_DEFAULT = '%(levelname)s - %(asctime)s - %(name)s - %(message)s'
-STATUS_MAX_FILE_SIZE_DEFAULT = 10 * 1024 * 1024  # 10MiB
-STATUS_ARCHIVE_COUNT_DEFAULT = 10  # How many files to keep before deletion
+DEBUG_LOG_MAX_FILE_SIZE_DEFAULT = 50 * 1024 * 1024  # 50MiB
+DEBUG_LOG_ARCHIVE_COUNT_DEFAULT = 10  # How many files to keep before deletion, this is inefficient and renames all n files (dont let n get big!)
 
 
 class LoggerFactory:
@@ -31,8 +31,8 @@ class LoggerFactory:
             level=logging.INFO,
             fmt=STATUS_FMT_DEFAULT,
             filename=None,
-            maxBytes=STATUS_MAX_FILE_SIZE_DEFAULT,
-            backupCount=STATUS_ARCHIVE_COUNT_DEFAULT,
+            maxBytes=DEBUG_LOG_MAX_FILE_SIZE_DEFAULT,
+            backupCount=DEBUG_LOG_ARCHIVE_COUNT_DEFAULT,
             terminal_out=True
     ):
         """

@@ -27,7 +27,7 @@ from machine import Timer
 from SensorLogger import SensorLogger
 from EventScheduler import EventScheduler
 from helper import blink_led, get_sensors, led_lock
-from averages import get_sensor_averages
+#from averages import get_sensor_averages
 from TempSHT35 import TempSHT35
 import GpsSIM28
 import _thread
@@ -70,8 +70,10 @@ except Exception as e:
 #===================Get a logger up and running asap!
 logger_factory = LoggerFactory()
 #TODO: Set log level to level in config file
+fileNameStr = LOG_FILENAME + FILENAME_FMT.format(*time.gmtime()) + LOG_EXT
+print(fileNameStr)
 status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
-                                                        filename=LOG_FILENAME)
+                                                        filename=fileNameStr)
 status_logger.warning("Rebooted")
 #=============Global config
 

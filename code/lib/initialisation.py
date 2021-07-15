@@ -118,10 +118,11 @@ class initialisation:
         """
         Removes residual files from the last boot in the current and processing dirs
         """
-        for path in [s.current_path, s.processing_path]:
-            for file in os.listdir(path[:-1]):  # Strip '/' from the end of path
-                if file != s.lora_file_name:
-                    os.remove(path + file)
+        #TODO: clean up ? do we need it now that there is no archive process?
+        # for path in [s.current_path, s.processing_path]:
+        #     for file in os.listdir(path[:-1]):  # Strip '/' from the end of path
+        #         if file != s.lora_file_name:
+        #             os.remove(path + file)
 
 
     # def get_logging_level(self):

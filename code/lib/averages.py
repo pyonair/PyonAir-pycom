@@ -6,7 +6,8 @@ import os
 from helper import mean_across_arrays, minutes_of_the_month, blink_led, get_sensors, get_format, current_lock  #TODO: chenge this type of import
 
 from Configuration import Configuration
-import strings as s
+#import strings as s
+from Constants import TIME_ISO8601_FMT
 import time
 
 
@@ -25,7 +26,7 @@ def get_sensor_averages(config, logger, lora):
     sensors = get_sensors(config, logger)
     fmt = get_format(sensors)
     version = str( config.get_config("fmt_version"))
-    timestamp = s.csv_timestamp_template.format(*time.gmtime())  # get current time in desired format
+    timestamp = TIME_ISO8601_FMT.format(*time.gmtime())  # get current time in desired format
     minutes = str(minutes_of_the_month())  # get minutes past last midnight
 
     try:

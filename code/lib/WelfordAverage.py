@@ -34,7 +34,7 @@ class WelfordAverage:
 
     # Retrieve the mean, variance and sample variance from an aggregate
     def getAverage(self):
-        self.logger.debug("{} {} {} ".format(self.count, self.mean, self.M2))
+        #self.logger.debug("{} {} {} ".format(self.count, self.mean, self.M2))
         if (self.count < 2):
             return float('nan')
         else:

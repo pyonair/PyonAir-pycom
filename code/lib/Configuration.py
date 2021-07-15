@@ -80,7 +80,7 @@ class Configuration:
         if CONFIG_FILE_NAME not in os.listdir(CONFIG_FILE_DIRECTORY):
             with open(CONFIG_FILE_FULL_NAME, 'w') as f:  # create new config file
                 f.write(ujson.dumps(self.configuration))
-                self.set_config(str(self.configuration))
+                #self.set_config(str(self.configuration))
 
         #load config
         if CONFIG_FILE_NAME in os.listdir(CONFIG_FILE_DIRECTORY):
