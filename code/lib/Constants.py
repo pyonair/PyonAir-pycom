@@ -6,7 +6,11 @@
 LOG_FILENAME="PyonAir.log"
 #The name of the logger instance -- no need to change
 DEFAULT_LOG_NAME="Pyonair"
+
+
+#Names in JSON file (config)
 LOG_LEVEL_KEY= "logging_lvl" #TODO : rename to something sensible
+AVERAGES_PER_HOUR_INT_KEY = "averagesPerHour" #averages are done at same time(e.g. on the our, min = once per hour)
 
 
 
@@ -31,7 +35,8 @@ DEFAULT_CONFIG = {"device_id": "", "device_name": "NewPyonAir", "password": "new
                          "PM2_init": 30, "logging_lvl": "DEBUG", "lora_timeout": 20, "GPS_timeout": 20,
                          "config_timeout": 10, "fair_access": 30, "air_time": 75, "message_count": 0,
                          "transmission_date": 0, "LORA": "ON", "update": False, "port": 8000,
-                         "server": "10.15.40.51"}
+                         "server": "10.15.40.51",
+                         "averagesPerHour" : 60}
 
 
 #============================Config=================

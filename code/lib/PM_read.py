@@ -22,11 +22,17 @@ def pm_thread(sensor_name,config,  debugLogger, pins, serial_id):
     """
 
     debugLogger.debug("Thread {} started".format(sensor_name))
-    #Welfords variables
-    pm1Average = WelfordAverage(debugLogger)
+
+    #Welfords variables -- keep average of these 
+    
+    gr03umAverage = WelfordAverage(debugLogger)
+    gr05umAverage = WelfordAverage(debugLogger)
+    gr10umAverage = WelfordAverage(debugLogger)
+    averages = [gr03umAverage,gr05umAverage,gr10umAverage] # list to pass single param, and not dict for speed
 
 
-    sensor_logger = SensorLogger(sensor_name=sensor_name, terminal_out=True) #TODO: check this is not made every loop
+    sensor_logger = SensorLogger(sensor_name=sensor_name, terminal_out=True) 
+    averageLogger = SensorLogger(sensor_name=sensor_name+"Average", terminal_out=True)
     
     sensor_type = config.get_config(sensor_name)
     init_time = int(config.get_config(sensor_name + "_init"))
@@ -77,11 +83,30 @@ def pm_thread(sensor_name,config,  debugLogger, pins, serial_id):
 
     #Use welford here : https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     #Average variables? -- pass them in
-
-    processing_alarm = Timer.Alarm(process_readings, arg=(sensor_type, sensor, sensor_logger, debugLogger,pm1Average), s=1, periodic=True)
+    #TODO: Hold on do the sensirion and plantower return the same strings????
+    processing_alarm = Timer.Alarm(process_readings, arg=(sensor_type, sensor, sensor_logger, debugLogger,averages), s=1, periodic=True)
 
     #DO averaging here? -- timer
+    processing_averages = Timer.Alarm(process_averages, arg=(averages,averageLogger), s=10, periodic=True)
 
+
+def process_averages(args):
+    averages, averageLogger  = args[0], args[1]
+
+    gr03umCount, gr03umMean, gr03umVariance, gr03umSampleVariance = averages[0].getAverageAndReset()
+    gr05umCount, gr05umMean, gr05umVariance, gr05umSampleVariance = averages[1].getAverageAndReset()
+    gr10umCount, gr10umMean, gr10umVariance, gr10umSampleVariance = averages[2].getAverageAndReset()
+
+    #log to file
+    if(gr03umCount == gr03umCount == gr03umCount):
+
+        averageLogger.log_row("".join([str(gr03umMean) , "," ,str(gr05umMean) , "," ,str(gr10umMean)]))
+    else: 
+        averageLogger.log_row("".join([str(gr03umMean) , "," ,str(gr05umMean) , "," ,str(gr10umMean) , "," , str(gr03umCount) , "," , str(gr05umCount) , "," , str(gr10umCount)]))
+    
+    #add to transmit?
+
+    
 
 
 def process_readings(args):
@@ -91,7 +116,7 @@ def process_readings(args):
     :type args: str, str, SensorLogger object, LoggerFactory object
     """
 
-    sensor_type, sensor, sensor_logger, debugLogger, pm1Average   = args[0], args[1], args[2], args[3] ,  args[4]   #TODO: this looks clunky and in need of a fix
+    sensor_type, sensor, sensor_logger, debugLogger, averages   = args[0], args[1], args[2], args[3] ,  args[4]   #TODO: this looks clunky and in need of a fix
 
     try:
         recv = sensor.read()
@@ -99,13 +124,17 @@ def process_readings(args):
             recv_lst = str(recv).split(',')
             curr_timestamp = recv_lst[0]
             sensor_reading_float = [float(i) for i in recv_lst[1:]]
-            sensor_reading_round = [round(i) for i in sensor_reading_float]
+            sensor_reading_round = [round(i) for i in sensor_reading_float]  #TODO: this looks VERY processor intensive (remember 1hz here! x number of sensors)
             lst_to_log = [curr_timestamp] + [str(i) for i in sensor_reading_round] #TODO: check that round is sane here
             line_to_log = ','.join(lst_to_log)
             sensor_logger.log_row(line_to_log)
 
             ##attempt averaging
-            pm1Average.update(1)
+            #ROWS: "timestamp", "pm10_cf1", "PM1", "pm25_cf1", "PM25", "pm100_cf1", "PM10", "gr03um", "gr05um", "gr10um", "gr25um", "gr50um", "gr100um", ""
+            #IN ORDER "gr03um", "gr05um", "gr10um"
+            averages[0].update(sensor_reading_round[7])
+            averages[1].update(sensor_reading_round[8])
+            averages[2].update(sensor_reading_round[9])
 
     except Exception as e:
         debugLogger.error("Failed to read from sensor {}".format(sensor_type))

@@ -5,11 +5,19 @@
 
 class WelfordAverage:
     def __init__(self, logger, count=0, mean=0,M2=0):
+
         self.logger = logger
+        self.logger.debug("New welford averager...")
         self.count = count
         self.mean = mean
         self.M2 = M2
-        print(self.count, self.mean, self.M2)
+        #print(self.count, self.mean, self.M2)
+
+    def reset(self):
+        self.count = 0
+        self.mean = 0
+        self.M2 = 0
+        
 
     def update(self, new_value):
         self.count += 1 #increment N counter
@@ -17,11 +25,16 @@ class WelfordAverage:
         self.mean += (delta/self.count)
         delta2 = new_value - self.mean
         self.M2 += ( delta * delta2)
-        print(new_value , self.count, self.mean, self.M2)
+        #print(new_value , self.count, self.mean, self.M2)
+
+    def getAverageAndReset(self):
+        count, mean , variance, sampleVariance = self.getAverage()
+        self.reset()
+        return (count, mean , variance, sampleVariance)
 
     # Retrieve the mean, variance and sample variance from an aggregate
-    def averages(self):
-        print(self.count, self.mean, self.M2)
+    def getAverage(self):
+        self.logger.debug("{} {} {} ".format(self.count, self.mean, self.M2))
         if (self.count < 2):
             return float('nan')
         else:

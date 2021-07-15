@@ -3,7 +3,7 @@ Simple logger for logging sensor readings.
 Replaces the functionality of the sensor logger that was previously produced by the LoggerFactory
 """
 import sys
-from helper import current_lock
+from helper import current_lock  #TODO: a what lock? why?
 import strings as s
 
 
