@@ -255,8 +255,8 @@ try:
 
     # Join the LoRa network
     lora = False
-    if (True in sensors.values() or gps_on) and config.get_config("LORA") == "ON":
-        lora = LoRaWAN(status_logger)
+    #if (True in sensors.values() or gps_on) and config.get_config("LORA") == "ON":  #TODO: lorawan disabled here
+    #    lora = LoRaWAN(status_logger)
 
 
     # Initialise temperature and humidity sensor thread with id: TEMP
