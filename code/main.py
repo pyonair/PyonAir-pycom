@@ -238,12 +238,12 @@ try:
     status_logger.info("Filesystem.......")
     # Configurations are entered parallel to main execution upon button press for 2.5 secs
     user_button.set_config_blocking(False)
-    status_logger.debug(DEFAULT_LOG_NAME + "  :LOG_LEVEL_KEY" + config.get_config(LOG_LEVEL_KEY))
+    #status_logger.debug(DEFAULT_LOG_NAME + "  :LOG_LEVEL_KEY" + config.get_config(LOG_LEVEL_KEY))
     # Set debug level - has to be set after logger was initialised and device was configured
-    logger_factory.set_level(DEFAULT_LOG_NAME, config.get_config(LOG_LEVEL_KEY) ) # initialisation(config, status_logger).get_logging_level())
-    print("HERE")
+    #status_logger = logger_factory.set_level(DEFAULT_LOG_NAME, config.get_config(LOG_LEVEL_KEY) ) # Cannot change mid way?
+    #print("HERE")
     status_logger.info("Filesystem init start")
-    print("HERE2")
+    #print("HERE2")
     # Initialise file system
     init.initialise_file_system()
 

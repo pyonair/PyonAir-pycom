@@ -80,4 +80,4 @@ class LoggerFactory:
         print(self.loggers.values)
         self.loggers[name].setLevel(level)
         print("DONE")
-        #return self.loggers[name]
+        return self.loggers[name]
