@@ -74,19 +74,19 @@ class Configuration:
         """
         #set to default
         self.configuration = DEFAULT_CONFIG
-        CONFIG_FILE_FULL_NAME = CONFIG_FILE_DIRECTORY + CONFIG_FILE_NAME
+        
 
         #if no config file
         if CONFIG_FILE_NAME not in os.listdir(CONFIG_FILE_DIRECTORY):
             with open(CONFIG_FILE_FULL_NAME, 'w') as f:  # create new config file
                 f.write(ujson.dumps(self.configuration))
-                self.set_config(self.configuration)
+                self.set_config(str(self.configuration))
 
         #load config
         if CONFIG_FILE_NAME in os.listdir(CONFIG_FILE_DIRECTORY):
             with open(CONFIG_FILE_FULL_NAME, 'r') as f:
                 self.set_config(ujson.loads(f.read()))
-                self.logger.debug(self.configuration)
+                self.logger.debug(str(self.configuration))
 
 
         #check for debug force overwrite.
@@ -95,10 +95,10 @@ class Configuration:
         #Override Preferences - DEVELOPER USE ONLY - keep all overwrites here
         if DEBUG_CONFIG_FILE_NAME in os.listdir(DEBUG_CONFIG_FILE_DIRECTORY):
             self.logger.warning("Overriding configuration with the content of debug_config.json")
-            DEBUG_CONFIG_FILE_FULL_NAME = DEBUG_CONFIG_FILE_DIRECTORY + DEBUG_CONFIG_FILE_NAME
+            
             with open(DEBUG_CONFIG_FILE_FULL_NAME, 'r') as f:
                 self.set_config(ujson.loads(f.read()))
-                self.warning("Configuration changed to: " + str(self.configuration))
+                self.logger.warning("Configuration changed to: " + str(self.configuration))
 
 
     # Returns True if the configuration file is complete

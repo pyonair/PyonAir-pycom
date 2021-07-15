@@ -184,13 +184,6 @@ try:
     add a corresponding decoder to the back-end."""
     config.save_config({"fmt_version": 1})
 
-    #TODO: Repair overrride later
-    # Override Preferences - DEVELOPER USE ONLY - keep all overwrites here
-    # if 'debug_config.json' in os.listdir('/flash'):
-    #     status_logger.warning("Overriding configuration with the content of debug_config.json")
-    #     with open('/flash/debug_config.json', 'r') as f:
-    #         config.set_config(ujson.loads(f.read()))
-    #         status_logger.warning("Configuration changed to: " + str(config.get_config()))
 
     # Check if GPS is enabled in configurations
     
@@ -245,16 +238,18 @@ try:
     status_logger.info("Filesystem.......")
     # Configurations are entered parallel to main execution upon button press for 2.5 secs
     user_button.set_config_blocking(False)
-    status_logger.debug("LOG_LEVEL_KEY" + config.get_config(LOG_LEVEL_KEY))
+    status_logger.debug(DEFAULT_LOG_NAME + "  :LOG_LEVEL_KEY" + config.get_config(LOG_LEVEL_KEY))
     # Set debug level - has to be set after logger was initialised and device was configured
     logger_factory.set_level(DEFAULT_LOG_NAME, config.get_config(LOG_LEVEL_KEY) ) # initialisation(config, status_logger).get_logging_level())
-    status_logger.debug("Filesystem init start")
+    print("HERE")
+    status_logger.info("Filesystem init start")
+    print("HERE2")
     # Initialise file system
     init.initialise_file_system()
 
     # Remove residual files from the previous run (removes all files in the current and processing dir)
     init.remove_residual_files()
-    status_logger.debug("Filesystem init completed")
+    status_logger.info("Filesystem init completed")
     # Get a dictionary of sensors and their status
     sensors = get_sensors(config, status_logger)
 

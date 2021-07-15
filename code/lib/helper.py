@@ -89,7 +89,7 @@ def blink_led(args):
 
 
 # returns a dictionary of sensors and if they are enabled
-def get_sensors(logger, config):
+def get_sensors(config, logger):
     """
     Dictionary of sensors (TEMP, PM1, PM2) and whether they are enabled in the configurations
     :return: sensors

@@ -65,7 +65,7 @@ class LoggerFactory:
             file_handler.setFormatter(formatter)
             status_logger.addHandler(file_handler)
         self.loggers[name] = status_logger
-        print("LoggerDONE")
+        print("Logger created: " + name)
         return self.loggers[name]
 
     def set_level(self, name, level):
@@ -76,5 +76,8 @@ class LoggerFactory:
         :param level: logging level
         :type level: str
         """
+        print(name, level)
+        print(self.loggers.values)
         self.loggers[name].setLevel(level)
-        return self.loggers[name]
+        print("DONE")
+        #return self.loggers[name]

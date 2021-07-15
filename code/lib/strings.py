@@ -27,7 +27,6 @@ lora_sensor_headers = {
 
 status_header = ['type', 'timestamp', 'message']
 
-config_filename = 'Settings.cfg'
 
 # default_configuration = {"device_id": "", "device_name": "NewPyonAir", "password": "newpyonair", "region": "Europe",
 #                          "device_eui": "", "application_eui": "", "app_key": "", "SSID": "", "fmt_version": "",

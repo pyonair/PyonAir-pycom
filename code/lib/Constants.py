@@ -11,12 +11,14 @@ LOG_LEVEL_KEY= "logging_lvl" #TODO : rename to something sensible
 
 
 #config_filename = 'Settings.cfg'
-CONFIG_FILE_NAME = "Settings.json"
-CONFIG_FILE_DIRECTORY = "/sd"
+CONFIG_FILE_NAME = "Settings.json" # JSON file with all PYON air setting s -- on flash but can be on SD so public
+CONFIG_FILE_DIRECTORY = "/sd/"
+CONFIG_FILE_FULL_NAME = CONFIG_FILE_DIRECTORY + CONFIG_FILE_NAME #os.path does not exist, so string concat
 
 #CONFIG_FILE_FULL_NAME = 
 DEBUG_CONFIG_FILE_NAME = "debug_config.json"
-DEBUG_CONFIG_FILE_DIRECTORY = "/flash"
+DEBUG_CONFIG_FILE_DIRECTORY = "/flash/"  #os.path does not exist, so string concat
+DEBUG_CONFIG_FILE_FULL_NAME = DEBUG_CONFIG_FILE_DIRECTORY + DEBUG_CONFIG_FILE_NAME
 
 
 
