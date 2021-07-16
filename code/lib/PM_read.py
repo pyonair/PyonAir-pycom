@@ -85,28 +85,34 @@ def pm_thread(sensor_name,config,  debugLogger, pins, serial_id):
     #Use welford here : https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     #Average variables? -- pass them in
     #TODO: Hold on do the sensirion and plantower return the same strings????
-    processing_alarm = Timer.Alarm(process_readings, arg=(sensor_type, sensor, sensor_logger, debugLogger,averages), s=1, periodic=True)
+    processing_alarm = Timer.Alarm(process_readings, arg=(sensor_type, sensor,averages, sensor_logger, debugLogger), s=1, periodic=True)
 
     #DO averaging here? -- timer
-    processing_averages = Timer.Alarm(process_averages, arg=(averages,averageLogger), s=10, periodic=True)
+    processing_averages = Timer.Alarm(process_averages, arg=(averages,averageLogger,debugLogger), s=10, periodic=True)
 
 
-def process_averages(args):
-    averages, averageLogger  = args[0], args[1]
+def process_averages(args,debugLogger):
+    try:
+        averages, averageLogger  = args[0], args[1]
 
-    gr03umCount, gr03umMean, gr03umVariance, gr03umSampleVariance = averages[0].getAverageAndReset()
-    gr05umCount, gr05umMean, gr05umVariance, gr05umSampleVariance = averages[1].getAverageAndReset()
-    gr10umCount, gr10umMean, gr10umVariance, gr10umSampleVariance = averages[2].getAverageAndReset()
+        gr03umCount, gr03umMean, gr03umVariance, gr03umSampleVariance = averages[0].getAverageAndReset()
+        gr05umCount, gr05umMean, gr05umVariance, gr05umSampleVariance = averages[1].getAverageAndReset()
+        gr10umCount, gr10umMean, gr10umVariance, gr10umSampleVariance = averages[2].getAverageAndReset()
 
-    #log to file
-    if(gr03umCount == gr03umCount == gr03umCount):
+        #log to file
+        if(gr03umCount == gr03umCount == gr03umCount):
 
-        averageLogger.log_row("".join([str(gr03umMean) , "," ,str(gr05umMean) , "," ,str(gr10umMean), "," , str(gr10umCount)]))
-    else: 
-        averageLogger.log_row("".join([str(gr03umMean) , "," ,str(gr05umMean) , "," ,str(gr10umMean) , "," , str(gr03umCount) , "," , str(gr05umCount) , "," , str(gr10umCount)]))
+            averageLogger.log_row("".join([str(gr03umMean) , "," ,str(gr05umMean) , "," ,str(gr10umMean), "," , str(gr10umCount)]))
+        else: 
+            averageLogger.log_row("".join([str(gr03umMean) , "," ,str(gr05umMean) , "," ,str(gr10umMean) , "," , str(gr03umCount) , "," , str(gr05umCount) , "," , str(gr10umCount)]))
+        
+        #add to transmit?
+    except Exception as e:
+        debugLogger.error("Calculate average failed.")
+        debugLogger.info(e)
     
-    #add to transmit?
-
+        blink_led((0x550000, 0.4, True))
+ 
     
 
 
@@ -117,7 +123,7 @@ def process_readings(args):
     :type args: str, str, SensorLogger object, LoggerFactory object
     """
 
-    sensor_type, sensor, sensor_logger, debugLogger, averages   = args[0], args[1], args[2], args[3] ,  args[4]   #TODO: this looks clunky and in need of a fix
+    sensor_type, sensor,averages, sensor_logger, debugLogger   = args[0], args[1], args[2], args[3] ,  args[4]   #TODO: this looks clunky and in need of a fix
 
     try:
         recv = sensor.read()

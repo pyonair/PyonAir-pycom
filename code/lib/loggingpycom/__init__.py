@@ -146,7 +146,8 @@ class StreamHandler(Handler):
         self.flush()
 
     def flush(self):
-        self._stream.flush()
+        pass
+        #self._stream.flush()
 
 
 class FileHandler(StreamHandler):
