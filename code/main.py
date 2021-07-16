@@ -281,7 +281,7 @@ try:
     # Initialise PM sensor threads
     if sensors[s.PM1]:
         init.initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1)
-    if sensors[s.PM2]:
+    if fALSE: #sensors[s.PM2]:
         init.initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2)
 
     # Start scheduling lora messages if any of the sensors are defined

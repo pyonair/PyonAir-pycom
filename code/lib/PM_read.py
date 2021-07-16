@@ -8,7 +8,7 @@ import time
 from WelfordAverage import WelfordAverage
 from Constants import PM_SENSOR_SAMPELING_RATE , PM_SAMPLE_COUNT_FOR_AVERAGE
 
-#This important code, keep it fast are reliable. 
+#This is important code, keep it fast are reliable. 
 #Entry point for thread (method only not class) 
 def pm_thread(sensor_name,config,  debugLogger, pins, serial_id):
     rdr = PMSensorReader(sensor_name,config,  debugLogger, pins, serial_id)
@@ -28,8 +28,9 @@ class PMSensorReader:
         :param serial_id: serial bus id (0, 1 or 2)
         :type serial_id: int
         """
-
-        debugLogger.debug("Thread {} started".format(sensor_name))
+        self.debugLogger = debugLogger
+        self.sensor_name = sensor_name
+        self.debugLogger.debug("Thread {} started".format(sensor_name))
 
         #Welfords variables -- keep average of these 
         
@@ -37,7 +38,7 @@ class PMSensorReader:
         self.gr05umAverage = WelfordAverage(debugLogger)
         self.gr10umAverage = WelfordAverage(debugLogger)
         #averages = [gr03umAverage,gr05umAverage,gr10umAverage] # list to pass single param, and not dict for speed
-        sampleCounter = 0
+        self.sampleCounter = 0
 
 
         self.sensor_logger = SensorLogger(sensor_name=sensor_name, terminal_out=True) 
@@ -47,12 +48,9 @@ class PMSensorReader:
         self.init_time = int(config.get_config(sensor_name + "_init"))
 
         init_count = 0
-
         if self.sensor_type == "PMS5003":
-
             # initialise sensor
             self.sensor = Plantower(pins=pins, id=serial_id)
-
             time.sleep(1)
             #TODO: why is this like this, why not sleep for init_time -- do i need to clear the serial buffer?
             # warm up time  - readings are not logged
@@ -73,18 +71,18 @@ class PMSensorReader:
                     self.sensor = Sensirion(retries=1, pins=pins, id=serial_id)  # automatically starts measurement
                     break
                 except SensirionException as e:
-                    debugLogger.exception("Error warming up SPS030")
+                    self.debugLogger.exception("Error warming up SPS030")
                     blink_led((0x550000, 0.4, True))
                     time.sleep(1)
 
             # warm up time  - readings are not logged
-            while init_count < init_time:
+            while init_count < self.init_time:
                 try:
                     time.sleep(1)
                     self.sensor.read()
                     init_count += 1
                 except SensirionException as e:
-                    debugLogger.exception("Failed to read from sensor SPS030")
+                    self.debugLogger.exception("Failed to read from sensor SPS030")
                     blink_led((0x550000, 0.4, True))
 
         # start a periodic timer interrupt to poll readings every second
@@ -96,7 +94,7 @@ class PMSensorReader:
         #processing_alarm = Timer.Alarm(process_readings, arg=(sensor_type, sensor, sampleCounter, averages, sensor_logger,  averageLogger ,debugLogger), s=PM_SENSOR_SAMPELING_RATE, periodic=True)
 
         debugLogger.debug("Starting repeating alarm/timer")
-        self.processing_alarm = Timer.Alarm(self.process_readings, PM_SENSOR_SAMPELING_RATE, periodic=True)
+        self.__processing_alarm = Timer.Alarm(self.process_readings, PM_SENSOR_SAMPELING_RATE, periodic=True)
 
         #DO averaging here? -- timer
         # TOO heavy processing_averages = Timer.Alarm(process_averages, arg=(averages,averageLogger,debugLogger), s=10, periodic=True)
@@ -139,10 +137,13 @@ class PMSensorReader:
         print("START")
         #Must run 1Hz !
         try:
+            #print(self.sensor)
             recv = self.sensor.read()
+            print ("HERE1111" )
+            #print ("HERE1111" +  str(recv) )
             if recv:
                 recv_lst = str(recv).split(',')
-                print ("HERE" + recv)
+                print ("HERE")
                 curr_timestamp = recv_lst[0]
                 sensor_reading_float = [float(i) for i in recv_lst[1:]]
                 sensor_reading_round = [round(i) for i in sensor_reading_float]  #TODO: this looks VERY processor intensive (remember 1hz here! x number of sensors)
@@ -155,9 +156,9 @@ class PMSensorReader:
                 #ROWS: "timestamp", "pm10_cf1", "PM1", "pm25_cf1", "PM25", "pm100_cf1", "PM10", "gr03um", "gr05um", "gr10um", "gr25um", "gr50um", "gr100um", ""
                 #IN ORDER "gr03um", "gr05um", "gr10um"
                 if (self.sampleCounter < PM_SAMPLE_COUNT_FOR_AVERAGE): #Keep adding data
-                    self.averages[0].update(sensor_reading_round[7])
-                    self.averages[1].update(sensor_reading_round[8])
-                    self.averages[2].update(sensor_reading_round[9])
+                    self.gr03umAverage.update(sensor_reading_round[7])
+                    self.gr05umAverage.update(sensor_reading_round[8])
+                    self.gr10umAverage.update(sensor_reading_round[9])
                     self.sampleCounter += 1
                     print(self.sampleCounter)
 
@@ -174,7 +175,7 @@ class PMSensorReader:
 
 
         except Exception as e:
-            self.debugLogger.error("Failed to read from sensor {}".format(sensor_type))
+            self.debugLogger.error("Failed to read from sensor {}".format(self.sensor_type))
             #debugLogger.debug(e)
         
             blink_led((0x550000, 0.4, True))
