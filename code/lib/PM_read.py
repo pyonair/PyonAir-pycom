@@ -91,9 +91,9 @@ def pm_thread(sensor_name,config,  debugLogger, pins, serial_id):
     processing_averages = Timer.Alarm(process_averages, arg=(averages,averageLogger,debugLogger), s=10, periodic=True)
 
 
-def process_averages(args,debugLogger):
+def process_averages(args):
     try:
-        averages, averageLogger  = args[0], args[1]
+        averages, averageLogger debugLogger = args[0], args[1], args[2]
 
         gr03umCount, gr03umMean, gr03umVariance, gr03umSampleVariance = averages[0].getAverageAndReset()
         gr05umCount, gr05umMean, gr05umVariance, gr05umSampleVariance = averages[1].getAverageAndReset()
