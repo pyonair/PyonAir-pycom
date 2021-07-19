@@ -31,14 +31,16 @@ class PMSensorReader:
         self.debugLogger = debugLogger
         self.sensor_name = sensor_name
         self.debugLogger.debug("Thread {} started".format(sensor_name))
-
+        #self.chrono = Timer.Chrono()
         #Welfords variables -- keep average of these 
-        
-        self.gr03umAverage = WelfordAverage(debugLogger)
-        self.gr05umAverage = WelfordAverage(debugLogger)
-        self.gr10umAverage = WelfordAverage(debugLogger)
+        self.welfordsCount = 0
+        self.welfordsMean = 0
+        self.welfordsM2 = 0        
+        #self.gr03umAverage = WelfordAverage(debugLogger)
+        #self.gr05umAverage = WelfordAverage(debugLogger)
+        #self.gr10umAverage = WelfordAverage(debugLogger)
         #averages = [gr03umAverage,gr05umAverage,gr10umAverage] # list to pass single param, and not dict for speed
-        self.sampleCounter = 0
+        #self.sampleCounter = 0
 
 
         self.sensor_logger = SensorLogger(sensor_name=sensor_name, terminal_out=True) 
@@ -100,28 +102,28 @@ class PMSensorReader:
         # TOO heavy processing_averages = Timer.Alarm(process_averages, arg=(averages,averageLogger,debugLogger), s=10, periodic=True)
 
 
-    def process_averages(self):
-        try:
+    # def process_averages(self):
+    #     try:
 
-            #averages, averageLogger, debugLogger = args[0], args[1], args[2]
+    #         #averages, averageLogger, debugLogger = args[0], args[1], args[2]
 
-            gr03umCount, gr03umMean, gr03umVariance, gr03umSampleVariance = averages[0].getAverageAndReset()
-            #gr05umCount, gr05umMean, gr05umVariance, gr05umSampleVariance = averages[1].getAverageAndReset()
-            #gr10umCount, gr10umMean, gr10umVariance, gr10umSampleVariance = averages[2].getAverageAndReset()
+    #         gr03umCount, gr03umMean, gr03umVariance, gr03umSampleVariance = averages[0].getAverageAndReset()
+    #         #gr05umCount, gr05umMean, gr05umVariance, gr05umSampleVariance = averages[1].getAverageAndReset()
+    #         #gr10umCount, gr10umMean, gr10umVariance, gr10umSampleVariance = averages[2].getAverageAndReset()
 
-            #log to file
-            if(gr03umCount == gr03umCount == gr03umCount):
+    #         #log to file
+    #         if(gr03umCount == gr03umCount == gr03umCount):
 
-                averageLogger.log_row("".join([str(gr03umMean)])) # , "," ,str(gr05umMean) , "," ,str(gr10umMean), "," , str(gr10umCount)]))
-            else: 
-                averageLogger.log_row("".join([str(gr03umMean) , "," ,str(gr05umMean) , "," ,str(gr10umMean) , "," , str(gr03umCount) , "," , str(gr05umCount) , "," , str(gr10umCount)]))
+    #             averageLogger.log_row("".join([str(gr03umMean)])) # , "," ,str(gr05umMean) , "," ,str(gr10umMean), "," , str(gr10umCount)]))
+    #         else: 
+    #             averageLogger.log_row("".join([str(gr03umMean) , "," ,str(gr05umMean) , "," ,str(gr10umMean) , "," , str(gr03umCount) , "," , str(gr05umCount) , "," , str(gr10umCount)]))
             
-            #add to transmit?
-        except Exception as e:
-            debugLogger.error("Calculate average failed.")
-            debugLogger.info(e)
+    #         #add to transmit?
+    #     except Exception as e:
+    #         debugLogger.error("Calculate average failed.")
+    #         debugLogger.info(e)
         
-            blink_led((0x550000, 0.4, True))
+    #         blink_led((0x550000, 0.4, True))
     
         
 
@@ -132,51 +134,85 @@ class PMSensorReader:
         :param args: sensor_type, sensor, sensor_logger, debugLogger
         :type args: str, str, SensorLogger object, LoggerFactory object
         """
-
+        
+        #print(alarm)
+        #print(print(alarm.read_ms())) 
+        #self.chrono.reset()
+        #self.chrono.start()
         #sensor_type, sensor,sampleCounter , averages, sensor_logger, averageLogger,debugLogger   = args[0], args[1], args[2], args[3] ,  args[4] ,  args[5] ,  args[6]   #TODO: this looks clunky and in need of a fix
-        print("START")
+        #print("START")
         #Must run 1Hz !
         try:
             #print(self.sensor)
-            recv = self.sensor.read()
-            print ("HERE1111" )
+            recv = self.sensor.read() #This string should be fine to just log, but we do need some values to average
+            #print ("HERE1111" )
             #print ("HERE1111" +  str(recv) )
             if recv:
-                recv_lst = str(recv).split(',')
-                print ("HERE")
-                curr_timestamp = recv_lst[0]
-                sensor_reading_float = [float(i) for i in recv_lst[1:]]
-                sensor_reading_round = [round(i) for i in sensor_reading_float]  #TODO: this looks VERY processor intensive (remember 1hz here! x number of sensors)
-                lst_to_log = [curr_timestamp] + [str(i) for i in sensor_reading_round] #TODO: check that round is sane here
-                line_to_log = ','.join(lst_to_log)
+                revStr = str(recv) 
+                recvList = revStr.split(',')
+                #print ("HERE")
+                #curr_timestamp = recv_lst[0]
+                #sensor_reading_float = [float(i) for i in recv_lst[1:]]
+                #sensor_reading_round = [round(i) for i in sensor_reading_float]  #TODO: this looks VERY processor intensive (remember 1hz here! x number of sensors)
+                #lst_to_log = [curr_timestamp] + [str(i) for i in sensor_reading_round] #TODO: check that round is sane here
+                #line_to_log = ','.join(lst_to_log)
                 
-                self.sensor_logger.log_row(line_to_log)
+                #self.sensor_logger.log_row(line_to_log)
+                
+                
+                
+                self.sensor_logger.log_row(revStr)
                 
                 ##attempt averaging
                 #ROWS: "timestamp", "pm10_cf1", "PM1", "pm25_cf1", "PM25", "pm100_cf1", "PM10", "gr03um", "gr05um", "gr10um", "gr25um", "gr50um", "gr100um", ""
                 #IN ORDER "gr03um", "gr05um", "gr10um"
-                if (self.sampleCounter < PM_SAMPLE_COUNT_FOR_AVERAGE): #Keep adding data
-                    self.gr03umAverage.update(sensor_reading_round[7])
-                    self.gr05umAverage.update(sensor_reading_round[8])
-                    self.gr10umAverage.update(sensor_reading_round[9])
-                    self.sampleCounter += 1
-                    print(self.sampleCounter)
+                
+                #self.gr03umAverage.update(round(float(recvList[8])))
+                #self.gr05umAverage.update(round(float(recvList[9])))
+                #self.gr10umAverage.update(round(float(recvList[10])))
 
-                else:
-                    self.sampleCounter = 0
-                    gr03umCount, gr03umMean, gr03umVariance, gr03umSampleVariance = self.averages[0].getAverageAndReset()
-                    gr05umCount, gr05umMean, gr05umVariance, gr05umSampleVariance = self.averages[1].getAverageAndReset()
-                    gr10umCount, gr10umMean, gr10umVariance, gr10umSampleVariance = self.averages[2].getAverageAndReset()
-                    if(gr03umCount == gr03umCount == gr03umCount):
-                        self.averageLogger.log_row("".join([str(gr03umMean)])) # , "," ,str(gr05umMean) , "," ,str(gr10umMean), "," , str(gr10umCount)]))
-                    else: 
-                        self.averageLogger.log_row("".join([str(gr03umMean) , "," ,str(gr05umMean) , "," ,str(gr10umMean) , "," , str(gr03umCount) , "," , str(gr05umCount) , "," , str(gr10umCount)]))
+                #==============Single welfords average=========
+                #Average gr03umAverage = float(recvList[8])
+                grumValue = float(recvList[8])  ## Value to average (we only average one)
+                self.welfordsCount += 1 #increment N counter
+                delta = float(grumValue) - self.welfordsMean
+                self.welfordsMean += (delta/self.welfordsCount)
+                delta2 = float(grumValue) - self.welfordsMean
+                self.welfordsM2 += ( delta * delta2)
+                #====End welfords==============
+
+                 
+                print(self.welfordsCount)
+
+                if (self.welfordsCount >= PM_SAMPLE_COUNT_FOR_AVERAGE): #Keep adding data
+
+                    variance = self.welfordsM2/self.welfordsCount
+                    sampleVariance = self.welfordsM2 / (self.welfordsCount -1)
+                    #self.welfordsCount, self.mean , variance, sampleVariance)
+                    self.averageLogger.log_row(str(self.welfordsMean)) # , "," ,str(gr05umMean) , "," ,str(gr10umMean), "," , str(gr10umCount)]))
+                    self.averageLogger.log_row("".join([str(self.welfordsCount) , "," ,str(self.welfordsMean) , "," ,str(sampleVariance), "," , str(variance)]))
+
+                    #Reset
+                    self.welfordsCount = 0
+                    self.welfordsMean = 0
+                    self.welfordsM2 = 0
+
+
+
+                    # gr03umCount, gr03umMean, gr03umVariance, gr03umSampleVariance = self.averages[0].getAverageAndReset()
+                    # gr05umCount, gr05umMean, gr05umVariance, gr05umSampleVariance = self.averages[1].getAverageAndReset()
+                    # gr10umCount, gr10umMean, gr10umVariance, gr10umSampleVariance = self.averages[2].getAverageAndReset()
+                    # if(gr03umCount == gr03umCount == gr03umCount):
+                    #     self.averageLogger.log_row("".join([str(gr03umMean)])) # , "," ,str(gr05umMean) , "," ,str(gr10umMean), "," , str(gr10umCount)]))
+                    # else: 
+                    #     self.averageLogger.log_row("".join([str(gr03umMean) , "," ,str(gr05umMean) , "," ,str(gr10umMean) , "," , str(gr03umCount) , "," , str(gr05umCount) , "," , str(gr10umCount)]))
                     
 
-
+            #self.chrono.stop()
+            #print(print(alarm.read_ms())) #get an idea of time 0.0827
         except Exception as e:
             self.debugLogger.error("Failed to read from sensor {}".format(self.sensor_type))
-            #debugLogger.debug(e)
+            self.debugLogger.debug(e)
         
             blink_led((0x550000, 0.4, True))
             #we can get serial issues, ignore and hope we fix as we go along

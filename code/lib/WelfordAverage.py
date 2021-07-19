@@ -8,9 +8,9 @@ class WelfordAverage:
 
         self.logger = logger
         self.logger.debug("New welford averager...")
-        self.count = count
-        self.mean = mean
-        self.M2 = M2
+        self.welfordsCount = count
+        self.welfordsMean = mean
+        self.welfordsM2 = M2
         #print(self.count, self.mean, self.M2)
 
     def reset(self):

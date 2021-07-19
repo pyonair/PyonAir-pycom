@@ -56,7 +56,7 @@ class EventScheduler:
     def periodic_event(self, arg):
         if self.data_type == "gps":
             #  get position from gps to be sent over LoRA
-            _thread.start_new_thread(GpsSIM28.logGPS, (self.config, self.logger, self.lora))
+            _thread.start_new_thread(GpsSIM28.logGPS, (self.config, self.logger, self.lora)) 
 
         elif self.data_type == "sensors":
             #  flash averages of PM data to sd card to be sent over LoRa

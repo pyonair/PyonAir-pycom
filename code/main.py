@@ -9,7 +9,7 @@ from _pybytes import Pybytes
 from _pybytes_config import PybytesConfig
 
 
-from machine import RTC, unique_id
+from machine import RTC, unique_id, temperature
 from machine import SD, Pin, reset
 import network # Used to disable WiFi
 from initialisation import initialisation #initialise_time # TODO: clunky refactor
@@ -281,7 +281,7 @@ try:
     # Initialise PM sensor threads
     if sensors[s.PM1]:
         init.initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1)
-    if fALSE: #sensors[s.PM2]:
+    if sensors[s.PM2]:
         init.initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2)
 
     # Start scheduling lora messages if any of the sensors are defined
@@ -309,6 +309,8 @@ try:
 
 
     status_logger.info("Initialisation finished")
+    temp =(temperature() - 32) / 1.8
+    status_logger.info("Memory:  " + str(pycom.get_free_heap()) + " Temp: " + str(temp))
     #TODO:  delete init object?
 except Exception as e:
     status_logger.exception("Exception in the main")

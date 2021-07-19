@@ -93,7 +93,9 @@ class initialisation:
         """
         try:
             # Start PM sensor thread
-            _thread.start_new_thread(pm_thread, (sensor_name,self.config,  self.logger, pins, serial_id))
+            _thread.stack_size(4096 * 3) # default is 4096 (and slso min!)
+            _thread.start_new_thread(pm_thread, (sensor_name,self.config,  self.logger, pins, serial_id))  #TODO: move to main or similar
+            
 
             self.logger.info("THREAD - Sensor " + sensor_name + " initialised")
         except Exception as e:
