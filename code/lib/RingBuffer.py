@@ -103,20 +103,21 @@ class RingBuffer:
                 f.seek(self.head)
                 f.write((line + "\n").encode())  # write line
 
-        # check if buffer reached around
-        next_head = self.head + self.cell_size
-        if next_head >= self.buffer_end:
-            next_head = self.buffer_start  # loop around if end is reached
-        if next_head == self.tail:
-            self.remove_tail()
+                # check if buffer reached around
+                next_head = self.head + self.cell_size
+                if next_head >= self.buffer_end:
+                    next_head = self.buffer_start  # loop around if end is reached
+                if next_head == self.tail:
+                    self.remove_tail()
 
-        with self.buffer_lock:
-            with open(self.file_path, 'r+b') as f:
+        #with self.buffer_lock: # Looks like a bug???
+            #with open(self.file_path, 'r+b') as f:
                 self.head += self.cell_size  # increment head
                 if self.head >= self.buffer_end:
                     self.head = self.buffer_start  # loop around if end is reached
                 f.seek(self.head_address)
                 f.write((str(self.head) + "\n").encode())  # save new head
+        self.logger.debug("".join([ str(self.head),str(self.tail),str(self.cell_size)]))
 
     def read(self, read_tail=False):  # reads line at head or tail
         if self.tail is not self.head:  # if buffer is empty do not read line
@@ -151,13 +152,13 @@ class RingBuffer:
 
     def remove_tail(self):
         if self.tail is not self.head:  # if buffer is empty do not remove cell
-            with self.buffer_lock:
-                with open(self.file_path, 'r+b') as f:
-                    self.tail += self.cell_size  # increment tail
-                    if self.tail >= self.buffer_end:  # loop around if beginning is reached
-                        self.tail = self.buffer_start
-                    f.seek(self.tail_address)
-                    f.write((str(self.tail) + "\n").encode())
+        #with self.buffer_lock:
+            with open(self.file_path, 'r+b') as f:
+                self.tail += self.cell_size  # increment tail
+                if self.tail >= self.buffer_end:  # loop around if beginning is reached
+                    self.tail = self.buffer_start
+                f.seek(self.tail_address)
+                f.write((str(self.tail) + "\n").encode())
         else:
             raise Exception("Buffer is empty")
 
