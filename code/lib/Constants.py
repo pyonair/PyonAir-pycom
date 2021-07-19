@@ -26,6 +26,9 @@ CONFIG_FILE_NAME = "Settings.json" # JSON file with all PYON air setting s -- on
 CONFIG_FILE_DIRECTORY = "/sd/"
 CONFIG_FILE_FULL_NAME = CONFIG_FILE_DIRECTORY + CONFIG_FILE_NAME #os.path does not exist, so string concat
 
+RING_BUFFER_DIR = "/sd/"
+RING_BUFFER_FILE = "buffer.obj"
+
 #CONFIG_FILE_FULL_NAME = 
 DEBUG_CONFIG_FILE_NAME = "debug_config.json"
 DEBUG_CONFIG_FILE_DIRECTORY = "/flash/"  #os.path does not exist, so string concat

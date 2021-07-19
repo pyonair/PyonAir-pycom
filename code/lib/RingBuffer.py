@@ -1,12 +1,20 @@
 import os
 import _thread
+from Constants import RING_BUFFER_FILE , RING_BUFFER_DIR
+
+
+# def ringBufferThread(config, logger):
+#     # path, file_name, cell_number, cell_size
+
 
 
 class RingBuffer:
 
-    def __init__(self, logger, path, file_name, cell_number, cell_size):
-
+    def __init__(self, path, file_name, cell_number, cell_size,  config, logger):
+        
         self.logger = logger
+        self.config = config
+        self.logger.info("Creating/opening buffer....")
         self.file_path = path + file_name
         self.cell_number = cell_number
         self.cell_size = cell_size

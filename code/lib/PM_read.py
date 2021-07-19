@@ -11,14 +11,14 @@ from Constants import PM_SENSOR_SAMPELING_RATE , PM_SAMPLE_COUNT_FOR_AVERAGE
 #This is important code, keep it FAST are reliable. 
 #Note syntax issues here may look like cannot read sensors
 #Entry point for thread (method only not class) 
-def pm_thread(sensor_name,config,  debugLogger, pins, serial_id):
+def pm_thread(sensor_name,msgBuffer, config,  debugLogger, pins, serial_id):
     #Thread creates object and keeps it always.-- object triggers alarms. -- one per PM sensor
-    rdr = PMSensorReader(sensor_name,config,  debugLogger, pins, serial_id)
+    rdr = PMSensorReader(sensor_name,msgBuffer, config,  debugLogger, pins, serial_id)
 
 
 #Deal with one sesnor , called by thread -- so remember on diff threads
 class PMSensorReader:
-    def __init__(self,sensor_name,config,  debugLogger, pins, serial_id):
+    def __init__(self,sensor_name, msgBuffer, config,  debugLogger, pins, serial_id):
         """
         Method to run as a thread that reads, processes and logs readings form pm sensors according to their type
         :param sensor_name: PM1 or PM2
@@ -33,6 +33,7 @@ class PMSensorReader:
         self.debugLogger = debugLogger
         self.sensor_name = sensor_name
         self.debugLogger.debug("Thread {} started".format(sensor_name))
+        self.msgBuffer = msgBuffer
         
         #Welford is now inline and not an object to save memory. 
         #Use welford here : https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
@@ -52,7 +53,7 @@ class PMSensorReader:
         init_count = 0
         if self.sensor_type == "PMS5003":
             # initialise sensor
-            self.sensor = Plantower(pins=pins, id=serial_id)
+            self.sensor = Plantower(pins=pins, id=serial_id)  #TODO pass in logger to this sub lib?
             time.sleep(1)
             
             while init_count < self.init_time:
@@ -69,7 +70,7 @@ class PMSensorReader:
             # initialise sensor
             while True:
                 try:
-                    self.sensor = Sensirion(retries=1, pins=pins, id=serial_id)  # automatically starts measurement
+                    self.sensor = Sensirion(retries=1, pins=pins, id=serial_id)  # automatically starts measurement? #TODO pass in logger to this sub lib?
                     break
                 except SensirionException as e:
                     self.debugLogger.exception("Error warming up SPS030")
@@ -120,8 +121,10 @@ class PMSensorReader:
 
                     variance = self.welfordsM2/self.welfordsCount
                     sampleVariance = self.welfordsM2 / (self.welfordsCount -1)                                        
-                    self.averageLogger.log_row("".join([str(self.welfordsCount) , "," ,str(self.welfordsMean) , "," ,str(sampleVariance), "," , str(variance)]))
+                    averageStr = "".join([str(self.welfordsCount) , "," ,str(self.welfordsMean) , "," ,str(sampleVariance), "," , str(variance)])
+                    self.averageLogger.log_row(averageStr)
 
+                    self.msgBuffer.write(averageStr)  #Transmit this data
                     #Reset welfords
                     self.welfordsCount = 0
                     self.welfordsMean = 0
@@ -131,7 +134,7 @@ class PMSensorReader:
             self.debugLogger.error("Failed to read from sensor {}".format(self.sensor_type))
             self.debugLogger.debug(e)
         
-            blink_led((0x550000, 0.4, True))
+            #blink_led((0x550000, 0.4, True))
             #we can get serial issues, ignore and hope we fix as we go along
             pass
     

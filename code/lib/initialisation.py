@@ -8,13 +8,14 @@ import _thread
 import strings as s
 import os
 import pycom
+import RingBuffer
 
 class initialisation:
 
-    def __init__(self,config,  logger):
+    def __init__(self, config,  logger):
         self.logger = logger
         self.config = config
-
+        
     def initialise_time(self, rtc, gps_on):
         """
         Acquire UTC timestamp from RTC module or GPS
@@ -79,7 +80,23 @@ class initialisation:
         return no_time, update_time_later
 
 
-    def initialise_pm_sensor(self, sensor_name, pins, serial_id):
+    # def initialiseRingBuffer(self, config, logger):
+        
+    #     try:
+    #         # Start buffer
+    #         _thread.stack_size(4096 * 2) # default is 4096 (and slso min!)
+    #         _thread.start_new_thread(RingBuffer.ringBufferThread, (config,  logger))  #TODO: move to main or similar
+            
+
+    #         self.logger.info("THREAD - Ring Buffer initialised")
+    #     except Exception as e:
+    #         logger.error("Failed to initialise Ring Buffer")
+    #         logger.error(e)
+
+
+
+
+    def initialise_pm_sensor(self, sensor_name, pins, serial_id, msgBuffer):
         """
 
         :param sensor_name: PM1 or PM2
@@ -94,7 +111,7 @@ class initialisation:
         try:
             # Start PM sensor thread
             _thread.stack_size(4096 * 3) # default is 4096 (and slso min!)
-            _thread.start_new_thread(pm_thread, (sensor_name,self.config,  self.logger, pins, serial_id))  #TODO: move to main or similar
+            _thread.start_new_thread(pm_thread, (sensor_name, msgBuffer, self.config,  self.logger, pins, serial_id))  #TODO: move to main or similar
             
 
             self.logger.info("THREAD - Sensor " + sensor_name + " initialised")

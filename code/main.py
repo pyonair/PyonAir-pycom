@@ -32,7 +32,7 @@ from TempSHT35 import TempSHT35
 import GpsSIM28
 import _thread
 #from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
-from LoRaWAN import LoRaWAN
+#from LoRaWAN import LoRaWAN
 
 
 from machine import RTC, unique_id
@@ -43,6 +43,7 @@ from new_config import new_config
 from software_update import software_update
 import strings as s
 import ujson
+from RingBuffer import RingBuffer
 
 
 #===================Disable default wifi===================
@@ -261,6 +262,12 @@ try:
     #    lora = LoRaWAN(status_logger)
 
 
+    ## Ring buffer
+    message_limit_count = 5 # buffer size?
+    cell_size_bytes = 100 #all buffer slots are a fixed size ! so waste space, but dont make this smaller that a max message!
+
+    msgBuffer = RingBuffer(RING_BUFFER_DIR, RING_BUFFER_FILE, message_limit_count, cell_size_bytes,  config, status_logger)  # s.processing_path, s.lora_file_name, 31 * self.message_limit, 100)
+    
     # Initialise temperature and humidity sensor thread with id: TEMP
     status_logger.info("Starting Temp logger...")
     if sensors[s.TEMP]:
@@ -280,9 +287,9 @@ try:
 
     # Initialise PM sensor threads
     if sensors[s.PM1]:
-        init.initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1)
+        init.initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1,msgBuffer=msgBuffer)
     if sensors[s.PM2]:
-        init.initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2)
+        init.initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2,msgBuffer=msgBuffer)
 
     # Start scheduling lora messages if any of the sensors are defined
     if False: # True in sensors.values():
