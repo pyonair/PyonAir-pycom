@@ -4,9 +4,8 @@
 import os
 import time
 import pycom
-#PYBYTES
-from _pybytes import Pybytes
-from _pybytes_config import PybytesConfig
+
+
 
 
 from machine import RTC, unique_id, temperature
@@ -44,13 +43,23 @@ from software_update import software_update
 import strings as s
 import ujson
 from RingBuffer import RingBuffer
+import  PybytesTransmit 
 
+##==== Do early , stop halting -- load on thread later
+
+import pycom
+# from _pybytes_config import PybytesConfig
+# from _pybytes import Pybytes
+# conf = PybytesConfig().read_config()
+# pybytes = Pybytes(conf)
+# pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
 
 #===================Disable default wifi===================
 
 try:
     wlan = network.WLAN()
     wlan.deinit()
+    print("Disable WiFi")
 except Exception as e:
     print("Unable to disable WiFi")
 
@@ -59,14 +68,30 @@ pycom.heartbeat(False)  # disable the heartbeat LED
 pycom.rgbled(0x552000)  # flash orange to indicate startup
 
 
+##
+# ====== get time from RTC regardless -- better than default -- later we will try gps
+from RtcDS1307 import clock
+rtc = RTC()
+# Get time from RTC module
+rtcClock = clock.get_time()
+rtc.init(rtcClock) # Set Pycom time to RTC time
+print(str(rtcClock))
+
+
+
 #=========================Mount SD card=======
 try:
     sd = SD()
     os.mount(sd, '/sd')
     #TODO: Error catch , set led for no SD card
 except Exception as e:
-    print("SD did not mount")
+    print("============================")
+    print("===   SD did not mount   ===")
+    print("============================")
+    #todo this is a show stopper error
 
+#================ thread memory defautl 4096
+_thread.stack_size(4096 * 3) # default is 4096 (and slso min!)
 
 #===================Get a logger up and running asap!
 logger_factory = LoggerFactory()
@@ -75,7 +100,10 @@ fileNameStr = LOG_FILENAME + FILENAME_FMT.format(*time.gmtime()) + LOG_EXT
 print(fileNameStr)
 status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
                                                         filename=fileNameStr)
-status_logger.warning("Rebooted")
+
+print("here")
+status_logger.info("Rebooted")
+print("here2")
 #=============Global config
 
 config = Configuration.Configuration(status_logger)
@@ -88,6 +116,8 @@ init = initialisation(config, status_logger)
 #=========================Get time sorted
     # Get current time
 rtc = RTC()
+# Get time from RTC module
+#rtc.init(clock.get_time())
 no_time, update_time_later =  init.initialise_time(rtc, False) #Dont use GPS , yet - just read RTC
 update_time_later = True #Force a gps fix
 status_logger.info("RTC read")
@@ -105,33 +135,7 @@ status_logger.warning("User button enabled")
 
 #set connect to false in config file?
 
-#========Pybytes
-pycom.nvs_set('pybytes_debug',99 ) #0 warning - 99 all
-conf = PybytesConfig().read_config()
 
-pybytes = Pybytes(conf)
-#backup config
-#naw.... pybytes.write_config([file=’/flash/pybytes_config.json’, silent=False])
-
-pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
-
-status_logger.warning("Update")
-#pdb.set_trace()
-pycom.pybytes_on_boot(False)
-conf = PybytesConfig().read_config()
-
-pybytes = Pybytes(conf)
-
-#TIME
-# Get current time
-#rtc = RTC()
-#no_time, update_time_later = initialise_time(rtc, True, status_logger) #TODO: True is use gps
-
-
-pybytes.start(autoconnect=False)
-pybytes.send_signal(1, 0) # Sort of similar to uptime, sent to note reboot
-
-status_logger.warning("Pybytes config done")
 #==========================
 
 
@@ -265,9 +269,17 @@ try:
     ## Ring buffer
     message_limit_count = 5 # buffer size?
     cell_size_bytes = 100 #all buffer slots are a fixed size ! so waste space, but dont make this smaller that a max message!
-
     msgBuffer = RingBuffer(RING_BUFFER_DIR, RING_BUFFER_FILE, message_limit_count, cell_size_bytes,  config, status_logger)  # s.processing_path, s.lora_file_name, 31 * self.message_limit, 100)
     
+    ## Pybytes
+    try:
+        # Start PM sensor thread        
+        pyBytesThreadId = _thread.start_new_thread(PybytesTransmit.pybytes_thread, (msgBuffer, config,  status_logger)) 
+        status_logger.info("THREAD - Pybytes  initialised")
+    except Exception as e:
+        status_logger.info("Failed to initialise Pybytes thread ")
+        #raise e
+
     # Initialise temperature and humidity sensor thread with id: TEMP
     status_logger.info("Starting Temp logger...")
     if sensors[s.TEMP]:
