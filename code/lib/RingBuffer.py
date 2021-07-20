@@ -159,7 +159,7 @@ class RingBuffer:
                 if self.tail >= self.buffer_end:  # loop around if beginning is reached
                     self.tail = self.buffer_start
                 f.seek(self.tail_address)
-                f.write((str(self.tail) + "\n").encode())
+                f.write((str(self.tail) + "\n").encode()) #TODO: too many SD car writes for no reason , does value have to be null/o or can we ignore???
         else:
             raise Exception("Buffer is empty")
 
