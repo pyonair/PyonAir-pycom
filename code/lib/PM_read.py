@@ -124,7 +124,7 @@ class PMSensorReader:
                     averageStr = "".join([str(self.welfordsCount) , "," ,str(self.welfordsMean) , "," ,str(sampleVariance), "," , str(variance)])
                     self.averageLogger.log_row(averageStr)
 
-                    self.msgBuffer.write(averageStr)  #Transmit this data
+                    self.msgBuffer.write(averageStr)  #TODO: add to buffer to Transmit this data
                     #Reset welfords
                     self.welfordsCount = 0
                     self.welfordsMean = 0
@@ -132,7 +132,7 @@ class PMSensorReader:
             # #get an idea of time 0.0827
         except Exception as e:
             self.debugLogger.error("Failed to read from sensor {}".format(self.sensor_type))
-            self.debugLogger.debug(e)
+            self.debugLogger.debug(str(e))
         
             #blink_led((0x550000, 0.4, True))
             #we can get serial issues, ignore and hope we fix as we go along

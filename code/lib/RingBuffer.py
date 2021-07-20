@@ -107,8 +107,8 @@ class RingBuffer:
                 next_head = self.head + self.cell_size
                 if next_head >= self.buffer_end:
                     next_head = self.buffer_start  # loop around if end is reached
-                if next_head == self.tail:
-                    self.remove_tail()
+                if next_head == self.tail: #buffer full, remove oldest
+                    self._removeTailNoLock() #we have the lock
 
         #with self.buffer_lock: # Looks like a bug???
             #with open(self.file_path, 'r+b') as f:
@@ -138,7 +138,7 @@ class RingBuffer:
         else:
             raise Exception("Buffer is empty")
 
-    def remove_head(self):
+    def remove_head(self): #TODO: why no push pop?
         if self.tail is not self.head:  # if buffer is empty do not remove cell
             with self.buffer_lock:
                 with open(self.file_path, 'r+b') as f:
@@ -148,9 +148,10 @@ class RingBuffer:
                     f.seek(self.head_address)
                     f.write((str(self.head) + "\n").encode())
         else:
-            raise Exception("Buffer is empty")
+            raise Exception("Buffer is empty") #why error , not just none?
 
-    def remove_tail(self):
+
+    def _removeTailNoLock(self):
         if self.tail is not self.head:  # if buffer is empty do not remove cell
         #with self.buffer_lock:
             with open(self.file_path, 'r+b') as f:
@@ -161,6 +162,12 @@ class RingBuffer:
                 f.write((str(self.tail) + "\n").encode())
         else:
             raise Exception("Buffer is empty")
+
+
+    def remove_tail(self):        
+        with self.buffer_lock:
+           self._removeTailNoLock()
+        
 
     def size(self, up_to=False):
         if not up_to:

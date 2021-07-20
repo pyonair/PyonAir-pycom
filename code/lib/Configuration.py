@@ -1,7 +1,7 @@
 import strings as s
-from ubinascii import hexlify
-from machine import unique_id
-from network import LoRa
+#from ubinascii import hexlify
+#from machine import unique_id
+#from network import LoRa
 import os
 import ujson
 from Constants import *
