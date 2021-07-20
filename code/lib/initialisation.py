@@ -129,8 +129,8 @@ class initialisation:
                 os.mkdir(s.root_path + directory)
 
         # Create Averages directory in /sd/Archive/ directory
-        if s.archive_averages not in os.listdir(s.root_path + s.archive):
-            os.mkdir(s.archive_path + s.archive_averages)
+        #if s.archive_averages not in os.listdir(s.root_path + s.archive):
+        #    os.mkdir(s.archive_path + s.archive_averages)
 
 
     def remove_residual_files(self):

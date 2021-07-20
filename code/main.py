@@ -24,7 +24,7 @@ from Constants import *
 
 from machine import Timer
 from SensorLogger import SensorLogger
-from EventScheduler import EventScheduler
+#from EventScheduler import EventScheduler
 from helper import blink_led, get_sensors, led_lock
 #from averages import get_sensor_averages
 from TempSHT35 import TempSHT35
@@ -88,7 +88,7 @@ except Exception as e:
     print("============================")
     print("===   SD did not mount   ===")
     print("============================")
-    #todo this is a show stopper error
+    #TODO: Add led warning :  this is a show stopper error
 
 #================ thread memory defautl 4096
 _thread.stack_size(4096 * 3) # default is 4096 (and slso min!)
@@ -101,15 +101,14 @@ print(fileNameStr)
 status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
                                                         filename=fileNameStr)
 
-print("here")
 status_logger.info("Rebooted")
-print("here2")
+
 #=============Global config
 
 config = Configuration.Configuration(status_logger)
 status_logger.info("Config loaded")
 
-#=============iNIT functions
+#=============Init functions
 
 init = initialisation(config, status_logger)
 
@@ -120,7 +119,7 @@ rtc = RTC()
 #rtc.init(clock.get_time())
 no_time, update_time_later =  init.initialise_time(rtc, False) #Dont use GPS , yet - just read RTC
 update_time_later = True #Force a gps fix
-status_logger.info("RTC read")
+status_logger.info("RTC read") #TODO: fix GPS and time in general -- remember to roll over logs if big change
 
 
 #======================== Setup user interupt button
@@ -139,40 +138,6 @@ status_logger.warning("User button enabled")
 #==========================
 
 
-
-
-
-
-# Try to mount SD card, if this fails, keep blinking red and do not proceed
-#try:
-   
-    
-    #from loggingpycom import DEBUG
-    #from LoggerFactory import LoggerFactory
-    #from UserButton import UserButton#
-    # Initialise LoggerFactory and status logger
-    #logger_factory = LoggerFactory()
-    #status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
-    #                                                    filename=LOG_FILENAME)
-
-    # Initialise button interrupt on pin 14 for user interaction
-    #user_button = UserButton(status_logger)
-    #pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
-    #pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
-
-    # Mount SD card
-    #sd = SD()
-    #os.mount(sd, '/sd')
-
-# except Exception as e:
-#     print(str(e))    
-#     reboot_counter = 0
-#     while True:
-#         blink_led((0x550000, 0.5, True))  # blink red LED
-#         time.sleep(0.5)
-#         reboot_counter += 1
-#         if reboot_counter >= 180:
-#             reset()
 
 try:
 
@@ -214,28 +179,28 @@ try:
     # User button will enter configurations page from this point on
   
 
-    # If initialise time failed to acquire exact time, halt initialisation
-    if no_time:
-        raise Exception("Could not acquire UTC timestamp")
+    # # If initialise time failed to acquire exact time, halt initialisation
+    # if no_time:
+    #     raise Exception("Could not acquire UTC timestamp")
 
-    # Check if updating was triggered over LoRa
-    if config.get_config("update"):
-        software_update(status_logger)
+    # # Check if updating was triggered over LoRa
+    # if config.get_config("update"):
+    #     software_update(status_logger)
 
 except Exception as e:
     status_logger.exception(str(e))
-    reboot_counter = 0
-    try:
-        while user_button.get_reboot():
-            blink_led((0x555500, 0.5, True))  # blink yellow LED
-            time.sleep(0.5)
-            reboot_counter += 1
-            if reboot_counter >= 180:
-                status_logger.info("rebooting...")
-                reset()
-        new_config(status_logger, arg=0) #TODO remove this
-    except Exception:
-        reset()
+    # reboot_counter = 0
+    # try:
+    #     while user_button.get_reboot():
+    #         blink_led((0x555500, 0.5, True))  # blink yellow LED
+    #         time.sleep(0.5)
+    #         reboot_counter += 1
+    #         if reboot_counter >= 180:
+    #             status_logger.info("rebooting...")
+    #             reset()
+    #     new_config(status_logger, arg=0) #TODO remove this
+    # except Exception:
+    #     reset()
 
 pycom.rgbled(0x552000)  # flash orange until its loaded
 
@@ -261,7 +226,7 @@ try:
     sensors = get_sensors(config, status_logger)
 
     # Join the LoRa network
-    lora = False
+    #lora = False
     #if (True in sensors.values() or gps_on) and config.get_config("LORA") == "ON":  #TODO: lorawan disabled here
     #    lora = LoRaWAN(status_logger)
 
@@ -303,13 +268,7 @@ try:
     if sensors[s.PM2]:
         init.initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2,msgBuffer=msgBuffer)
 
-    # Start scheduling lora messages if any of the sensors are defined
-    if False: # True in sensors.values():
-        PM_Events = EventScheduler(config , logger=status_logger, data_type="sensors", lora=lora)
-    if False: #gps_on:
-        GPS_Events = EventScheduler(config, logger=status_logger, data_type="gps", lora=lora)
-
-    
+   
 
     # Blink green three times to identify that the device has been initialised
     for val in range(3):

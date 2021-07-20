@@ -32,18 +32,23 @@ class PyBytesSender:
         #naw.... pybytes.write_config([file=’/flash/pybytes_config.json’, silent=False])
 
         pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
-
+        pybytes.start(autoconnect=True)  #same as connect method
         while not pybytes.isconnected():
             time.sleep(2)
             print(".")
+            pybytes.start(autoconnect=True)
+
         self.debugLogger.warning("Update")
         #pdb.set_trace()
          
-        pybytes.start(autoconnect=True)  #same as connect method
+
+        while True:
+            pybytes.send_signal(1, 0) # Sort of similar to uptime, sent to note reboot
+            time.sleep(10)
 
         pybytes.send_signal(1, 0) # Sort of similar to uptime, sent to note reboot
 
-        self.debugLogger.warning("Pybytes config done")
+        self.debugLogger.info("Pybytes config done")
 
 
 
