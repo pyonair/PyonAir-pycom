@@ -1,5 +1,11 @@
 name: Convert TODO to issue
-on: ["push"]
+
+on:
+  #DO NOT CHANGE
+  workflow_dispatch: ## Manual run possible
+  push:
+    branches: [ master , main ]
+
 jobs:
   build:
     runs-on: "ubuntu-latest"  #Fine as we have docker
