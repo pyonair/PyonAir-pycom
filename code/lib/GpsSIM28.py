@@ -1,19 +1,33 @@
 from machine import UART, Timer, Pin
 from micropyGPS import MicropyGPS
 from RtcDS1307 import clock
-import Configuration #import config
+from Configuration import Configuration #import config
 from helper import minutes_of_the_month, blink_led
 import strings as s
 import time
 import uos
 import sys
 import _thread
+from Constants import TIME_ISO8601_FMT
+
+
+#good for thread
+#take rtc and update time if get fix
+def SetRTCtime(rtc,config, logger):
+    gps = GPSSIM28(config, logger)
+    gps.get_time(rtc)
+
+def logGPS(rtc,config, logger):
+    logger.info("Not implemented")
+    #gps = GPSSIM28(config, logger)
+    #gps.get_position(rtc)
+    #TODO: not implemented
 
 class GPSSIM28:
 
-    def __init__(self,logger):
+    def __init__(self,config, logger):
         self.logger= logger
-        self.config = Configuration() #TODO: Temp fix to get valuse in here -- but change to static
+        self.config = config # Configuration(logger) #TODO: Temp fix to get values in here -- but change to static
         # Initialise GPS power circuitry
         self.GPS_transistor = Pin('P19', mode=Pin.OUT)
         self.GPS_transistor.value(0)
@@ -26,7 +40,7 @@ class GPSSIM28:
 
 
     # delete serial used for terminal out and initialise serial for GPS
-    def gps_init(self, logger):
+    def gps_init(self):
         """
         De-initialises terminal output, and opens serial for the GPS
         :param logger: status logger
@@ -35,7 +49,7 @@ class GPSSIM28:
         :rtype: UART object, Chrono object, Alarm object
         """
 
-        logger.info("Turning GPS on - Terminal output is disabled until GPS finishes")
+        self.logger.info("Turning GPS on - Terminal output is disabled until GPS finishes")
        
         uos.dupterm(None)  # deinit terminal output on serial bus 0
 
@@ -54,7 +68,7 @@ class GPSSIM28:
 
 
     # delete serial used for GPS and re-initialise terminal out
-    def gps_deinit(self,serial, logger, message, indicator_led):
+    def gps_deinit(self,serial, message, indicator_led):
         """
         De-initialises GPS serial bus, initialises terminal output and prints message to the terminal
         :param serial: GPS serial bus
@@ -81,11 +95,11 @@ class GPSSIM28:
 
         # print any important messages concerning the gps
         if message is not False:
-            logger.info(message)
-        logger.info("Turning GPS off - Terminal output enabled")
+            self.logger.info(message)
+        self.logger.info("Turning GPS off - Terminal output enabled")
 
 
-    def get_time(self,rtc, logger):
+    def get_time(self,rtc):
         """
         Acquires UTC date time from the GPS
         :param rtc: pycom real time clock
@@ -96,12 +110,12 @@ class GPSSIM28:
         :rtype: bool
         """
 
-        if gps_lock.locked():
-            logger.debug("Waiting for other gps thread to finish")
-        with gps_lock:
-            logger.info("Getting UTC datetime via GPS")
+        if self.gps_lock.locked():
+            self.logger.debug("Waiting for other gps thread to finish")
+        with self.gps_lock:
+            self.logger.info("Getting UTC datetime via GPS")
 
-            serial, chrono, indicator_led = gps_init(logger)  # initialise serial and timer
+            serial, chrono, indicator_led = self.gps_init()  # initialise serial and timer
             com_counter = int(chrono.read())  # counter for checking whether gps is connected
             timeout = int(float(self.config.get_config("GPS_timeout")) * 60)
             message = False  # no message while terminal is disabled (by default)
@@ -111,18 +125,18 @@ class GPSSIM28:
                 data_in = (str(serial.readline()))[1:]
 
                 if (int(chrono.read()) - com_counter) >= 10:
-                    gps_deinit(serial, logger, message, indicator_led)
-                    logger.error("GPS enabled, but not connected")
+                    self.gps_deinit(serial, logger, message, indicator_led)
+                    self.logger.error("GPS enabled, but not connected")
                     return False
 
                 if data_in[1:4] != "$GP":
                     time.sleep(1)
                 else:
                     for char in data_in:
-                        sentence = gps.update(char)
+                        sentence = self.gps.update(char)
                         if sentence == "GPRMC":
                             com_counter = int(chrono.read())
-                            if gps.valid:
+                            if self.gps.valid:
 
                                 # Set current time on pycom - convert seconds (timestamp[2]) from float to int
                                 datetime = (int('20' + str(gps.date[2])), gps.date[1], gps.date[0], gps.timestamp[0],
@@ -142,20 +156,20 @@ class GPSSIM28:
                                     message = """GPS UTC datetime successfully updated on pycom board 
                                                 Failed to set GPS UTC datetime on the RTC module"""
 
-                                gps_deinit(serial, logger, message, indicator_led)
+                                self.gps_deinit(serial, logger, message, indicator_led)
                                 return True
 
                 # If timeout elapsed exit function or thread
                 if chrono.read() >= timeout:
-                    gps_deinit(serial, logger, message, indicator_led)
-                    logger.error("""GPS timeout
+                    self.gps_deinit(serial, self.logger, message, indicator_led)
+                    self.logger.error("""GPS timeout
                     Check if GPS module is connected
                     Place device under clear sky
                     Increase GPS timeout in configurations""")
                     return False
 
 
-    def get_position(self,logger, lora):
+    def get_position(self): # lora):
         """
         Acquires latitude, longitude and altitude from GPS based on HDOP
         :param logger: status logger
@@ -166,10 +180,10 @@ class GPSSIM28:
         :rtype: bool
         """
 
-        if gps_lock.locked():
-            logger.debug("Waiting for other gps thread to finish")
-        with gps_lock:
-            logger.info("Getting position via GPS")
+        if self.gps_lock.locked():
+            self.logger.debug("Waiting for other gps thread to finish")
+        with self.gps_lock:
+            self.logger.info("Getting position via GPS")
 
             serial, chrono, indicator_led = gps_init(logger)
             com_counter = int(chrono.read())  # counter for checking whether gps is connected
@@ -179,10 +193,11 @@ class GPSSIM28:
             while True:
                 # data_in = '$GPGGA,085259.000,5056.1384,N,00123.1522,W,1,8,1.17,25.1,M,47.6,M,,*7D\r\n'
                 data_in = (str(serial.readline()))[1:]
+                #TODO: be careful with read and substring -- check for []
 
                 if (int(chrono.read()) - com_counter) >= 10:
-                    gps_deinit(serial, logger, message, indicator_led)
-                    logger.error("GPS enabled, but not connected")
+                    gps_deinit(serial, self.logger, message, indicator_led)
+                    self.logger.error("GPS enabled, but not connected")
                     return False
 
                 if data_in[1:4] != "$GP":
@@ -204,14 +219,14 @@ class GPSSIM28:
                                     break
 
                             # Process data only if quality of signal is great
-                            if 0 < gps.hdop <= hdop_aim[index] and gps.satellites_in_use >= 3:
+                            if 0 < gps.hdop <= hdop_aim[index] and self.gps.satellites_in_use >= 3:
 
-                                latitude = gps.latitude[0] + gps.latitude[1]/60
-                                if gps.latitude[2] == 'S':
+                                latitude = gps.latitude[0] + self.gps.latitude[1]/60
+                                if self.gps.latitude[2] == 'S':
                                     latitude = -latitude
 
-                                longitude = gps.longitude[0] + gps.longitude[1]/60
-                                if gps.longitude[2] == 'W':
+                                longitude = gps.longitude[0] + self.gps.longitude[1]/60
+                                if self.gps.longitude[2] == 'W':
                                     longitude = -longitude
 
                                 message = """Successfully acquired location from GPS
@@ -222,17 +237,17 @@ class GPSSIM28:
                                 Altitude: {}""".format(gps.satellites_in_use, gps.hdop, latitude, longitude, gps.altitude)
 
                                 # Process GPS location
-                                timestamp = s.csv_timestamp_template.format(*time.gmtime())  # get current time in desired format
-                                lst_to_log = [timestamp, latitude, longitude, gps.altitude]
+                                timestamp = TIME_ISO8601_FMT.format(*time.gmtime())  # get current time in desired format
+                                lst_to_log = [timestamp, latitude, longitude, self.gps.altitude]
                                 str_lst_to_log = list(map(str, lst_to_log))  # cast to string
                                 line_to_log = ','.join(str_lst_to_log) + '\n'
 
-                                # Print to terminal and log to archive
+                                # Print to terminal and log to archive #TODO: why archive?
                                 sys.stdout.write(s.GPS + " - " + line_to_log)
                                 with open(s.archive_path + s.GPS + '.csv', 'a') as f_archive:
                                     f_archive.write(line_to_log)
 
-                                if lora is not False:
+                                if False: #TODO re-enable lora? lora is not False:
                                     # get year and month from timestamp
                                     year_month = timestamp[2:4] + "," + timestamp[5:7] + ','
 
@@ -246,13 +261,13 @@ class GPSSIM28:
                                     # Logs line_to_log to be sent over lora
                                     lora.lora_buffer.write(line_to_log)
 
-                                gps_deinit(serial, logger, message, indicator_led)
+                                self.gps_deinit(serial, self.logger, message, indicator_led)
                                 return True
 
                 # If timeout elapsed exit function or thread
                 if chrono.read() >= timeout:
-                    gps_deinit(serial, logger, message, indicator_led)
-                    logger.error("""GPS timeout
+                    gps_deinit(serial, self.logger, message, indicator_led)
+                    self.logger.error("""GPS timeout
                     Check if GPS module is connected
                     Place device under clear sky
                     Increase GPS timeout in configurations""")

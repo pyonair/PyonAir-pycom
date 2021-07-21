@@ -3,10 +3,19 @@ PyonAir is a low-cost open-source air pollution monitor. The monitor measures pa
 
 > We are refactoring the code and website so please be patient 
 
-## Firmware versions
+## Firmware 
 
-Firmware: 1.20.2.r4
-Pybytes: 1.6.1
+Tested versions:
+
+* Firmware: 1.20.2.r4
+* Pybytes: 1.6.1
+
+### Method
+
+Connect a jumper cable or wire between G23 and GND
+
+Pybytes firmware 
+
 
 ## User guide
  

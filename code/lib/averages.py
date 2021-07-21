@@ -6,11 +6,12 @@ import os
 from helper import mean_across_arrays, minutes_of_the_month, blink_led, get_sensors, get_format, current_lock  #TODO: chenge this type of import
 
 from Configuration import Configuration
-import strings as s
+#import strings as s
+from Constants import TIME_ISO8601_FMT
 import time
 
 
-def get_sensor_averages(logger, lora):
+def get_sensor_averages(config, logger, lora):
     """
     Takes the averages of sensor readings and constructs a line to log to the SD card, terminal and lora buffer
     :param logger: status logger
@@ -22,10 +23,10 @@ def get_sensor_averages(logger, lora):
     logger.debug("Calculating averages")
 
     # get a dictionary of sensors and their status
-    sensors = get_sensors(logger)
+    sensors = get_sensors(config, logger)
     fmt = get_format(sensors)
-    version = str( Configuration(logger).get_config("fmt_version"))
-    timestamp = s.csv_timestamp_template.format(*time.gmtime())  # get current time in desired format
+    version = str( config.get_config("fmt_version"))
+    timestamp = TIME_ISO8601_FMT.format(*time.gmtime())  # get current time in desired format
     minutes = str(minutes_of_the_month())  # get minutes past last midnight
 
     try:
@@ -38,7 +39,7 @@ def get_sensor_averages(logger, lora):
         line_to_log = '{}' + fmt + ',' + version + ',' + minutes
         for sensor_name in [s.TEMP, s.PM1, s.PM2]:
             if sensors[sensor_name]:
-                line_to_log += ',' + str(Configuration(logger).get_config(sensor_name + "_id")) + ',' + ','.join(sensor_averages[sensor_name + "_avg"]) + ',' + str(sensor_averages[sensor_name + "_count"])
+                line_to_log += ',' + str(config.get_config(sensor_name + "_id")) + ',' + ','.join(sensor_averages[sensor_name + "_avg"]) + ',' + str(sensor_averages[sensor_name + "_count"])
         line_to_log += '\n'
 
         # Logs line_to_log to archive and places copies into relevant to_send folders
@@ -62,7 +63,7 @@ def get_sensor_averages(logger, lora):
         blink_led((0x550000, 0.4, True))
 
 
-def calculate_average(sensor_name, logger):
+def calculate_average(sensor_name, config, logger):
     """
     Calculates averages for specific columns of sensor data to be sent over LoRa. Sets placeholders if it fails.
     :param sensor_name: PM1, PM2 or TEMP
@@ -72,8 +73,8 @@ def calculate_average(sensor_name, logger):
     """
 
     filename = sensor_name + '.csv'
-    sensor_type = Configuration(logger).get_config(sensor_name)
-    sensor_id = str(Configuration(logger).get_config(sensor_name + "_id"))
+    sensor_type = config.get_config(sensor_name)
+    sensor_id = str(config.get_config(sensor_name + "_id"))
     # headers in current file of the sensor according to its type
     headers = s.headers_dict_v4[sensor_type]
 

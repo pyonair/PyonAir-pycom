@@ -1,12 +1,20 @@
 import os
 import _thread
+from Constants import RING_BUFFER_FILE , RING_BUFFER_DIR
+
+
+# def ringBufferThread(config, logger):
+#     # path, file_name, cell_number, cell_size
+
 
 
 class RingBuffer:
 
-    def __init__(self, logger, path, file_name, cell_number, cell_size):
-
+    def __init__(self, path, file_name, cell_number, cell_size,  config, logger):
+        
         self.logger = logger
+        self.config = config
+        self.logger.info("Creating/opening buffer....")
         self.file_path = path + file_name
         self.cell_number = cell_number
         self.cell_size = cell_size
@@ -95,20 +103,21 @@ class RingBuffer:
                 f.seek(self.head)
                 f.write((line + "\n").encode())  # write line
 
-        # check if buffer reached around
-        next_head = self.head + self.cell_size
-        if next_head >= self.buffer_end:
-            next_head = self.buffer_start  # loop around if end is reached
-        if next_head == self.tail:
-            self.remove_tail()
+                # check if buffer reached around
+                next_head = self.head + self.cell_size
+                if next_head >= self.buffer_end:
+                    next_head = self.buffer_start  # loop around if end is reached
+                if next_head == self.tail: #buffer full, remove oldest
+                    self._removeTailNoLock() #we have the lock
 
-        with self.buffer_lock:
-            with open(self.file_path, 'r+b') as f:
+        #with self.buffer_lock: # Looks like a bug???
+            #with open(self.file_path, 'r+b') as f:
                 self.head += self.cell_size  # increment head
                 if self.head >= self.buffer_end:
                     self.head = self.buffer_start  # loop around if end is reached
                 f.seek(self.head_address)
                 f.write((str(self.head) + "\n").encode())  # save new head
+        self.logger.debug("".join([ str(self.head),str(self.tail),str(self.cell_size)]))
 
     def read(self, read_tail=False):  # reads line at head or tail
         if self.tail is not self.head:  # if buffer is empty do not read line
@@ -129,7 +138,7 @@ class RingBuffer:
         else:
             raise Exception("Buffer is empty")
 
-    def remove_head(self):
+    def remove_head(self): #TODO: why no push pop?
         if self.tail is not self.head:  # if buffer is empty do not remove cell
             with self.buffer_lock:
                 with open(self.file_path, 'r+b') as f:
@@ -139,19 +148,26 @@ class RingBuffer:
                     f.seek(self.head_address)
                     f.write((str(self.head) + "\n").encode())
         else:
-            raise Exception("Buffer is empty")
+            raise Exception("Buffer is empty") #why error , not just none?
 
-    def remove_tail(self):
+
+    def _removeTailNoLock(self):
         if self.tail is not self.head:  # if buffer is empty do not remove cell
-            with self.buffer_lock:
-                with open(self.file_path, 'r+b') as f:
-                    self.tail += self.cell_size  # increment tail
-                    if self.tail >= self.buffer_end:  # loop around if beginning is reached
-                        self.tail = self.buffer_start
-                    f.seek(self.tail_address)
-                    f.write((str(self.tail) + "\n").encode())
+        #with self.buffer_lock:
+            with open(self.file_path, 'r+b') as f:
+                self.tail += self.cell_size  # increment tail
+                if self.tail >= self.buffer_end:  # loop around if beginning is reached
+                    self.tail = self.buffer_start
+                f.seek(self.tail_address)
+                f.write((str(self.tail) + "\n").encode()) #TODO: too many SD car writes for no reason , does value have to be null/o or can we ignore???
         else:
             raise Exception("Buffer is empty")
+
+
+    def remove_tail(self):        
+        with self.buffer_lock:
+           self._removeTailNoLock()
+        
 
     def size(self, up_to=False):
         if not up_to:

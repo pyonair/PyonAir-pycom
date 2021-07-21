@@ -2,7 +2,8 @@
 """Code is implemented semi-modular using these strings. While it is fine to change most of these strings without any
 complication, please only do so, if you have looked at the uses and are confident that you know what you are doing."""
 
-csv_timestamp_template = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}"  # yyyy-mm-dd hh-mm-ss
+
+
 
 headers_dict_v4 = {
     "PMS5003": ["timestamp", "pm10_cf1", "PM1", "pm25_cf1", "PM25", "pm100_cf1", "PM10", "gr03um", "gr05um", "gr10um", "gr25um", "gr50um", "gr100um", ""],
@@ -27,7 +28,6 @@ lora_sensor_headers = {
 
 status_header = ['type', 'timestamp', 'message']
 
-config_filename = 'Settings.cfg'
 
 # default_configuration = {"device_id": "", "device_name": "NewPyonAir", "password": "newpyonair", "region": "Europe",
 #                          "device_eui": "", "application_eui": "", "app_key": "", "SSID": "", "fmt_version": "",

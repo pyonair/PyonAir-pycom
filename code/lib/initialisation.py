@@ -8,13 +8,15 @@ import _thread
 import strings as s
 import os
 import pycom
+import RingBuffer
 
 class initialisation:
 
-    def __init__(self, logger):
+    def __init__(self, config,  logger):
         self.logger = logger
-
-    def initialise_time(self, rtc, gps_on, logger):
+        self.config = config
+        
+    def initialise_time(self, rtc, gps_on):
         """
         Acquire UTC timestamp from RTC module or GPS
         :param rtc: pycom real time clock
@@ -26,7 +28,7 @@ class initialisation:
         :return: no_time, update_time_later
         :rtype: bool, bool
         """
-
+        
         no_time = False
         update_time_later = True
         try:
@@ -36,6 +38,7 @@ class initialisation:
             if rtc.now()[0] < 2019 or rtc.now()[0] >= 2100:
                 # Get time and calibrate RTC module via GPS
                 if gps_on:
+                    logger.info("Attempt GPS ...")
                     if GpsSIM28.get_time(rtc, logger):
                         update_time_later = False
                     else:  # No way of getting time
@@ -77,7 +80,23 @@ class initialisation:
         return no_time, update_time_later
 
 
-    def initialise_pm_sensor(self, sensor_name, pins, serial_id, status_logger):
+    # def initialiseRingBuffer(self, config, logger):
+        
+    #     try:
+    #         # Start buffer
+    #         _thread.stack_size(4096 * 2) # default is 4096 (and slso min!)
+    #         _thread.start_new_thread(RingBuffer.ringBufferThread, (config,  logger))  #TODO: move to main or similar
+            
+
+    #         self.logger.info("THREAD - Ring Buffer initialised")
+    #     except Exception as e:
+    #         logger.error("Failed to initialise Ring Buffer")
+    #         logger.error(e)
+
+
+
+
+    def initialise_pm_sensor(self, sensor_name, pins, serial_id, msgBuffer):
         """
 
         :param sensor_name: PM1 or PM2
@@ -91,11 +110,13 @@ class initialisation:
         """
         try:
             # Start PM sensor thread
-            _thread.start_new_thread(pm_thread, (sensor_name, status_logger, pins, serial_id))
+            _thread.stack_size(4096 * 3) # default is 4096 (and slso min!)
+            _thread.start_new_thread(pm_thread, (sensor_name, msgBuffer, self.config,  self.logger, pins, serial_id))  #TODO: move to main or similar
+            
 
-            status_logger.info("Sensor " + sensor_name + " initialised")
+            self.logger.info("THREAD - Sensor " + sensor_name + " initialised")
         except Exception as e:
-            status_logger.exception("Failed to initialise sensor " + sensor_name)
+            self.exception("Failed to initialise sensor thread " + sensor_name)
 
 
     def initialise_file_system(self):
@@ -108,35 +129,36 @@ class initialisation:
                 os.mkdir(s.root_path + directory)
 
         # Create Averages directory in /sd/Archive/ directory
-        if s.archive_averages not in os.listdir(s.root_path + s.archive):
-            os.mkdir(s.archive_path + s.archive_averages)
+        #if s.archive_averages not in os.listdir(s.root_path + s.archive):
+        #    os.mkdir(s.archive_path + s.archive_averages)
 
 
     def remove_residual_files(self):
         """
         Removes residual files from the last boot in the current and processing dirs
         """
-        for path in [s.current_path, s.processing_path]:
-            for file in os.listdir(path[:-1]):  # Strip '/' from the end of path
-                if file != s.lora_file_name:
-                    os.remove(path + file)
+        #TODO: clean up ? do we need it now that there is no archive process?
+        # for path in [s.current_path, s.processing_path]:
+        #     for file in os.listdir(path[:-1]):  # Strip '/' from the end of path
+        #         if file != s.lora_file_name:
+        #             os.remove(path + file)
 
 
-    def get_logging_level(self):
-        """
-        Get logging level from configurations
-        :return: logging level
-        :rtype: str
-        """
-        logging_lvl = Configuration(self.logger).get_config("logging_lvl")
-        if logging_lvl == "Critical":
-            return CRITICAL
-        elif logging_lvl == "Error":
-            return ERROR
-        elif logging_lvl == "Warning":
-            return WARNING
-        elif logging_lvl == "Info":
-            return INFO
-        elif logging_lvl == "Debug":
-            return DEBUG
-        #TODO: just use this in the config! dont translate
+    # def get_logging_level(self):
+    #     """
+    #     Get logging level from configurations
+    #     :return: logging level
+    #     :rtype: str
+    #     """
+    #     logging_lvl = Configuration(self.logger).get_config("logging_lvl")
+    #     if logging_lvl == "Critical":
+    #         return CRITICAL
+    #     elif logging_lvl == "Error":
+    #         return ERROR
+    #     elif logging_lvl == "Warning":
+    #         return WARNING
+    #     elif logging_lvl == "Info":
+    #         return INFO
+    #     elif logging_lvl == "Debug":
+    #         return DEBUG
+    #     #TODO: just use this in the config! dont translate
