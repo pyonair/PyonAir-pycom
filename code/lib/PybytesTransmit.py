@@ -44,7 +44,7 @@ class PyBytesSender:
 
         while True:
             pybytes.send_signal(1, 0) # Sort of similar to uptime, sent to note reboot
-            time.sleep(10)
+            time.sleep(60)
 
         pybytes.send_signal(1, 0) # Sort of similar to uptime, sent to note reboot
 
