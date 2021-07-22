@@ -5,9 +5,6 @@ import os
 import time
 import pycom
 
-
-
-
 from machine import RTC, unique_id, temperature
 from machine import SD, Pin, reset
 import network # Used to disable WiFi

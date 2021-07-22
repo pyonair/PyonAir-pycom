@@ -6,8 +6,6 @@ from Constants import RING_BUFFER_FILE , RING_BUFFER_DIR
 # def ringBufferThread(config, logger):
 #     # path, file_name, cell_number, cell_size
 
-
-
 class RingBuffer:
 
     def __init__(self, path, file_name, cell_number, cell_size,  config, logger):
@@ -126,7 +124,7 @@ class RingBuffer:
                     if read_tail:
                         f.seek(self.tail)
                     else:
-                        if self.head == self.buffer_start:
+                        if self.head == self.buffer_start: #caase where we are at buffer 0 , next time is at buffer N
                             f.seek(self.buffer_end - self.cell_size)
                         else:
                             f.seek(self.head - self.cell_size)
@@ -137,6 +135,47 @@ class RingBuffer:
                     return buffer_line[:index]
         else:
             raise Exception("Buffer is empty")
+
+    def pop(self, readTail=False): ## Returns head and deletes it. / default pop head, but cna do tail
+
+        if self.tail is not self.head:  # if buffer is empty do not read line
+            with self.buffer_lock:
+                with open(self.file_path, 'r+b') as f:
+                    if readTail:
+                        f.seek(self.tail)
+                    else:
+                        if self.head == self.buffer_start:
+                            f.seek(self.buffer_end - self.cell_size)
+                        else:
+                            f.seek(self.head - self.cell_size)
+                    buffer_line = f.read(self.cell_size).decode()
+                    index = buffer_line.find("\n")
+                    
+
+                    #remove 
+                    if readTail:
+                        #remove tail
+                        self.tail += self.cell_size  # increment tail
+                        if self.tail >= self.buffer_end:  # loop around if beginning is reached
+                            self.tail = self.buffer_start
+                        f.seek(self.tail_address)
+                        f.write((str(self.tail) + "\n").encode()) #TODO: too many SD card writes for no reason , does value have to be null/o or can we ignore???
+                    else: 
+                        #remove head
+                        self.head -= self.cell_size  # decrement head
+                        if self.head < self.buffer_start:  # loop around if beginning is reached
+                            self.head = self.buffer_end - self.cell_size
+                        f.seek(self.head_address)
+                        f.write((str(self.head) + "\n").encode()) #TODO: investigate if this is needed, it causes a lot of IO - suspect this is persistance head/tail
+
+                    if index == -1: #When would this be the case? assume empty message?
+                        #raise Exception("Data not found")
+                        return None 
+                    return buffer_line[:index] #return all str before newline
+        else:
+            raise Exception("Buffer is empty")
+
+
 
     def remove_head(self): #TODO: why no push pop?
         if self.tail is not self.head:  # if buffer is empty do not remove cell

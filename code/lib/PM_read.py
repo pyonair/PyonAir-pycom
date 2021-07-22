@@ -1,12 +1,12 @@
 from plantowerpycom import Plantower, PlantowerException
 from sensirionpycom import Sensirion, SensirionException
-from helper import mean_across_arrays, blink_led
+from helper import mean_across_arrays, blink_led,minutes_of_the_month
 from Configuration import Configuration
 from machine import Timer
 from SensorLogger import SensorLogger
 import time
 from WelfordAverage import WelfordAverage
-from Constants import PM_SENSOR_SAMPELING_RATE , PM_SAMPLE_COUNT_FOR_AVERAGE
+from Constants import PM_SENSOR_SAMPELING_RATE , PM_SAMPLE_COUNT_FOR_AVERAGE, TIME_ISO8601_FMT
 
 #This is important code, keep it FAST are reliable. 
 #Note syntax issues here may look like cannot read sensors
@@ -120,11 +120,13 @@ class PMSensorReader:
                 if (self.welfordsCount >= PM_SAMPLE_COUNT_FOR_AVERAGE): #Keep adding data
 
                     variance = self.welfordsM2/self.welfordsCount
-                    sampleVariance = self.welfordsM2 / (self.welfordsCount -1)                                        
-                    averageStr = "".join([str(self.welfordsCount) , "," ,str(self.welfordsMean) , "," ,str(sampleVariance), "," , str(variance)])
+                    sampleVariance = self.welfordsM2 / (self.welfordsCount -1)  
+                    #A = message type class/ see ring buffer -- for pickle    
+                    curTime = minutes = str(minutes_of_the_month()) # TIME_ISO8601_FMT.format(*time.gmtime())                                
+                    averageStr = ",".join(["A,1", curTime,  str(self.welfordsCount)  ,str(round(self.welfordsMean)) ,str(round(sampleVariance)),  str(round(variance))])
                     self.averageLogger.log_row(averageStr)
 
-                    self.msgBuffer.write(averageStr)  #TODO: add to buffer to Transmit this data
+                    #self.msgBuffer.write(averageStr)  #TODO: add to buffer to Transmit this data
                     #Reset welfords
                     self.welfordsCount = 0
                     self.welfordsMean = 0

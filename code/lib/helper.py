@@ -35,7 +35,7 @@ def minutes_of_the_month():
     :rtype: int
     """
     t = time.gmtime()
-    days, hours, minutes = t[2], t[3], t[4]
+    days, hours, minutes,sec = t[2], t[3], t[4]
     return ((days - 1) * 24 * 60) + (hours * 60) + minutes
 
 
