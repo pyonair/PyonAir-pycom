@@ -4,7 +4,7 @@ complication, please only do so, if you have looked at the uses and are confiden
 
 
 
-
+#use PM25 -- for average
 headers_dict_v4 = {
     "PMS5003": ["timestamp", "pm10_cf1", "PM1", "pm25_cf1", "PM25", "pm100_cf1", "PM10", "gr03um", "gr05um", "gr10um", "gr25um", "gr50um", "gr100um", ""],
     "PMS7003": ["timestamp", "pm10_cf1", "PM1", "pm25_cf1", "PM25", "pm100_cf1", "PM10", "gr03um", "gr05um", "gr10um", "gr25um", "gr50um", "gr100um", ""],
@@ -62,4 +62,3 @@ processing_path = root_path + processing + '/'
 archive_path = root_path + archive + '/'
 archive_averages_path = archive_path + archive_averages + '/'
 filesystem_dirs = [current, processing, archive]
-

@@ -1,16 +1,19 @@
 from plantowerpycom import Plantower, PlantowerException
 from sensirionpycom import Sensirion, SensirionException
-from helper import mean_across_arrays, blink_led,minutes_of_the_month
+from helper import mean_across_arrays, blink_led,secOfTheMonth
 from Configuration import Configuration
 from machine import Timer
 from SensorLogger import SensorLogger
 import time
+
+from ubinascii import hexlify, b2a_base64
+import struct
 from WelfordAverage import WelfordAverage
 from Constants import PM_SENSOR_SAMPELING_RATE , PM_SAMPLE_COUNT_FOR_AVERAGE, TIME_ISO8601_FMT
 
-#This is important code, keep it FAST are reliable. 
+#This is important code, keep it FAST are reliable.
 #Note syntax issues here may look like cannot read sensors
-#Entry point for thread (method only not class) 
+#Entry point for thread (method only not class)
 def pm_thread(sensor_name,msgBuffer, config,  debugLogger, pins, serial_id):
     #Thread creates object and keeps it always.-- object triggers alarms. -- one per PM sensor
     rdr = PMSensorReader(sensor_name,msgBuffer, config,  debugLogger, pins, serial_id)
@@ -34,17 +37,17 @@ class PMSensorReader:
         self.sensor_name = sensor_name
         self.debugLogger.debug("Thread {} started".format(sensor_name))
         self.msgBuffer = msgBuffer
-        
-        #Welford is now inline and not an object to save memory. 
+
+        #Welford is now inline and not an object to save memory.
         #Use welford here : https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
         self.welfordsCount = 0
         self.welfordsMean = 0
-        self.welfordsM2 = 0        
+        self.welfordsM2 = 0
 
         #Logging files (sensor data and average senor data)
-        self.sensor_logger = SensorLogger(sensor_name=sensor_name, terminal_out=True) 
+        self.sensor_logger = SensorLogger(sensor_name=sensor_name, terminal_out=True)
         self.averageLogger = SensorLogger(sensor_name=sensor_name+"Average", terminal_out=True)
-        
+
         # Name PM1 - > Plantower via config.
         self.sensor_type = config.get_config(sensor_name)
         # Wait for sensor to poer up time from config
@@ -52,10 +55,11 @@ class PMSensorReader:
 
         init_count = 0
         if self.sensor_type == "PMS5003":
+            self.port = 10 #TODO: config this
             # initialise sensor
             self.sensor = Plantower(pins=pins, id=serial_id)  #TODO pass in logger to this sub lib?
             time.sleep(1)
-            
+
             while init_count < self.init_time:
                 try:
                     time.sleep(1)
@@ -66,7 +70,7 @@ class PMSensorReader:
                     blink_led((0x550000, 0.4, True))
 
         elif self.sensor_type == "SPS030":
-
+            self.port = 11 #TODO: config this
             # initialise sensor
             while True:
                 try:
@@ -97,19 +101,19 @@ class PMSensorReader:
         :param args: sensor_type, sensor, sensor_logger, debugLogger
         :type args: str, str, SensorLogger object, LoggerFactory object
         """
-        
+
         #Must run 1Hz !
         try:
             recv = self.sensor.read() #This string should be fine to just log, but we do need some values to average
             if recv:
-                revStr = str(recv) 
+                revStr = str(recv)
                 recvList = revStr.split(',')
-                
+
                 self.sensor_logger.log_row(revStr)
-                
+
                 #==============Single welfords average=========
                 #Average gr03umAverage = float(recvList[8])
-                grumValue = float(recvList[8])  ## Value to average (we only average one)
+                grumValue = float(recvList[4])  ## Value to average (we only average one) --PM25
                 self.welfordsCount += 1 #increment N counter
                 delta = float(grumValue) - self.welfordsMean
                 self.welfordsMean += (delta/self.welfordsCount)
@@ -120,13 +124,22 @@ class PMSensorReader:
                 if (self.welfordsCount >= PM_SAMPLE_COUNT_FOR_AVERAGE): #Keep adding data
 
                     variance = self.welfordsM2/self.welfordsCount
-                    sampleVariance = self.welfordsM2 / (self.welfordsCount -1)  
-                    #A = message type class/ see ring buffer -- for pickle    
-                    curTime = minutes = str(minutes_of_the_month()) # TIME_ISO8601_FMT.format(*time.gmtime())                                
-                    averageStr = ",".join(["A,1", curTime,  str(self.welfordsCount)  ,str(round(self.welfordsMean)) ,str(round(sampleVariance)),  str(round(variance))])
-                    self.averageLogger.log_row(averageStr)
+                    sampleVariance = self.welfordsM2 / (self.welfordsCount -1)
 
-                    #self.msgBuffer.write(averageStr)  #TODO: add to buffer to Transmit this data
+                    #A = message type class/ see ring buffer -- for pickle
+                    secInt =  secOfTheMonth() # TIME_ISO8601_FMT.format(*time.gmtime())
+                    dataMsg = [self.port, secInt, self.welfordsCount  ,self.welfordsMean]# ,round(sampleVariance), round(variance)]
+                    #formatStr = "<BHHHHH"
+                    #print(dataMsg)
+                    #payload = struct.pack(formatStr, *dataMsg)
+                    #print("here66666")
+                    #payloadStr = "<BHHHHH," + str(b2a_base64(payload))
+                    #TODO: migrate pack strings here
+
+                    #averageStr = ",".join()
+                    self.averageLogger.log_row(str(dataMsg))
+
+                    self.msgBuffer.push(dataMsg)  #TODO: add to buffer to Transmit this data
                     #Reset welfords
                     self.welfordsCount = 0
                     self.welfordsMean = 0
@@ -135,10 +148,8 @@ class PMSensorReader:
         except Exception as e:
             self.debugLogger.error("Failed to read from sensor {}".format(self.sensor_type))
             self.debugLogger.debug(str(e))
-        
+            #raise e
+
             #blink_led((0x550000, 0.4, True))
             #we can get serial issues, ignore and hope we fix as we go along
             pass
-    
-
-        
