@@ -2,8 +2,8 @@ import loggingpycom as logging
 from loggingpycom import handlers
 
 STATUS_FMT_DEFAULT = '%(levelname)s - %(asctime)s - %(name)s - %(message)s'
-STATUS_MAX_FILE_SIZE_DEFAULT = 10 * 1024 * 1024  # 10MiB
-STATUS_ARCHIVE_COUNT_DEFAULT = 10  # How many files to keep before deletion
+DEBUG_LOG_MAX_FILE_SIZE_DEFAULT = 50 * 1024 * 1024  # 50MiB
+DEBUG_LOG_ARCHIVE_COUNT_DEFAULT = 10  # How many files to keep before deletion, this is inefficient and renames all n files (dont let n get big!)
 
 
 class LoggerFactory:
@@ -11,6 +11,7 @@ class LoggerFactory:
             self,
             path='/sd/'
     ):
+        print("Logger factory starting.....")
         self.path = path
         self.loggers = {}  # dictionary to store loggers
 
@@ -30,8 +31,8 @@ class LoggerFactory:
             level=logging.INFO,
             fmt=STATUS_FMT_DEFAULT,
             filename=None,
-            maxBytes=STATUS_MAX_FILE_SIZE_DEFAULT,
-            backupCount=STATUS_ARCHIVE_COUNT_DEFAULT,
+            maxBytes=DEBUG_LOG_MAX_FILE_SIZE_DEFAULT,
+            backupCount=DEBUG_LOG_ARCHIVE_COUNT_DEFAULT,
             terminal_out=True
     ):
         """
@@ -51,6 +52,7 @@ class LoggerFactory:
         :return: reference to the logger stored in the class
         :rtype: object
         """
+        print("Logger creating .....")
         status_logger = logging.getLogger(name)
         status_logger.setLevel(level)
         formatter = logging.Formatter(fmt=fmt)
@@ -63,6 +65,7 @@ class LoggerFactory:
             file_handler.setFormatter(formatter)
             status_logger.addHandler(file_handler)
         self.loggers[name] = status_logger
+        print("Logger created: " + name)
         return self.loggers[name]
 
     def set_level(self, name, level):
@@ -73,5 +76,8 @@ class LoggerFactory:
         :param level: logging level
         :type level: str
         """
+        print(name, level)
+        print(self.loggers.values)
         self.loggers[name].setLevel(level)
+        print("DONE")
         return self.loggers[name]

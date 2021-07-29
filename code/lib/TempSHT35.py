@@ -1,16 +1,18 @@
 from machine import I2C, Timer
-from Configuration import config
+
+from Configuration import Configuration 
 from helper import blink_led
-from strings import csv_timestamp_template
+#from strings import csv_timestamp_template
+from Constants import TIME_ISO8601_FMT
 import time
 
 
 # Temp Res: 0.01C, Temp Acc: +/-0.1C, Humid Res: 0.01%, Humid Acc: +/-1.5%
 class TempSHT35(object):
 
-    def __init__(self, sensor_logger, status_logger):
-
-        self.sensor_logger = sensor_logger
+    def __init__(self, config, logger, status_logger):
+        self.config =config
+        self.logger = logger
         self.status_logger = status_logger
 
         # Initialise i2c - bus no., type, baudrate, i2c pins
@@ -20,7 +22,7 @@ class TempSHT35(object):
         # get one sensor reading upon init to catch any errors and calibrate the sensor
         self.read()
         # start a periodic timer interrupt to poll readings at a frequency
-        self.processing_alarm = Timer.Alarm(self.process_readings, s=int(config.get_config("TEMP_period")), periodic=True)
+        self.processing_alarm = Timer.Alarm(self.process_readings, s=int(self.config.get_config("TEMP_period")), periodic=True)
 
     def read(self):
         # high repeatability, clock stretching disabled
@@ -48,13 +50,13 @@ class TempSHT35(object):
         """
         # read and log pm sensor data
         try:
-            timestamp = csv_timestamp_template.format(*time.gmtime())  # get current time in desired format
+            timestamp = TIME_ISO8601_FMT.format(*time.gmtime())  # get current time in desired format
             read_lst = self.read()  # read SHT35 sensor - [celsius, humidity] to ~5 significant figures
             round_lst = [int(round(x, 1)*10) for x in read_lst]  # round readings to 1 significant figure, shift left, cast to int
             str_round_lst = list(map(str, round_lst))  # cast int to string
             lst_to_log = [timestamp] + str_round_lst
             line_to_log = ','.join(lst_to_log)
-            self.sensor_logger.log_row(line_to_log)
+            self.logger.log_row(line_to_log)
         except Exception as e:
             self.status_logger.exception("Failed to read from temperature and humidity sensor")
             blink_led((0x550000, 0.4, True))

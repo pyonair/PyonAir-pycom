@@ -4,94 +4,144 @@ from helper import blink_led
 import os
 import time
 import pycom
-from _pybytes import Pybytes
-from _pybytes_config import PybytesConfig
-from machine import RTC, unique_id
+
+from machine import RTC, unique_id, temperature
 from machine import SD, Pin, reset
-from initialisation import initialise_time  # TODO: clunky refactor
+import network # Used to disable WiFi
+from initialisation import initialisation #initialise_time # TODO: clunky refactor
+from helper import blink_led
+
 import loggingpycom
+from LoggerFactory import LoggerFactory
+
+from UserButton import UserButton
+
 from Constants import *
 
 # TODO: provision if key on sd card
 
-# set connect to false in config file?
+from machine import Timer
+from SensorLogger import SensorLogger
+#from EventScheduler import EventScheduler
+from helper import blink_led, get_sensors, led_lock
+#from averages import get_sensor_averages
+from TempSHT35 import TempSHT35
+import GpsSIM28
+import _thread
+#from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
+#from LoRaWAN import LoRaWAN
 
 
-pycom.nvs_set('pybytes_debug', 99)  # 0 warning - 99 all
-Pybytes.update_config('pybytes_autostart', False,
-                      permanent=True, silent=False, reconnect=False)
+from machine import RTC, unique_id
+#from initialisation import initialise_time
+from ubinascii import hexlify
+import Configuration
+from new_config import new_config
+from software_update import software_update
+import strings as s
+import ujson
+from RingBuffer import RingBuffer
+import  PybytesTransmit
 
-# pdb.set_trace()
+##==== Do early , stop halting -- load on thread later
 
+import pycom
+# from _pybytes_config import PybytesConfig
+# from _pybytes import Pybytes
+# conf = PybytesConfig().read_config()
+# pybytes = Pybytes(conf)
+# pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
 
-pycom.pybytes_on_boot(False)
-conf = PybytesConfig().read_config()
-print("CONFIG:  ")
-print(conf)
-pybytes = Pybytes(conf)
+#===================Disable default wifi===================
 
-# TIME
-# Get current time
-#rtc = RTC()
-# no_time, update_time_later = initialise_time(rtc, True, status_logger) #TODO: True is use gps
+try:
+    wlan = network.WLAN()
+    wlan.deinit()
+    print("Disable WiFi")
+except Exception as e:
+    print("Unable to disable WiFi")
 
-
-pybytes.start(autoconnect=False)
-pybytes.send_signal(1, 0)  # Sort of similar to uptime, sent to note reboot
-
-
-# ==========================
-
-# Disable default wifi
-wlan = WLAN()
-wlan.deinit()
-
+#===============LED
 pycom.heartbeat(False)  # disable the heartbeat LED
 pycom.rgbled(0x552000)  # flash orange to indicate startup
 
-# Try to mount SD card, if this fails, keep blinking red and do not proceed
+
+##
+# ====== get time from RTC regardless -- better than default -- later we will try gps
+from RtcDS1307 import clock
+rtc = RTC()
+# Get time from RTC module
+rtcClock = clock.get_time()
+rtc.init(rtcClock) # Set Pycom time to RTC time
+print(str(rtcClock))
+
+
+#=========================Mount SD card=======
 try:
-
-    #from loggingpycom import DEBUG
-    from LoggerFactory import LoggerFactory
-    from UserButton import UserButton
-    # Initialise LoggerFactory and status logger
-    logger_factory = LoggerFactory()
-    status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
-                                                        filename=LOG_FILENAME)
-
-    # Initialise button interrupt on pin 14 for user interaction
-    user_button = UserButton(status_logger)
-    pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
-    pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING,
-                    user_button.button_handler)
-
-    # Mount SD card
     sd = SD()
     os.mount(sd, '/sd')
-
+    #TODO: Error catch , set led for no SD card
 except Exception as e:
-    print(str(e))
-    reboot_counter = 0
-    while True:
-        blink_led((0x550000, 0.5, True))  # blink red LED
-        time.sleep(0.5)
-        reboot_counter += 1
-        if reboot_counter >= 180:
-            reset()
+    print("============================")
+    print("===   SD did not mount   ===")
+    print("============================")
+    #TODO: Add led warning :  this is a show stopper error
+
+#================ thread memory defautl 4096
+_thread.stack_size(4096 * 3) # default is 4096 (and slso min!)
+
+#===================Get a logger up and running asap!
+logger_factory = LoggerFactory()
+#TODO: Set log level to level in config file
+fileNameStr = LOG_FILENAME + FILENAME_FMT.format(*time.gmtime()) + LOG_EXT
+print(fileNameStr)
+status_logger = logger_factory.create_status_logger(DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True,
+                                                        filename=fileNameStr)
+
+status_logger.info("Rebooted")
+
+#=============Global config
+
+config = Configuration.Configuration(status_logger)
+status_logger.info("Config loaded")
+
+#=============Init functions
+
+init = initialisation(config, status_logger)
+
+#=========================Get time sorted
+    # Get current time
+rtc = RTC()
+# Get time from RTC module
+#rtc.init(clock.get_time())
+no_time, update_time_later =  init.initialise_time(rtc, False) #Dont use GPS , yet - just read RTC
+update_time_later = True #Force a gps fix
+status_logger.info("RTC read") #TODO: fix GPS and time in general -- remember to roll over logs if big change
+
+
+#======================== Setup user interupt button
+user_button = UserButton(status_logger)
+pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
+pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
+user_button.set_config_enabled(True)
+status_logger.warning("User button enabled")
+
+
+#TODO: provision if key on sd card
+
+#set connect to false in config file?
+
+
+#==========================
+
+
 
 try:
-    from machine import RTC, unique_id
-    from initialisation import initialise_time
-    from ubinascii import hexlify
-    from Configuration import config
-    from new_config import new_config
-    from software_update import software_update
-    import strings as s
-    import ujson
+
 
     # Read configuration file to get preferences
-    config.read_configuration()
+    #config = Configuration.Configuration(status_logger)
+    #config.read_configuration() #Now removed from init
 
     """SET CODE VERSION NUMBER - if new tag is added on git, update code version number accordingly"""
     # ToDo: Update OTA.py so if version is 0.0.0, it backs up all existing files, and adds all files as new.
@@ -103,122 +153,120 @@ try:
     add a corresponding decoder to the back-end."""
     config.save_config({"fmt_version": 1})
 
-    # Override Preferences - DEVELOPER USE ONLY - keep all overwrites here
-    if 'debug_config.json' in os.listdir('/flash'):
-        status_logger.warning(
-            "Overriding configuration with the content of debug_config.json")
-        with open('/flash/debug_config.json', 'r') as f:
-            config.set_config(ujson.loads(f.read()))
-            status_logger.warning(
-                "Configuration changed to: " + str(config.get_config()))
 
     # Check if GPS is enabled in configurations
-    gps_on = True
+
     if config.get_config("GPS") == "OFF":
         gps_on = False
+    else:
+        gps_on = True
 
-    # Get current time
-    rtc = RTC()
-    no_time, update_time_later = initialise_time(rtc, gps_on, status_logger)
 
+
+    #=======REmove this config stuff === warn this devide id may be used -- check
     # Check if device is configured, or SD card has been moved to another device
-    device_id = hexlify(unique_id()).upper().decode("utf-8")
-    if not config.is_complete(status_logger) or config.get_config("device_id") != device_id:
-        config.reset_configuration(status_logger)
-        #  Force user to configure device, then reboot
-        new_config(status_logger, arg=0)
+    # device_id = hexlify(unique_id()).upper().decode("utf-8")
+    # if not config.is_complete(status_logger) or config.get_config("device_id") != device_id:
+    #     config.reset_configuration(status_logger)
+    #     #  Force user to configure device, then reboot
+    #     new_config(status_logger, arg=0)
+    #=======REmove this config stuff
+
 
     # User button will enter configurations page from this point on
-    user_button.set_config_enabled(True)
 
-    # If initialise time failed to acquire exact time, halt initialisation
-    if no_time:
-        raise Exception("Could not acquire UTC timestamp")
 
-    # Check if updating was triggered over LoRa
-    if config.get_config("update"):
-        software_update(status_logger)
+    # # If initialise time failed to acquire exact time, halt initialisation
+    # if no_time:
+    #     raise Exception("Could not acquire UTC timestamp")
+
+    # # Check if updating was triggered over LoRa
+    # if config.get_config("update"):
+    #     software_update(status_logger)
 
 except Exception as e:
     status_logger.exception(str(e))
-    reboot_counter = 0
-    try:
-        while user_button.get_reboot():
-            blink_led((0x555500, 0.5, True))  # blink yellow LED
-            time.sleep(0.5)
-            reboot_counter += 1
-            if reboot_counter >= 180:
-                status_logger.info("rebooting...")
-                reset()
-        new_config(status_logger, arg=0)
-    except Exception:
-        reset()
+    # reboot_counter = 0
+    # try:
+    #     while user_button.get_reboot():
+    #         blink_led((0x555500, 0.5, True))  # blink yellow LED
+    #         time.sleep(0.5)
+    #         reboot_counter += 1
+    #         if reboot_counter >= 180:
+    #             status_logger.info("rebooting...")
+    #             reset()
+    #     new_config(status_logger, arg=0) #TODO remove this
+    # except Exception:
+    #     reset()
 
 pycom.rgbled(0x552000)  # flash orange until its loaded
 
 # If sd, time, logger and configurations were set, continue with initialisation
 try:
-    from machine import Timer
-    from SensorLogger import SensorLogger
-    from EventScheduler import EventScheduler
-    from helper import blink_led, get_sensors, led_lock
-    from averages import get_sensor_averages
-    from TempSHT35 import TempSHT35
-    import GpsSIM28
-    import _thread
-    from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
-    from LoRaWAN import LoRaWAN
 
+    status_logger.info("Filesystem.......")
     # Configurations are entered parallel to main execution upon button press for 2.5 secs
     user_button.set_config_blocking(False)
-
+    #status_logger.debug(DEFAULT_LOG_NAME + "  :LOG_LEVEL_KEY" + config.get_config(LOG_LEVEL_KEY))
     # Set debug level - has to be set after logger was initialised and device was configured
-    logger_factory.set_level('status_logger', get_logging_level())
-
+    #status_logger = logger_factory.set_level(DEFAULT_LOG_NAME, config.get_config(LOG_LEVEL_KEY) ) # Cannot change mid way?
+    #print("HERE")
+    status_logger.info("Filesystem init start")
+    #print("HERE2")
+    init.remove_residual_files()
     # Initialise file system
-    initialise_file_system()
+    init.initialise_file_system()
 
     # Remove residual files from the previous run (removes all files in the current and processing dir)
-    remove_residual_files()
 
+    status_logger.info("Filesystem init completed")
     # Get a dictionary of sensors and their status
-    sensors = get_sensors()
+    sensors = get_sensors(config, status_logger)
 
     # Join the LoRa network
-    lora = False
-    if (True in sensors.values() or gps_on) and config.get_config("LORA") == "ON":
-        lora = LoRaWAN(status_logger)
+    #lora = False
+    #if (True in sensors.values() or gps_on) and config.get_config("LORA") == "ON":  #TODO: lorawan disabled here
+    #    lora = LoRaWAN(status_logger)
+
+
+    ## Ring buffer
+    message_limit_count = 5 # buffer size?
+    cell_size_bytes = 100 #all buffer slots are a fixed size ! so waste space, but dont make this smaller that a max message!
+    msgBuffer = RingBuffer(RING_BUFFER_DIR, RING_BUFFER_FILE, message_limit_count, cell_size_bytes,  config, status_logger)  # s.processing_path, s.lora_file_name, 31 * self.message_limit, 100)
+
+    ## Pybytes
+    try:
+        # Start PM sensor thread
+        pyBytesThreadId = _thread.start_new_thread(PybytesTransmit.pybytes_thread, (msgBuffer, config,  status_logger))
+        status_logger.info("THREAD - Pybytes  initialised")
+    except Exception as e:
+        status_logger.info("Failed to initialise Pybytes thread ")
+        #raise e
 
     # Initialise temperature and humidity sensor thread with id: TEMP
+    status_logger.info("Starting Temp logger...")
     if sensors[s.TEMP]:
         TEMP_logger = SensorLogger(sensor_name=s.TEMP, terminal_out=True)
         if config.get_config(s.TEMP) == "SHT35":
-            temp_sensor = TempSHT35(TEMP_logger, status_logger)
+            temp_sensor = TempSHT35(config, TEMP_logger, status_logger)
     status_logger.info("Temperature and humidity sensor initialised")
 
     # Initialise PM power circuitry
     PM_transistor = Pin('P20', mode=Pin.OUT)
-    PM_transistor.value(0)
-    if config.get_config(s.PM1) != "OFF" or config.get_config(s.PM2) != "OFF":
+
+    if config.get_config(s.PM1) == "OFF" and config.get_config(s.PM2) == "OFF": #Turn on sensors (power)
+        PM_transistor.value(0) #TODO: Somehow make this clear that it disables BOTH???
+    else:
         PM_transistor.value(1)
+        status_logger.info("Enable power on for BOTH PM sensors")
 
     # Initialise PM sensor threads
     if sensors[s.PM1]:
-        initialise_pm_sensor(sensor_name=s.PM1, pins=(
-            'P3', 'P17'), serial_id=1, status_logger=status_logger)
+        init.initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1,msgBuffer=msgBuffer)
     if sensors[s.PM2]:
-        initialise_pm_sensor(sensor_name=s.PM2, pins=(
-            'P11', 'P18'), serial_id=2, status_logger=status_logger)
+        init.initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2,msgBuffer=msgBuffer)
 
-    # Start scheduling lora messages if any of the sensors are defined
-    if True in sensors.values():
-        PM_Events = EventScheduler(
-            logger=status_logger, data_type="sensors", lora=lora)
-    if gps_on:
-        GPS_Events = EventScheduler(
-            logger=status_logger, data_type="gps", lora=lora)
 
-    status_logger.info("Initialization finished")
 
     # Blink green three times to identify that the device has been initialised
     for val in range(3):
@@ -229,10 +277,18 @@ try:
         0x005500, 0.1, True), periodic=True)
 
     # Try to update RTC module with accurate UTC datetime if GPS is enabled and has not yet synchronized
-    if gps_on and update_time_later:
+    if False: #  gps_on and update_time_later: #TODO: gps bugs, but rememebr shared serial so check logger file!
         # Start a new thread to update time from gps if available
-        _thread.start_new_thread(GpsSIM28.get_time, (rtc, status_logger))
+        # https://docs.pycom.io/firmwareapi/micropython/_thread/
+        status_logger.info("Starting GPS thread...")
+        _thread.start_new_thread(GpsSIM28.SetRTCtime, (rtc,config,  status_logger))
 
+
+
+    status_logger.info("Initialisation finished")
+    temp =(temperature() - 32) / 1.8
+    status_logger.info("Memory:  " + str(pycom.get_free_heap()) + " Temp: " + str(temp))
+    #TODO:  delete init object?
 except Exception as e:
     status_logger.exception("Exception in the main")
     led_lock.acquire()
