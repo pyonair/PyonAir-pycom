@@ -3,19 +3,20 @@ import GpsSIM28
 from PM_read import pm_thread
 from loggingpycom import INFO, WARNING, CRITICAL, DEBUG, ERROR
 #import Configuration
-from Configuration import Configuration 
+from Configuration import Configuration
 import _thread
 import strings as s
 import os
 import pycom
 import RingBuffer
+from Constants import RING_BUFFER_DIR , RING_BUFFER_FILE
 
 class initialisation:
 
     def __init__(self, config,  logger):
         self.logger = logger
         self.config = config
-        
+
     def initialise_time(self, rtc, gps_on):
         """
         Acquire UTC timestamp from RTC module or GPS
@@ -28,7 +29,7 @@ class initialisation:
         :return: no_time, update_time_later
         :rtype: bool, bool
         """
-        
+
         no_time = False
         update_time_later = True
         try:
@@ -65,13 +66,13 @@ class initialisation:
             logger.info("""Failed to get UTC timestamp from both RTC and GPS modules.
                         User has to connect and configure the device with GPS or RTC connected.
                         Device will reboot in 3 minutes unless button is pressed for 3 seconds and device is configured.
-                        
+
                         Possible issues and solutions:
                         RTC module is not connected - connect an RTC module and/or connect a GPS and enable its operation
                         GPS module is not connected - connect a GPS and enable its operation and/or connect an RTC module
                         RTC is not calibrated - simply press submit on configurations page
                         GPS is connected but not enabled - enable GPS on configurations page
-                        GPS is enabled but not connected - connect a GPS module or have an RTC module connected and 
+                        GPS is enabled but not connected - connect a GPS module or have an RTC module connected and
                             disable GPS on configurations page
                         GPS timeout - put device under clear sky and/or increase GPS timeout in configurations""")
         elif gps_on:
@@ -81,12 +82,12 @@ class initialisation:
 
 
     # def initialiseRingBuffer(self, config, logger):
-        
+
     #     try:
     #         # Start buffer
     #         _thread.stack_size(4096 * 2) # default is 4096 (and slso min!)
     #         _thread.start_new_thread(RingBuffer.ringBufferThread, (config,  logger))  #TODO: move to main or similar
-            
+
 
     #         self.logger.info("THREAD - Ring Buffer initialised")
     #     except Exception as e:
@@ -112,7 +113,7 @@ class initialisation:
             # Start PM sensor thread
             _thread.stack_size(4096 * 3) # default is 4096 (and slso min!)
             _thread.start_new_thread(pm_thread, (sensor_name, msgBuffer, self.config,  self.logger, pins, serial_id))  #TODO: move to main or similar
-            
+
 
             self.logger.info("THREAD - Sensor " + sensor_name + " initialised")
         except Exception as e:
@@ -142,6 +143,8 @@ class initialisation:
         #     for file in os.listdir(path[:-1]):  # Strip '/' from the end of path
         #         if file != s.lora_file_name:
         #             os.remove(path + file)
+
+        os.remove(RING_BUFFER_DIR + RING_BUFFER_FILE)
 
 
     # def get_logging_level(self):

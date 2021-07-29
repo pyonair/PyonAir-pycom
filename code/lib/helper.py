@@ -29,14 +29,21 @@ def seconds_to_first_event(interval_s):
     return first_event_s
 
 
-def minutes_of_the_month():
+def secOfTheMonth():
     """
-    :return: Number of minutes from the start of the month
+    :return: Number of SECONDS from the start of the month
     :rtype: int
     """
     t = time.gmtime()
-    days, hours, minutes = t[2], t[3], t[4]
-    return ((days - 1) * 24 * 60) + (hours * 60) + minutes
+    #print(t)
+    days, hours, minutes,sec = t[2] -1, t[3], t[4], t[5]
+
+    #sec in day = 24 x 60 x 60 = 86400
+    #sec in hour = 60 X 60 = 3600
+
+    secInt = (days  * 86400) + (hours * 3600) + (minutes * 60) + sec
+    #print (minInt)
+    return secInt
 
 
 def mean_across_arrays(arrays):

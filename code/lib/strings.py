@@ -4,7 +4,7 @@ complication, please only do so, if you have looked at the uses and are confiden
 
 
 
-
+#use PM25 -- for average
 headers_dict_v4 = {
     "PMS5003": ["timestamp", "pm10_cf1", "PM1", "pm25_cf1", "PM25", "pm100_cf1", "PM10", "gr03um", "gr05um", "gr10um", "gr25um", "gr50um", "gr100um", ""],
     "PMS7003": ["timestamp", "pm10_cf1", "PM1", "pm25_cf1", "PM25", "pm100_cf1", "PM10", "gr03um", "gr05um", "gr10um", "gr25um", "gr50um", "gr100um", ""],
@@ -62,32 +62,3 @@ processing_path = root_path + processing + '/'
 archive_path = root_path + archive + '/'
 archive_averages_path = archive_path + archive_averages + '/'
 filesystem_dirs = [current, processing, archive]
-
-# Lora structures:
-
-# TEMP, PM1, PM2
-# fmt_version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H /
-# / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H / PM2_id-H / PM2_ PM10-B / PM2_PM25-B / PM2_count-H
-TPP = {"port": 1, "structure": '<BHHhhHHBBHHBBH'}
-
-# TEMP, PM
-# fmt_version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H /
-# / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H
-TP = {"port": 2, "structure": '<BHHhhHHBBH'}
-
-# PM1, PM2
-# fmt_version-B / timestamp-H / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H / PM2_id-H / PM2_ PM10-B / PM2_PM25-B /
-# PM2_count-H
-PP = {"port": 3, "structure": '<BHHBBHHBBH'}
-
-# PM
-# fmt_version-B / timestamp-H / PM1_id-H / PM1_PM10-B / PM1_PM25-B / PM1_count-H
-P = {"port": 4, "structure": '<BHHBBH'}
-
-# TEMP
-# fmt_version-B / timestamp-H / TEMP_id-H / temperature-h / humidity-h / TEMP_count-H
-T = {"port": 5, "structure": '<BHHhhH'}
-
-# GPS
-# fmt_version-B / timestamp-H / GPS_id-H / lat-f / long-f / alt-f
-G = {"port": 6, "structure": '<BHHfff'}

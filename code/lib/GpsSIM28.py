@@ -2,7 +2,7 @@ from machine import UART, Timer, Pin
 from micropyGPS import MicropyGPS
 from RtcDS1307 import clock
 from Configuration import Configuration #import config
-from helper import minutes_of_the_month, blink_led
+from helper import secOfTheMonth , blink_led
 import strings as s
 import time
 import uos
@@ -50,7 +50,7 @@ class GPSSIM28:
         """
 
         self.logger.info("Turning GPS on - Terminal output is disabled until GPS finishes")
-       
+
         uos.dupterm(None)  # deinit terminal output on serial bus 0
 
         # turn GPS module on via transistor
@@ -150,10 +150,10 @@ class GPSSIM28:
                                     str(int(gps.timestamp[2])), 16)
                                 try:
                                     clock.set_time(h_yr, h_mnth, h_day, h_hr, h_min, h_sec)
-                                    message = """GPS UTC datetime successfully updated on pycom board 
+                                    message = """GPS UTC datetime successfully updated on pycom board
                                                 GPS UTC datetime successfully updated on RTC module"""
                                 except Exception:
-                                    message = """GPS UTC datetime successfully updated on pycom board 
+                                    message = """GPS UTC datetime successfully updated on pycom board
                                                 Failed to set GPS UTC datetime on the RTC module"""
 
                                 self.gps_deinit(serial, logger, message, indicator_led)
@@ -252,7 +252,7 @@ class GPSSIM28:
                                     year_month = timestamp[2:4] + "," + timestamp[5:7] + ','
 
                                     # get minutes since start of the month
-                                    minutes = str(minutes_of_the_month())
+                                    minutes = str(secOfTheMonth())
 
                                     # Construct LoRa message
                                     line_to_log = year_month + 'G,' + str(config.get_config("fmt_version")) + ',' + minutes + ',' \

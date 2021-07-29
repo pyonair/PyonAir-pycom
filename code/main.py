@@ -5,16 +5,13 @@ import os
 import time
 import pycom
 
-
-
-
 from machine import RTC, unique_id, temperature
 from machine import SD, Pin, reset
 import network # Used to disable WiFi
 from initialisation import initialisation #initialise_time # TODO: clunky refactor
 from helper import blink_led
 
-import loggingpycom 
+import loggingpycom
 from LoggerFactory import LoggerFactory
 
 from UserButton import UserButton
@@ -43,7 +40,7 @@ from software_update import software_update
 import strings as s
 import ujson
 from RingBuffer import RingBuffer
-import  PybytesTransmit 
+import  PybytesTransmit
 
 ##==== Do early , stop halting -- load on thread later
 
@@ -158,7 +155,7 @@ try:
 
 
     # Check if GPS is enabled in configurations
-    
+
     if config.get_config("GPS") == "OFF":
         gps_on = False
     else:
@@ -177,7 +174,7 @@ try:
 
 
     # User button will enter configurations page from this point on
-  
+
 
     # # If initialise time failed to acquire exact time, halt initialisation
     # if no_time:
@@ -216,11 +213,12 @@ try:
     #print("HERE")
     status_logger.info("Filesystem init start")
     #print("HERE2")
+    init.remove_residual_files()
     # Initialise file system
     init.initialise_file_system()
 
     # Remove residual files from the previous run (removes all files in the current and processing dir)
-    init.remove_residual_files()
+
     status_logger.info("Filesystem init completed")
     # Get a dictionary of sensors and their status
     sensors = get_sensors(config, status_logger)
@@ -235,11 +233,11 @@ try:
     message_limit_count = 5 # buffer size?
     cell_size_bytes = 100 #all buffer slots are a fixed size ! so waste space, but dont make this smaller that a max message!
     msgBuffer = RingBuffer(RING_BUFFER_DIR, RING_BUFFER_FILE, message_limit_count, cell_size_bytes,  config, status_logger)  # s.processing_path, s.lora_file_name, 31 * self.message_limit, 100)
-    
+
     ## Pybytes
     try:
-        # Start PM sensor thread        
-        pyBytesThreadId = _thread.start_new_thread(PybytesTransmit.pybytes_thread, (msgBuffer, config,  status_logger)) 
+        # Start PM sensor thread
+        pyBytesThreadId = _thread.start_new_thread(PybytesTransmit.pybytes_thread, (msgBuffer, config,  status_logger))
         status_logger.info("THREAD - Pybytes  initialised")
     except Exception as e:
         status_logger.info("Failed to initialise Pybytes thread ")
@@ -255,9 +253,9 @@ try:
 
     # Initialise PM power circuitry
     PM_transistor = Pin('P20', mode=Pin.OUT)
-    
+
     if config.get_config(s.PM1) == "OFF" and config.get_config(s.PM2) == "OFF": #Turn on sensors (power)
-        PM_transistor.value(0) #TODO: Somehow make this clear that it disables BOTH??? 
+        PM_transistor.value(0) #TODO: Somehow make this clear that it disables BOTH???
     else:
         PM_transistor.value(1)
         status_logger.info("Enable power on for BOTH PM sensors")
@@ -268,7 +266,7 @@ try:
     if sensors[s.PM2]:
         init.initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2,msgBuffer=msgBuffer)
 
-   
+
 
     # Blink green three times to identify that the device has been initialised
     for val in range(3):
