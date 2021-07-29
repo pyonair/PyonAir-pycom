@@ -1,0 +1,18 @@
+name: Convert TODO to issue
+
+on:
+  #DO NOT CHANGE
+  workflow_dispatch: ## Manual run possible
+  push:
+    branches: [ master , main ]
+
+jobs:
+  build:
+    runs-on: "ubuntu-latest"  #Fine as we have docker
+    steps:
+      - uses: "actions/checkout@master"
+      - name: "TODO to Issue"
+        uses: "alstr/todo-to-issue-action@v4.0.5"
+        id: "todo"
+        with:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}

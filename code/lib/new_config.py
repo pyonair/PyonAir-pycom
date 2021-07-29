@@ -5,7 +5,7 @@ from config_page import get_html_form
 import machine
 import pycom
 import gc
-from Configuration import config
+import Configuration
 from helper import wifi_lock, led_lock, blink_led
 from RtcDS1307 import clock
 import ujson
@@ -20,7 +20,7 @@ def new_config(logger, arg):
     :param logger: status logger
     :type logger: LoggerFactory
     """
-
+    config = Configuration.Configuration(logger) #TODO: fix
     #  Only one of this thread is allowed to run at a time
     if not wifi_lock.locked():
         with wifi_lock:
