@@ -19,6 +19,8 @@ def SetRTCtime(rtc,config, logger):
 
 def logGPS(rtc,config, logger):
     logger.info("Not implemented")
+    gps = GPSSIM28(config, logger)
+    gps.get_position()
     #gps = GPSSIM28(config, logger)
     #gps.get_position(rtc)
     #TODO: not implemented
@@ -30,7 +32,7 @@ class GPSSIM28:
         self.config = config # Configuration(logger) #TODO: Temp fix to get values in here -- but change to static
         # Initialise GPS power circuitry
         self.GPS_transistor = Pin('P19', mode=Pin.OUT)
-        self.GPS_transistor.value(0)
+        self.GPS_transistor.value(1) #Okay 1 = on and 0 = off
 
         # gps library to parse, interpret and store data coming from the serial
         self.gps = MicropyGPS()
@@ -125,7 +127,7 @@ class GPSSIM28:
                 data_in = (str(serial.readline()))[1:]
 
                 if (int(chrono.read()) - com_counter) >= 10:
-                    self.gps_deinit(serial, logger, message, indicator_led)
+                    self.gps_deinit(serial, message, indicator_led)
                     self.logger.error("GPS enabled, but not connected")
                     return False
 
@@ -185,7 +187,7 @@ class GPSSIM28:
         with self.gps_lock:
             self.logger.info("Getting position via GPS")
 
-            serial, chrono, indicator_led = gps_init(logger)
+            serial, chrono, indicator_led = self.gps_init()
             com_counter = int(chrono.read())  # counter for checking whether gps is connected
             timeout = int(float(self.config.get_config("GPS_timeout")) * 60)
             message = False
@@ -196,7 +198,7 @@ class GPSSIM28:
                 #TODO: be careful with read and substring -- check for []
 
                 if (int(chrono.read()) - com_counter) >= 10:
-                    gps_deinit(serial, self.logger, message, indicator_led)
+                    gps_deinit(serial,  message, indicator_led)
                     self.logger.error("GPS enabled, but not connected")
                     return False
 
@@ -261,12 +263,12 @@ class GPSSIM28:
                                     # Logs line_to_log to be sent over lora
                                     lora.lora_buffer.write(line_to_log)
 
-                                self.gps_deinit(serial, self.logger, message, indicator_led)
+                                self.gps_deinit(serial, message, indicator_led)
                                 return True
 
                 # If timeout elapsed exit function or thread
                 if chrono.read() >= timeout:
-                    gps_deinit(serial, self.logger, message, indicator_led)
+                    self.gps_deinit(serial,  message, indicator_led)
                     self.logger.error("""GPS timeout
                     Check if GPS module is connected
                     Place device under clear sky

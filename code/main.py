@@ -156,7 +156,7 @@ try:
 
     # Check if GPS is enabled in configurations
 
-    if config.get_config("GPS") == "OFF":
+    if config.get_config("GPS") == "OFF": #TODO: change to  json T/F
         gps_on = False
     else:
         gps_on = True
@@ -235,17 +235,18 @@ try:
     msgBuffer = RingBuffer(RING_BUFFER_DIR, RING_BUFFER_FILE, message_limit_count, cell_size_bytes,  config, status_logger)  # s.processing_path, s.lora_file_name, 31 * self.message_limit, 100)
 
     ## Pybytes
-    try:
-        # Start PM sensor thread
-        pyBytesThreadId = _thread.start_new_thread(PybytesTransmit.pybytes_thread, (msgBuffer, config,  status_logger))
-        status_logger.info("THREAD - Pybytes  initialised")
-    except Exception as e:
-        status_logger.info("Failed to initialise Pybytes thread ")
-        #raise e
+    if False: #
+        try:
+            # Start PM sensor thread
+            pyBytesThreadId = _thread.start_new_thread(PybytesTransmit.pybytes_thread, (msgBuffer, config,  status_logger))
+            status_logger.info("THREAD - Pybytes  initialised")
+        except Exception as e:
+            status_logger.info("Failed to initialise Pybytes thread ")
+            #raise e
 
     # Initialise temperature and humidity sensor thread with id: TEMP
     status_logger.info("Starting Temp logger...")
-    if sensors[s.TEMP]:
+    if False: #  sensors[s.TEMP]:
         TEMP_logger = SensorLogger(sensor_name=s.TEMP, terminal_out=True)
         if config.get_config(s.TEMP) == "SHT35":
             temp_sensor = TempSHT35(config, TEMP_logger, status_logger)
@@ -261,9 +262,9 @@ try:
         status_logger.info("Enable power on for BOTH PM sensors")
 
     # Initialise PM sensor threads
-    if sensors[s.PM1]:
+    if False: # sensors[s.PM1]:
         init.initialise_pm_sensor(sensor_name=s.PM1, pins=('P3', 'P17'), serial_id=1,msgBuffer=msgBuffer)
-    if sensors[s.PM2]:
+    if False: # sensors[s.PM2]:
         init.initialise_pm_sensor(sensor_name=s.PM2, pins=('P11', 'P18'), serial_id=2,msgBuffer=msgBuffer)
 
 
@@ -276,11 +277,11 @@ try:
     heartbeat = Timer.Alarm(blink_led, s=5, arg=(0x005500, 0.1, True), periodic=True)
 
     # Try to update RTC module with accurate UTC datetime if GPS is enabled and has not yet synchronized
-    if False: #  gps_on and update_time_later: #TODO: gps bugs, but rememebr shared serial so check logger file!
+    if True: #  gps_on and update_time_later: #TODO: gps bugs, but rememebr shared serial so check logger file!
         # Start a new thread to update time from gps if available
         # https://docs.pycom.io/firmwareapi/micropython/_thread/
         status_logger.info("Starting GPS thread...")
-        _thread.start_new_thread(GpsSIM28.SetRTCtime, (rtc,config,  status_logger))
+        _thread.start_new_thread(GpsSIM28.logGPS, (rtc,config,  status_logger))
 
 
 
