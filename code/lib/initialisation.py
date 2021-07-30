@@ -144,7 +144,8 @@ class initialisation:
         #         if file != s.lora_file_name:
         #             os.remove(path + file)
 
-        os.remove(RING_BUFFER_DIR + RING_BUFFER_FILE)
+        # Debug : remove buffer file if to wipe queue
+        # os.remove(RING_BUFFER_DIR + RING_BUFFER_FILE)
 
 
     # def get_logging_level(self):
