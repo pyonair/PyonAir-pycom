@@ -1,9 +1,9 @@
 # Introduction
 PyonAir is a low-cost open-source air pollution monitor. The monitor measures particulate matter (PM), temperature, and humidity. It also supports GPS tagged sensor reading.
 
-> We are refactoring the code and website so please be patient 
+> We are refactoring the code and website so please be patient
 
-## Firmware 
+## Firmware
 
 Tested versions:
 
@@ -14,25 +14,25 @@ Tested versions:
 
 Connect a jumper cable or wire between G23 and GND
 
-Pybytes firmware 
+Pybytes firmware
 
 
 ## User guide
- 
+
 
 
 ## Getting Started
- 
+
 
 ### Prerequisites
- 
+
 ### Installation
- 
+
 
 ### Configuration
- 
+
 ### Debugging
- 
+
 
 ## Built With/Using
 
@@ -42,7 +42,7 @@ Pybytes firmware
 
 ## Contributing
 
-You can submit your fixes/features via [Pull requests] 
+You can submit your fixes/features via [Pull requests]
 
 ## Credits and Authors
 
@@ -55,5 +55,3 @@ Special thanks to:
 * [Daniel Hausner](https://github.com/danhaus)
 * [Peter Varga](https://github.com/pe-varga)
 * [Hazel Mitchell](https://github.com/CeruleanMars)
-
-
