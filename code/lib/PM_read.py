@@ -5,6 +5,7 @@ from Configuration import Configuration
 from machine import Timer
 from SensorLogger import SensorLogger
 import time
+from math import trunc
 
 from ubinascii import hexlify, b2a_base64
 import struct
@@ -128,7 +129,9 @@ class PMSensorReader:
 
                     #A = message type class/ see ring buffer -- for pickle
                     secInt =  secOfTheMonth() # TIME_ISO8601_FMT.format(*time.gmtime())
-                    dataMsg = [self.port, secInt, self.welfordsCount  ,self.welfordsMean]# ,round(sampleVariance), round(variance)]
+
+                    #*1000 and then Round? (keep it an int) -- save transmit
+                    dataMsg = [self.port, secInt, self.welfordsCount  , trunc(self.welfordsMean * 1000) ]# ,round(sampleVariance), round(variance)]
                     #formatStr = "<BHHHHH"
                     #print(dataMsg)
                     #payload = struct.pack(formatStr, *dataMsg)
