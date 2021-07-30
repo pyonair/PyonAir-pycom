@@ -32,7 +32,7 @@ class GPSSIM28:
         self.config = config # Configuration(logger) #TODO: Temp fix to get values in here -- but change to static
         # Initialise GPS power circuitry
         self.GPS_transistor = Pin('P19', mode=Pin.OUT)
-        self.GPS_transistor.value(1) #Okay 1 = on and 0 = off
+        self.GPS_transistor.value(0) #Okay 1 = on and 0 = off
 
         # gps library to parse, interpret and store data coming from the serial
         self.gps = MicropyGPS()
@@ -56,7 +56,7 @@ class GPSSIM28:
         uos.dupterm(None)  # deinit terminal output on serial bus 0
 
         # turn GPS module on via transistor
-        GPS_transistor.value(1)
+        self.GPS_transistor.value(1)
 
         # set up serial input for gps signals
         serial = UART(0, baudrate=9600, pins=('P22', 'P21'))  # Tx, Rx
