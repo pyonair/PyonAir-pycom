@@ -95,6 +95,7 @@ class PyBytesSender:
         pycom.pybytes_on_boot(False)
 
         conf = PybytesConfig().read_config()
+        self.debugLogger.info(str(conf)) #Output so we have the device id on the SD card
         self.pybytes = Pybytes(conf)
         #backup config
         #naw.... pybytes.write_config([file=’/flash/pybytes_config.json’, silent=False])
@@ -117,7 +118,7 @@ class PyBytesSender:
             try:
                 #pybytes.send_signal(1, 0) # Sort of similar to uptime, sent to note reboot
                 #self.debugLogger.info(str(pybytes.isconnected()))
-                time.sleep(5)
+                time.sleep(4)
 
 
                 buffer_lst = self.msgBuffer.pop() #check size?
