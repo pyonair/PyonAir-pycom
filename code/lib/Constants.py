@@ -66,7 +66,7 @@ DEFAULT_CONFIG =  {
 	"PM2_init": 10,
 	"logging_lvl": "DEBUG",
 	"lora_timeout": 20,
-	"GPS_timeout": 20,
+	"GPS_timeout": 1,
 	"config_timeout": 10,
 	"fair_access": 30,
 	"air_time": 75,
