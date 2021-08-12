@@ -13,6 +13,7 @@ LOG_EXT=".log"
 #The name of the logger instance -- no need to change
 DEFAULT_LOG_NAME="PyonAir"
 GPS_LOG_FILENAME="GPSDebug" 
+GPS_LOG_DIR="/sd/"
 
 
 #Names in JSON file (config)

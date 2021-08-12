@@ -8,7 +8,7 @@ import time
 import uos
 import sys
 import _thread
-from Constants import TIME_ISO8601_FMT,GPS_LOG_FILENAME,LOG_EXT
+from Constants import TIME_ISO8601_FMT
 
 
 #good for thread
@@ -28,9 +28,11 @@ def logGPS(rtc,config, logger):
 class GPSSIM28:
 
     def __init__(self,config, logger):
-        self.debugLogger = logger_factory.create_status_logger(GPS_LOG_FILENAME, level=loggingpycom.DEBUG, terminal_out=True,
-                                                        filename=GPS_LOG_FILENAME+LOG_EXT)
+        
+        
         self.logger= logger
+        self.logger.info("Init GPS module....")
+
         self.config = config # Configuration(logger) #TODO: Temp fix to get values in here -- but change to static
         # Initialise GPS power circuitry
         self.GPS_transistor = Pin('P19', mode=Pin.OUT)
@@ -67,7 +69,7 @@ class GPSSIM28:
         chrono.start()
 
         indicator_led = Timer.Alarm(blink_led, s=1.6, arg=(0x000055, 0.4, False), periodic=True)
-
+        self.logger.info("Serial now used by GPS -- Logger to file only from here on in on GPS thread")
         return serial, chrono, indicator_led
 
 

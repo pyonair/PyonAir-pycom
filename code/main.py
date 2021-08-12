@@ -105,6 +105,27 @@ status_logger.info("Rebooted")
 config = Configuration.Configuration(status_logger)
 status_logger.info("Config loaded")
 
+
+#=== See if there is a GPS log from previous run! -- if so  show/log
+
+try:       
+    logName = GPS_LOG_DIR+GPS_LOG_FILENAME+LOG_EXT
+    status_logger.info("Checking for previous GPS log...." + logName)
+    with open(logName, 'r') as f:
+        status_logger.info("================GPS Log from previous run===========")
+        # read all lines from processing
+        line = f.readline()
+        while line:                        
+            status_logger.info(str(line) ) #TODO: do line by line
+            line = f.readline()
+        status_logger.info("================END GPS Log from previous run===========")
+        os.remove(logName)
+except OSError:  # open failed
+    # handle the file open case
+    status_logger.info("GPS log empty")
+    status_logger.info(str(os.listdir(GPS_LOG_DIR)))
+    pass
+
 #=============Init functions
 
 init = initialisation(config, status_logger)
@@ -282,7 +303,11 @@ try:
         # Start a new thread to update time from gps if available
         # https://docs.pycom.io/firmwareapi/micropython/_thread/
         status_logger.info("Starting GPS thread...")
-        _thread.start_new_thread(GpsSIM28.logGPS, (rtc,config,  status_logger))
+
+        #GPS needs its own logger
+        gpsLogger = logger_factory.create_status_logger(GPS_LOG_FILENAME, level=loggingpycom.DEBUG, terminal_out=True,
+                                                        filename=GPS_LOG_FILENAME+LOG_EXT)
+        _thread.start_new_thread(GpsSIM28.logGPS, (rtc,config,  gpsLogger))
 
 
 
