@@ -9,7 +9,7 @@ from machine import RTC, unique_id, temperature
 from machine import SD, Pin, reset
 import network # Used to disable WiFi
 from initialisation import initialisation #initialise_time # TODO: clunky refactor
-from helper import blink_led
+from helper import blink_led, secOfTheMonth
 
 import loggingpycom
 from LoggerFactory import LoggerFactory
@@ -233,6 +233,7 @@ try:
     message_limit_count = 5 # buffer size?
     cell_size_bytes = 100 #all buffer slots are a fixed size ! so waste space, but dont make this smaller that a max message!
     msgBuffer = RingBuffer(RING_BUFFER_DIR, RING_BUFFER_FILE, message_limit_count, cell_size_bytes,  config, status_logger)  # s.processing_path, s.lora_file_name, 31 * self.message_limit, 100)
+    msgBuffer.push([1,secOfTheMonth()]) #port 1 , reboot 1
 
     ## Pybytes
     try:
@@ -294,3 +295,11 @@ except Exception as e:
     pycom.rgbled(0x550000)
     while True:
         time.sleep(5)
+# #===================Disable default wifi===================
+
+# try:
+#     wlan = network.WLAN()
+#     wlan.deinit()
+#     print("Disable WiFi")
+# except Exception as e:
+#     print("Unable to disable WiFi")
