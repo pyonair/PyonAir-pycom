@@ -11,7 +11,7 @@ FILENAME_FMT = "{:04d}-{:02d}-{:02d}"  # yyyy-mm-ddThh-mm-ss  #https://en.wikipe
 LOG_FILENAME="PyonAir"
 LOG_EXT=".log"
 #The name of the logger instance -- no need to change
-DEFAULT_LOG_NAME="Pyonair"
+DEFAULT_LOG_NAME="PyonAir"
 
 
 #Names in JSON file (config)

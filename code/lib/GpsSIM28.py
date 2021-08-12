@@ -8,7 +8,7 @@ import time
 import uos
 import sys
 import _thread
-from Constants import TIME_ISO8601_FMT
+from Constants import TIME_ISO8601_FMT,GPS_LOG_FILENAME,LOG_EXT
 
 
 #good for thread
@@ -28,6 +28,8 @@ def logGPS(rtc,config, logger):
 class GPSSIM28:
 
     def __init__(self,config, logger):
+        self.debugLogger = logger_factory.create_status_logger(GPS_LOG_FILENAME, level=loggingpycom.DEBUG, terminal_out=True,
+                                                        filename=GPS_LOG_FILENAME+LOG_EXT)
         self.logger= logger
         self.config = config # Configuration(logger) #TODO: Temp fix to get values in here -- but change to static
         # Initialise GPS power circuitry
