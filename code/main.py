@@ -43,13 +43,14 @@ from RingBuffer import RingBuffer
 import  PybytesTransmit
 
 ##==== Do early , stop halting -- load on thread later
-
+print("Starting...")
 import pycom
-# from _pybytes_config import PybytesConfig
-# from _pybytes import Pybytes
-# conf = PybytesConfig().read_config()
-# pybytes = Pybytes(conf)
-# pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
+from _pybytes_config import PybytesConfig
+from _pybytes import Pybytes
+conf = PybytesConfig().read_config()
+print(conf)
+pybytes = Pybytes(conf)
+pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
 
 #===================Disable default wifi===================
 
