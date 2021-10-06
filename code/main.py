@@ -156,22 +156,16 @@ try:
 
 
     # Check if GPS is enabled in configurations
+    gps_on = (config.get_config("GPS") != "OFF")
 
-    if config.get_config("GPS") == "OFF":
-        gps_on = False
-    else:
-        gps_on = True
-
-
-
-    #=======REmove this config stuff === warn this devide id may be used -- check
+    #=======Remove this config stuff === warn this devide id may be used -- check
     # Check if device is configured, or SD card has been moved to another device
     # device_id = hexlify(unique_id()).upper().decode("utf-8")
     # if not config.is_complete(status_logger) or config.get_config("device_id") != device_id:
     #     config.reset_configuration(status_logger)
     #     #  Force user to configure device, then reboot
     #     new_config(status_logger, arg=0)
-    #=======REmove this config stuff
+    #=======Remove this config stuff
 
 
     # User button will enter configurations page from this point on
