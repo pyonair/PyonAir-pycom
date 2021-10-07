@@ -1,7 +1,7 @@
 # Helper functions and miscellaneous globals
 
 from Configuration import Configuration #import config
-import strings as s
+from strings import TEMP, PM1, PM2
 import time
 import pycom
 import _thread
@@ -53,15 +53,10 @@ def mean_across_arrays(arrays):
     :param arrays: list of arrays of the same length
     :return: elementwise average across arrays
     """
-    out_arr = []
-    n_arrays = len(arrays)
-    # Iterate through the elements in an array
-    for i in range(len(arrays[0])):
-        sm = 0
-        # Iterate through all the arrays
-        for array in arrays:
-            sm += array[i]
-        out_arr.append(sm/n_arrays)
+    num_of_arrays = len(arrays)
+    num_of_elems = len(arrays[0])
+    # Get the average of the nth element in each sub-array
+    out_arr = [sum(array[i] for array in arrays)/num_of_arrays for i in range(num_of_elems)]
     return out_arr
 
 
@@ -76,13 +71,12 @@ def blink_led(args):
 
     if blocking:
         acquired = False
-        re_tries = 0
-        while not acquired:  # pycom has not yet implemented the timeout feature
+        # try to aquire 6 times
+        for retry in range(6):  # pycom has not yet implemented the timeout feature
             acquired = led_lock.acquire(0)
-            time.sleep(0.1)
-            re_tries += 1
-            if re_tries >= 6:
+            if aquired:
                 break
+            time.sleep(0.1)
     else:
         # acquired = led_lock.acquire(0)
         acquired = not led_lock.locked()
@@ -95,19 +89,14 @@ def blink_led(args):
             led_lock.release()
 
 
-# returns a dictionary of sensors and if they are enabled
 def get_sensors(config, logger):
     """
     Dictionary of sensors (TEMP, PM1, PM2) and whether they are enabled in the configurations
     :return: sensors
     :rtype: dict
     """
-    sensors = {s.TEMP: False, s.PM1: False, s.PM2: False}
-
-    for sensor in sensors:
-        if config.get_config(sensor) != "OFF":
-            sensors[sensor] = True
-
+    # returns a dictionary of sensors and if they are enabled or not
+    sensors = {sensor: config.get_config(sensor) != "OFF" for sensor in [TEMP, PM1, PM2]}
     return sensors
 
 
@@ -119,9 +108,6 @@ def get_format(sensors):
     :return: format
     :rtype: str
     """
-    fmt = ""
-    for sensor_name in [s.TEMP, s.PM1, s.PM2]:
-        if sensors[sensor_name]:  # if the sensor is enabled
-            fmt += sensor_name[0]  # add the first character to fmt to construct format eg.: TPP, TP, PP, P, T
-
+    fmt = "".join(sensor_name[0] for sensor_name in [TEMP, PM1, PM2] if sensors[sensor_name])
+    # join the first character of all sensors that are enabled to construct format eg.: TPP, TP, PP, P, T
     return fmt
