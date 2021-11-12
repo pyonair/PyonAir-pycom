@@ -119,6 +119,7 @@ try:
             status_logger.info(str(line) ) #TODO: do line by line
             line = f.readline()
         status_logger.info("================END GPS Log from previous run===========")
+        f.close()
         os.remove(logName)
 except OSError:  # open failed
     # handle the file open case

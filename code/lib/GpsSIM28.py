@@ -91,8 +91,8 @@ class GPSSIM28:
         """
         self.logger.info("Disable GPS")
         # turn off GPS via turning off transistor
-        GPS_transistor.value(0)
-
+        self.GPS_transistor.value(0)
+        self.logger.info("Power to GPS disabled")
         # de-initialise GPS serial
         self.serial.deinit()
         self.logger.info("Restart serial output")
@@ -210,10 +210,10 @@ class GPSSIM28:
 
                 while True:
                     # data_in = '$GPGGA,085259.000,5056.1384,N,00123.1522,W,1,8,1.17,25.1,M,47.6,M,,*7D\r\n'
-                    self.logger.info("Looking for data...")
+                    #self.logger.info("Looking for data...")
                     data = str(self.serial.readline())
                     data_in = (data)[1:]
-                    self.logger.info("got data..." + str(data))
+                    #self.logger.info("got data..." + str(data))
                     #TODO: be careful with read and substring -- check for []
 
                     if (int(self.chrono.read()) - com_counter) >= 10:
@@ -225,9 +225,9 @@ class GPSSIM28:
                         time.sleep(1)
                     else:
                         for char in data_in:
-                            self.logger.debug("GPS update")
+                            #self.logger.debug("GPS update")
                             sentence = self.gps.update(char)
-                            self.logger.debug("GPS update done...")
+                            #self.logger.debug("GPS update done...")
                             if sentence == "GPGGA":
                                 self.logger.debug("GPS GPGGA")
                                 com_counter = int(self.chrono.read())
@@ -259,7 +259,7 @@ class GPSSIM28:
                                     Latitude: {}
                                     Longitude: {}
                                     Altitude: {}""".format(self.gps.satellites_in_use, self.gps.hdop, latitude, longitude, self.gps.altitude)
-
+                                    self.logger.debug(message)
                                     # Process GPS location
                                     timestamp = TIME_ISO8601_FMT.format(*time.gmtime())  # get current time in desired format
                                     lst_to_log = [timestamp, latitude, longitude, self.gps.altitude]
@@ -289,7 +289,7 @@ class GPSSIM28:
                                     return True
 
                     # If timeout elapsed exit function or thread -- what???
-                    if self.chrono.read() >= timeout:
+                    if True: #self.chrono.read() >= timeout:
                         self.logger.debug("GPS timeout")
                         self.gps_deinit()
                         self.logger.error("""GPS timeout
@@ -298,6 +298,7 @@ class GPSSIM28:
                         Increase GPS timeout in configurations""")
                         return False
         except Exception as e:
-            self.gps_deinit()
+            
             self.logger.error(str(e))
             self.logger.error("Cannot get position")
+            self.gps_deinit()
