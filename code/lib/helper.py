@@ -55,7 +55,7 @@ def mean_across_arrays(arrays):
     """
     assert not any(len(arrays[0])!= len(i) for i in arrays), "mean_across_arrays failed, lists were not of same length."
     num_of_arrays = len(arrays)
-    return [(sum(nth_elements)/num_of_arrays) for nth_elements in zip(*arrays)]
+    return [sum(nth_elements)/num_of_arrays for nth_elements in zip(*arrays)]
 
 
 def blink_led(args):
