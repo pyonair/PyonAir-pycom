@@ -53,11 +53,9 @@ def mean_across_arrays(arrays):
     :param arrays: list of arrays of the same length
     :return: elementwise average across arrays
     """
+    assert not any(len(arrays[0])!= len(i) for i in arrays), "mean_across_arrays failed, lists were not of same length."
     num_of_arrays = len(arrays)
-    num_of_elems = len(arrays[0])
-    # Get the average of the nth element in each sub-array
-    out_arr = [sum(array[i] for array in arrays)/num_of_arrays for i in range(num_of_elems)]
-    return out_arr
+    return [(sum(nth_elements)/num_of_arrays) for nth_elements in zip(*arrays)]
 
 
 def blink_led(args):
