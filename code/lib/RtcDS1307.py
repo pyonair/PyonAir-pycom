@@ -11,6 +11,7 @@ class RtcDS1307:
 
         # Day of week is not used, but needs to be set
         self.h_wkday = 0x01
+        self.weekday_start = 1
 
         self.second = None
         self.minute = None
@@ -18,6 +19,14 @@ class RtcDS1307:
         self.dayOfMonth = None
         self.month = None
         self.year = None
+
+    def _dec2bcd(self, value):
+        """Convert decimal to binary coded decimal (BCD) format"""
+        return (value // 10) << 4 | (value % 10)
+
+    def _bcd2dec(self, value):
+        """Convert binary coded decimal (BCD) format to decimal"""
+        return ((value >> 4) * 10) + (value & 0x0F)
 
     def set_time(self, h_yr, h_mnth, h_day, h_hr, h_min, h_sec):
 
@@ -30,17 +39,20 @@ class RtcDS1307:
     def get_time(self):
         self.i2c.writeto(self.DS1307_I2C_ADDRESS, 0x00)
         data = self.i2c.readfrom_mem(self.DS1307_I2C_ADDRESS, 0x00, 0xFF)
-
+        #print(data)
         # Split date and time from RTC output[2:] removes 0x characters
-        self.second = int(hex(data[0])[2:])
-        self.minute = int(hex(data[1])[2:])
-        self.hour = int(hex(data[2])[2:])  # Need to change this if 12 hour am/pm
-        self.dayOfMonth = int(hex(data[4])[2:])
-        self.month = int(hex(data[5])[2:])
-        self.year = int(hex(data[6])[2:])
+        self.second = int(data[0] & 0x7F)         
+        self.minute = self._bcd2dec(data[1])
+        self.hour = self._bcd2dec(data[2])  # Need to change this if 12 hour am/pm
+        # Day of week is not used, but needs to be set
+        self.h_wkday = self._bcd2dec(data[3] - self.weekday_start)
+        self.dayOfMonth = self._bcd2dec(data[4])
+        self.month = self._bcd2dec(data[5])
+        self.year = self._bcd2dec(data[6]) + 2000
 
-        datetime = (int('20' + str(self.year)), self.month, self.dayOfMonth, self.hour, self.minute, self.second, 0, 0)
 
+        datetime = (self.year, self.month, self.dayOfMonth, self.hour, self.minute, self.second, 0, 0)
+        print(datetime)
         return datetime
 
 
