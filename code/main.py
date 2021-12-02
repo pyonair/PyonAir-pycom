@@ -46,10 +46,11 @@ import  PybytesTransmit
 
 import pycom
 # from _pybytes_config import PybytesConfig
-# from _pybytes import Pybytes
+#from _pybytes import Pybytes
 # conf = PybytesConfig().read_config()
 # pybytes = Pybytes(conf)
 # pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
+#pybytes.activate("eyJhIjoiN2U5NmE3MDktNGQ5MS00YzU3LWI2NGUtNjE2OWM3NTkxNzdkIiwicyI6IkRldmljZUVycm9yIiwicCI6InF3ZXJ0eXVpb3AifQ==")
 
 #===================Disable default wifi===================
 
@@ -87,8 +88,8 @@ except Exception as e:
     print("============================")
     #TODO: Add led warning :  this is a show stopper error
 
-#================ thread memory defautl 4096
-_thread.stack_size(4096 * 3) # default is 4096 (and slso min!)
+#================ thread memory default 4096
+_thread.stack_size(4096 * 3) # default is 4096 (and also min!)
 
 #===================Get a logger up and running asap!
 logger_factory = LoggerFactory()
