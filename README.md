@@ -7,10 +7,10 @@
 
 ## Adding code
 
-1. Branch dev-latest
+1. Branch `dev-latest`
 2. Name you branch `feature-*` `bug-*` `performance-*` `refactor-*`
 3. Edit your new branch 
-4. Pull request back to dev-latest when completed
+4. Pull request back to `dev-latest` when completed
 5. Expect a code review
 
 
