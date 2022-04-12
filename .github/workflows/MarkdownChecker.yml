@@ -2,36 +2,8 @@ name: MarkdownChecker
 
 on:
   #DO NOT CHANGE
-  workflow_dispatch: ## Manual run possible
-  push:
-    branches: [ master , main ]
-    paths:
-    - "docs/**" #all docs
+  workflow_dispatch:
 
 jobs:
-  Check-MD:
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: HTML and MD Link Checker
-      uses: lycheeverse/lychee-action@v1.0.8
-      with:
-        args: --verbose --no-progress **/*.md **/*.html
-      env:
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-    - name: Create Issue From File
-      uses: peter-evans/create-issue-from-file@v2
-      with:
-        title: Link Checker Report
-        content-filepath: ./lychee/out.md
-        labels: report, automated issue
-
-    - name: LintMarkdown
-      uses: nosborn/github-action-markdown-cli@v1.1.1
-      with:
-        files: "*.md"
-
-    - name: Fail if there were link errors
-      run: exit ${{ steps.lychee.outputs.exit_code }}
+  MarkdownChecker-Reusable:
+    uses: pyonair/.github/.github/workflows/MarkdownChecker.yml@main
