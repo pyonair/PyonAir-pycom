@@ -7,7 +7,7 @@ PyonAir is a low-cost open-source air pollution monitor. The monitor measures pa
 
 Tested versions:
 
-* Firmware: 1.20.2.r4
+* Firmware: 1.20.2.r6
 * Pybytes: 1.6.1
 
 ### Method
