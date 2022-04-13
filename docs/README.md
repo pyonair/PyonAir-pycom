@@ -16,6 +16,8 @@ Connect a jumper cable or wire between G23 and GND
 
 Pybytes firmware 
 
+![firmware update](images/config_firmware.png)
+
 
 ## User guide
  
