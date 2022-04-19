@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 #import pdb # python debugger
 import os
@@ -47,11 +46,11 @@ print("Starting...")
 import pycom
 
 # from _pybytes_config import PybytesConfig
-#from _pybytes import Pybytes
+# from _pybytes import Pybytes
 # conf = PybytesConfig().read_config()
 # pybytes = Pybytes(conf)
 # pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
-#pybytes.activate("eyJhIjoiN2U5NmE3MDktNGQ5MS00YzU3LWI2NGUtNjE2OWM3NTkxNzdkIiwicyI6IkRldmljZUVycm9yIiwicCI6InF3ZXJ0eXVpb3AifQ==")
+# pybytes.activate("eyJhIjoiMjc0MWQ0ZWItMmRmMS00Mzg0LTkxMGQtMzIzMGI5MTE2N2M3IiwicyI6InB5b25haXIiLCJwIjoicHlvbmFpciJ9")
 
 
 #===================Disable default wifi===================
