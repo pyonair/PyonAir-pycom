@@ -1,11 +1,15 @@
-name: MarkdownChecker
+name: Trunk
 
 on: [push]
   #DO NOT CHANGE
   #workflow_dispatch:
- 
+
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
-  Linting:
+  TrunkChecker:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
