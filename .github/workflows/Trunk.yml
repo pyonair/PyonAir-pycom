@@ -1,0 +1,17 @@
+name: MarkdownChecker
+
+on: [push]
+  #DO NOT CHANGE
+  #workflow_dispatch:
+ 
+jobs:
+  Linting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+    # >>> Install your own deps here (npm install, etc) <<<
+
+      - name: Trunk Check
+        uses: trunk-io/trunk-action@v1
