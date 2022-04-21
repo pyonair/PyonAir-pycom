@@ -4,9 +4,9 @@ on: [push]
   #DO NOT CHANGE
   #workflow_dispatch:
 
-concurrency:
-  group: ${{ github.head_ref }}
-  cancel-in-progress: true
+#concurrency:
+#  group: ${{ github.head_ref }}
+#  cancel-in-progress: true
 
 jobs:
   TrunkChecker:
