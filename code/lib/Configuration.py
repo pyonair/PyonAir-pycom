@@ -18,7 +18,6 @@ from Constants import (
 
 # import imp
 
-
 # TODO: memory hog, sort this class - static?
 
 
@@ -84,6 +83,7 @@ class Configuration:
         with open(
             s.root_path + CONFIG_FILE_NAME, "w"
         ) as f:  # save credentials to sd card
+
             f.write(ujson.dumps(self.configuration))
 
     #  Reads and returns keys and preferences from sd card

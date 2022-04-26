@@ -1,59 +1,56 @@
 #!/usr/bin/env python
-# import pdb # python debugger
-import _thread
+#import pdb # python debugger
 import os
 import time
-
-import Configuration
-import GpsSIM28
-import loggingpycom
-import network  # Used to disable WiFi
-import PybytesTransmit
 import pycom
-import strings as s
-import ujson
-from Constants import (
-    DEFAULT_LOG_NAME,
-    FILENAME_FMT,
-    LOG_EXT,
-    LOG_FILENAME,
-    RING_BUFFER_DIR,
-    RING_BUFFER_FILE,
-)
 
-# from EventScheduler import EventScheduler
-from helper import blink_led, get_sensors, led_lock, secOfTheMonth
-from initialisation import initialisation  # initialise_time # TODO: clunky refactor
+from machine import RTC, unique_id, temperature
+from machine import SD, Pin, reset
+import network # Used to disable WiFi
+from initialisation import initialisation #initialise_time # TODO: clunky refactor
+from helper import blink_led, secOfTheMonth
+
+import loggingpycom
 from LoggerFactory import LoggerFactory
-from machine import RTC, SD, Pin, Timer, reset, temperature, unique_id
-from new_config import new_config
-from RingBuffer import RingBuffer
-from RtcDS1307 import clock
-from SensorLogger import SensorLogger
-from software_update import software_update
 
-# from averages import get_sensor_averages
-from TempSHT35 import TempSHT35
-
-# from initialisation import initialise_time
-from ubinascii import hexlify
 from UserButton import UserButton
 
-# from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
-# from LoRaWAN import LoRaWAN
+from Constants import *
 
+
+from machine import Timer
+from SensorLogger import SensorLogger
+#from EventScheduler import EventScheduler
+from helper import blink_led, get_sensors, led_lock
+#from averages import get_sensor_averages
+from TempSHT35 import TempSHT35
+import GpsSIM28
+import _thread
+#from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
+#from LoRaWAN import LoRaWAN
+
+
+from machine import RTC, unique_id
+#from initialisation import initialise_time
+from ubinascii import hexlify
+import Configuration
+from new_config import new_config
+from software_update import software_update
+import strings as s
+import ujson
+from RingBuffer import RingBuffer
+import  PybytesTransmit
 
 ##==== Do early , stop halting -- load on thread later
 print("Starting...")
+import pycom
 
 # from _pybytes_config import PybytesConfig
 # from _pybytes import Pybytes
 # conf = PybytesConfig().read_config()
 # pybytes = Pybytes(conf)
 # pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
-# pybytes.activate("eyJhIjoiN2U5NmE3MDktNGQ5MS00YzU3LWI2NGUtNjE2OWM3NTkxNzdkIiwicyI6IkRldmljZUVycm9yIiwicCI6InF3ZXJ0eXVpb3AifQ==")
-
-
+# pybytes.activate("eyJhIjoiMjc0MWQ0ZWItMmRmMS00Mzg0LTkxMGQtMzIzMGI5MTE2N2M3IiwicyI6InB5b25haXIiLCJwIjoicHlvbmFpciJ9")
 # ===================Disable default wifi===================
 
 try:
@@ -76,7 +73,6 @@ rtc = RTC()
 rtcClock = clock.get_time()
 rtc.init(rtcClock)  # Set Pycom time to RTC time
 print(str(rtcClock))
-
 
 # =========================Mount SD card=======
 try:
@@ -234,7 +230,7 @@ try:
         cell_size_bytes,
         config,
         status_logger,
-    )  # s.processing_path, s.lora_file_name, 31 * self.message_limit, 100)
+    )  # processing_path, lora_file_name, 31 * self.message_limit, 100)
     msgBuffer.push([1, secOfTheMonth()])  # port 1 , reboot 1
 
     ## Pybytes
@@ -250,9 +246,9 @@ try:
 
     # Initialise temperature and humidity sensor thread with id: TEMP
     status_logger.info("Starting Temp logger...")
-    if sensors[s.TEMP]:
-        TEMP_logger = SensorLogger(sensor_name=s.TEMP, terminal_out=True)
-        if config.get_config(s.TEMP) == "SHT35":
+    if sensors[TEMP]:
+        TEMP_logger = SensorLogger(sensor_name=TEMP, terminal_out=True)
+        if config.get_config(TEMP) == "SHT35":
             temp_sensor = TempSHT35(config, TEMP_logger, status_logger)
     status_logger.info("Temperature and humidity sensor initialised")
 
@@ -260,7 +256,7 @@ try:
     PM_transistor = Pin("P20", mode=Pin.OUT)
 
     if (
-        config.get_config(s.PM1) == "OFF" and config.get_config(s.PM2) == "OFF"
+        config.get_config(PM1) == "OFF" and config.get_config(PM2) == "OFF"
     ):  # Turn on sensors (power)
         PM_transistor.value(0)  # TODO: Somehow make this clear that it disables BOTH???
     else:
@@ -268,13 +264,13 @@ try:
         status_logger.info("Enable power on for BOTH PM sensors")
 
     # Initialise PM sensor threads
-    if sensors[s.PM1]:
+    if sensors[PM1]:
         init.initialise_pm_sensor(
-            sensor_name=s.PM1, pins=("P3", "P17"), serial_id=1, msgBuffer=msgBuffer
+            sensor_name=PM1, pins=("P3", "P17"), serial_id=1, msgBuffer=msgBuffer
         )
-    if sensors[s.PM2]:
+    if sensors[PM2]:
         init.initialise_pm_sensor(
-            sensor_name=s.PM2, pins=("P11", "P18"), serial_id=2, msgBuffer=msgBuffer
+            sensor_name=PM2, pins=("P11", "P18"), serial_id=2, msgBuffer=msgBuffer
         )
 
     # Blink green three times to identify that the device has been initialised
