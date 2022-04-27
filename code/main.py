@@ -1,49 +1,69 @@
 #!/usr/bin/env python
-#import pdb # python debugger
+# import pdb # python debugger
+import _thread
 import os
 import time
+
+# trunk-ignore(flake8/F401)
+from logging import root
+
+import Configuration
+import GpsSIM28
+import loggingpycom
+import network  # Used to disable WiFi
+import PybytesTransmit
 import pycom
 
-from machine import RTC, unique_id, temperature
-from machine import SD, Pin, reset
-import network # Used to disable WiFi
-from initialisation import initialisation #initialise_time # TODO: clunky refactor
-from helper import blink_led, secOfTheMonth
+# trunk-ignore(flake8/F401)
+import ujson
 
-import loggingpycom
+# trunk-ignore(flake8/F401)
+from Constants import (
+    DEFAULT_LOG_NAME,
+    FILENAME_FMT,
+    GPS,
+    LOG_EXT,
+    LOG_FILENAME,
+    PM1,
+    PM2,
+    RING_BUFFER_DIR,
+    RING_BUFFER_FILE,
+    TEMP,
+    lora_file_name,
+    processing_path,
+)
+
+# from EventScheduler import EventScheduler
+from helper import blink_led, get_sensors, led_lock, secOfTheMonth
+from initialisation import initialisation  # initialise_time # TODO: clunky refactor
 from LoggerFactory import LoggerFactory
 
+# trunk-ignore(flake8/F401)
+from machine import RTC, SD, Pin, Timer, reset, temperature, unique_id
+
+# trunk-ignore(flake8/F401)
+from new_config import new_config
+from RingBuffer import RingBuffer
+from RtcDS1307 import clock
+from SensorLogger import SensorLogger
+
+# trunk-ignore(flake8/F401)
+from software_update import software_update
+
+# from averages import get_sensor_averages
+from TempSHT35 import TempSHT35
+
+# from initialisation import initialise_time
+# trunk-ignore(flake8/F401)
+from ubinascii import hexlifys
 from UserButton import UserButton
 
-from Constants import *
+# from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
+# from LoRaWAN import LoRaWAN
 
-
-from machine import Timer
-from SensorLogger import SensorLogger
-#from EventScheduler import EventScheduler
-from helper import blink_led, get_sensors, led_lock
-#from averages import get_sensor_averages
-from TempSHT35 import TempSHT35
-import GpsSIM28
-import _thread
-#from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
-#from LoRaWAN import LoRaWAN
-
-
-from machine import RTC, unique_id
-#from initialisation import initialise_time
-from ubinascii import hexlify
-import Configuration
-from new_config import new_config
-from software_update import software_update
-import strings as s
-import ujson
-from RingBuffer import RingBuffer
-import  PybytesTransmit
 
 ##==== Do early , stop halting -- load on thread later
 print("Starting...")
-import pycom
 
 # from _pybytes_config import PybytesConfig
 # from _pybytes import Pybytes
@@ -57,6 +77,7 @@ try:
     wlan = network.WLAN()
     wlan.deinit()
     print("Disable WiFi")
+# trunk-ignore(flake8/F841)
 except Exception as e:
     print("Unable to disable WiFi")
 
@@ -79,6 +100,7 @@ try:
     sd = SD()
     os.mount(sd, "/sd")
     # TODO: Error catch , set led for no SD card
+# trunk-ignore(flake8/F841)
 except Exception as e:
     print("============================")
     print("===   SD did not mount   ===")
@@ -240,6 +262,7 @@ try:
             PybytesTransmit.pybytes_thread, (msgBuffer, config, status_logger)
         )
         status_logger.info("THREAD - Pybytes  initialised")
+    # trunk-ignore(flake8/F841)
     except Exception as e:
         status_logger.info("Failed to initialise Pybytes thread ")
         # raise e
@@ -293,6 +316,7 @@ try:
     temp = (temperature() - 32) / 1.8
     status_logger.info("Memory:  " + str(pycom.get_free_heap()) + " Temp: " + str(temp))
     # TODO:  delete init object?
+# trunk-ignore(flake8/F841)
 except Exception as e:
     status_logger.exception("Exception in the main")
     led_lock.acquire()
