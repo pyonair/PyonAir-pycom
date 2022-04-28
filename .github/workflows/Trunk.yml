@@ -1,0 +1,21 @@
+name: Trunk
+
+on: [push]
+  #DO NOT CHANGE
+  #workflow_dispatch:
+
+#concurrency:
+#  group: ${{ github.head_ref }}
+#  cancel-in-progress: true
+
+jobs:
+  TrunkChecker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+    # >>> Install your own deps here (npm install, etc) <<<
+
+      - name: Trunk Check
+        uses: trunk-io/trunk-action@v1
