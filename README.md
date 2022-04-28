@@ -13,6 +13,6 @@
 4. Name you branch `feature-*` `bug-*` `performance-*` `refactor-*` `doc-*`
 5. Edit your new branch
 6. Pull request back to `dev-latest` when completed
-7. Expect a code review
+7. Expect 2 code reviews
 
 [https://www.pyonair.org](https://www.pyonair.org)
