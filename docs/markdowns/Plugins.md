@@ -23,3 +23,5 @@ here are the optional plugins (Code Spell Checker[^3] , markdownlint[^4] , Trail
 [^6]: Tool to better organize the code
 
 ![optional](../images/optional.png)
+
+[Next step =>](../markdowns/UpdateFirmware.md)

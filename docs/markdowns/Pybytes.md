@@ -36,4 +36,4 @@
 
     ![pybytes_tutorial_8](../images/pybytes_tutorial_8.png)
 
-[Next step =>](markdowns/configurations.md)
+[Next step =>](../markdowns/configurations.md)

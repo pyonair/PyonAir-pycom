@@ -30,4 +30,4 @@
 
     ![vscode_tutorial_2](../images/vscode_tutorial_2.png)
 
-[Next step =>](markdowns/Plugins.md)
+[Next step =>](../markdowns/Plugins.md)

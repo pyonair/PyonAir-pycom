@@ -23,3 +23,5 @@
 6. Click in done and your devise is now updated !
 
     ![update_tutorial_5](../images/update_tutorial_5.png)
+
+[Next step =>](../markdowns/UploadProject.md)
