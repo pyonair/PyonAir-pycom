@@ -29,3 +29,5 @@
 9. Click in "Pymark Console" to disable the pymark console and be able to update it (see the image below)
 
     ![vscode_tutorial_2](../images/vscode_tutorial_2.png)
+
+[Next step =>](markdowns/Plugins.md)

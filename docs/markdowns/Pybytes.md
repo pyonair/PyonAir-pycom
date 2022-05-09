@@ -35,3 +35,5 @@
 9. Select provisioning => offline firmware updater => create token => copy token
 
     ![pybytes_tutorial_8](../images/pybytes_tutorial_8.png)
+
+[Next step =>](markdowns/configurations.md)
