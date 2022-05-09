@@ -16,4 +16,4 @@
 
 5. Your devise send now data in your account in pybytes !
 
-[Next step =>](../README.md)
+[Return to the main page=>](../README.md)
