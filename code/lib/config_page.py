@@ -1,7 +1,6 @@
-#from  
+#from
 import Configuration
-import strings as s
-
+import Constants
 
 #TODO: get rid of thsi config page -- pybytes all the way
 
@@ -24,17 +23,17 @@ def get_html_form():
 
     selected_TEMP = {"SHT35": "", "OFF": ""}
     for option in selected_TEMP:
-        if option == config.get_config(s.TEMP):
+        if option == config.get_config(TEMP):
             selected_TEMP[option] = " selected"
 
     selected_PM1 = {"PMS5003": "", "SPS030": "", "OFF": ""}
     for option in selected_PM1:
-        if option == config.get_config(s.PM1):
+        if option == config.get_config(PM1):
             selected_PM1[option] = " selected"
 
     selected_PM2 = {"PMS5003": "", "SPS030": "", "OFF": ""}
     for option in selected_PM2:
-        if option == config.get_config(s.PM2):
+        if option == config.get_config(PM2):
             selected_PM2[option] = " selected"
 
     selected_GPS = {"SIM28": "", "OFF": ""}
@@ -339,7 +338,7 @@ def get_html_form():
       </body>
       <script>
         //Source: https://lengstorf.com/get-form-values-as-json/
-        
+
         const isValidElement = element => {
           return element.name && element.value;
         };
