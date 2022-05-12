@@ -6,6 +6,8 @@ from loggingpycom import INFO, WARNING, CRITICAL, DEBUG, ERROR
 from Configuration import Configuration
 import _thread
 #import strings as s
+
+import Constants
 import os
 import pycom
 import RingBuffer

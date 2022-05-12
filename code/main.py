@@ -6,7 +6,7 @@ import time
 
 # trunk-ignore(flake8/F401)
 #from logging import root
-
+import Constants
 import Configuration
 import GpsSIM28
 import loggingpycom
@@ -55,7 +55,7 @@ from TempSHT35 import TempSHT35
 
 # from initialisation import initialise_time
 # trunk-ignore(flake8/F401)
-from ubinascii import hexlifys
+#from ubinascii import hexlifys #TODO not used
 from UserButton import UserButton
 
 # from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
