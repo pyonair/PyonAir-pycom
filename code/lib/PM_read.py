@@ -6,11 +6,11 @@ from machine import Timer
 from SensorLogger import SensorLogger
 import time
 from math import trunc
-
+import Constants
 from ubinascii import hexlify, b2a_base64
 import struct
 from WelfordAverage import WelfordAverage
-from Constants import PM_SENSOR_SAMPELING_RATE , PM_SAMPLE_COUNT_FOR_AVERAGE, TIME_ISO8601_FMT
+from Constants import PM_SENSOR_SAMPLING_RATE , PM_SAMPLE_COUNT_FOR_AVERAGE, TIME_ISO8601_FMT
 
 #This is important code, keep it FAST are reliable.
 #Note syntax issues here may look like cannot read sensors

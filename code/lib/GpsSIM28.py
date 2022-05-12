@@ -3,7 +3,7 @@ from micropyGPS import MicropyGPS
 from RtcDS1307 import clock
 from Configuration import Configuration #import config
 from helper import secOfTheMonth , blink_led
-import strings as s
+#import strings as s
 import time
 import uos
 import sys
