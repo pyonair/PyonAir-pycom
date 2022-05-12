@@ -1,5 +1,6 @@
 import loggingpycom as logging
 from loggingpycom import handlers
+import Constants
 
 STATUS_FMT_DEFAULT = '%(levelname)s - %(asctime)s - %(name)s - %(message)s'
 DEBUG_LOG_MAX_FILE_SIZE_DEFAULT = 50 * 1024 * 1024  # 50MiB
@@ -65,7 +66,7 @@ class LoggerFactory:
             file_handler.setFormatter(formatter)
             status_logger.addHandler(file_handler)
         self.loggers[name] = status_logger
-        print("Logger created: " + name)
+        print("Logger created: " + name + "  " +self.path + filename)
         return self.loggers[name]
 
     def set_level(self, name, level):

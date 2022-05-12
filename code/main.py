@@ -120,7 +120,7 @@ _thread.stack_size(4096 * 3)  # default is 4096 (and also min!)
 logger_factory = LoggerFactory()
 # TODO: Set log level to level in config file
 fileNameStr = LOG_FILENAME + FILENAME_FMT.format(*time.gmtime()) + LOG_EXT
-print(fileNameStr)
+print("=====LOG File: " + fileNameStr  + "=============")
 status_logger = logger_factory.create_status_logger(
     DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True, filename=fileNameStr
 )

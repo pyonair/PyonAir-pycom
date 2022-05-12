@@ -238,7 +238,7 @@ GPS = "GPS"
 
 # Directories in /sd/
 current = "Current"
-processing = "Processing"
+processing = "Processing" ## Should not use now we have welfords
 archive = "Archive"
 archive_averages = "Averages"
 

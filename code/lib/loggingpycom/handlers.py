@@ -59,6 +59,7 @@ class RotatingFileHandler(Handler):
             self._counter = 0
 
         with open(self.filename, "a") as f:
+            print(self.filename)
             f.write(msg + "\n")
 
         self._counter += s_len
