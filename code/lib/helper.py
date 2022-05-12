@@ -2,7 +2,7 @@
 
 from Configuration import Configuration #import config
 #import strings as s
-import Constants
+from  Constants import * #TODO: hack fix this
 import time
 import pycom
 import _thread
