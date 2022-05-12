@@ -39,7 +39,7 @@ class RtcDS1307:
     def get_time(self):
         self.i2c.writeto(self.DS1307_I2C_ADDRESS, 0x00)
         data = self.i2c.readfrom_mem(self.DS1307_I2C_ADDRESS, 0x00, 0xFF)
-        #print(data)
+        print(data)
         # Split date and time from RTC output[2:] removes 0x characters
         self.second = int(data[0] & 0x7F)
         self.minute = self._bcd2dec(data[1])

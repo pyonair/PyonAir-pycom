@@ -10,7 +10,6 @@ import Constants
 from ubinascii import hexlify, b2a_base64
 import struct
 from WelfordAverage import WelfordAverage
-from Constants import PM_SENSOR_SAMPLING_RATE , PM_SAMPLE_COUNT_FOR_AVERAGE, TIME_ISO8601_FMT
 
 #This is important code, keep it FAST are reliable.
 #Note syntax issues here may look like cannot read sensors
@@ -94,7 +93,7 @@ class PMSensorReader:
 
         # start a periodic timer interrupt to poll readings every second
         debugLogger.debug("Starting repeating alarm/timer")
-        self.__processing_alarm = Timer.Alarm(self.process_readings, PM_SENSOR_SAMPELING_RATE, periodic=True)
+        self.__processing_alarm = Timer.Alarm(self.process_readings, Constants.PM_SENSOR_SAMPELING_RATE, periodic=True)
 
     def process_readings(self,alarm):
         """
@@ -122,7 +121,7 @@ class PMSensorReader:
                 self.welfordsM2 += ( delta * delta2)
                 #====End welfords==============
 
-                if (self.welfordsCount >= PM_SAMPLE_COUNT_FOR_AVERAGE): #Keep adding data
+                if (self.welfordsCount >= Constants.PM_SAMPLE_COUNT_FOR_AVERAGE): #Keep adding data
 
                     variance = self.welfordsM2/self.welfordsCount
                     sampleVariance = self.welfordsM2 / (self.welfordsCount -1)
