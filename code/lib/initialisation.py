@@ -8,6 +8,7 @@ import _thread
 #import strings as s
 
 import Constants
+
 import os
 import pycom
 import RingBuffer
@@ -127,8 +128,8 @@ class initialisation:
         Create directories for logging, processing, archive, and sending data if they do not exist.
         """
         # Create directories in /sd/
-        for directory in filesystem_dirs: #TODO Constant as caps
-            if directory not in os.listdir(root_path): #TODO Constant as caps
+        for directory in Constants.filesystem_dirs: #TODO Constant as caps
+            if directory not in os.listdir(Constants.root_path): #TODO Constant as caps
                 os.mkdir(s.root_path + directory)
 
         # Create Averages directory in /sd/Archive/ directory
