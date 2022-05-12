@@ -1,7 +1,8 @@
 # Helper functions and miscellaneous globals
 
 from Configuration import Configuration #import config
-import strings as s
+#import strings as s
+from  Constants import * #TODO: hack fix this
 import time
 import pycom
 import _thread
@@ -102,7 +103,7 @@ def get_sensors(config, logger):
     :return: sensors
     :rtype: dict
     """
-    sensors = {s.TEMP: False, s.PM1: False, s.PM2: False}
+    sensors = {TEMP: False, PM1: False, PM2: False}
 
     for sensor in sensors:
         if config.get_config(sensor) != "OFF":

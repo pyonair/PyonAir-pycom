@@ -1,6 +1,6 @@
 import os
 
-import strings as s
+from Constants import root_path
 import ujson
 
 # from ubinascii import hexlify
@@ -81,7 +81,7 @@ class Configuration:
         self.set_config(new_config)
 
         with open(
-            s.root_path + CONFIG_FILE_NAME, "w"
+            root_path + CONFIG_FILE_NAME, "w"
         ) as f:  # save credentials to sd card
 
             f.write(ujson.dumps(self.configuration))
