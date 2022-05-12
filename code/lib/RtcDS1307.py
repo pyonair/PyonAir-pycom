@@ -29,7 +29,7 @@ class RtcDS1307:
         return ((value >> 4) * 10) + (value & 0x0F)
 
     def set_time(self, h_yr, h_mnth, h_day, h_hr, h_min, h_sec):
-
+        #TODO: year is not correct, mask error?
         # second, minute, hour, day of week, day of month, month, year
         data = bytearray([h_sec, h_min, h_hr, self.h_wkday, h_day, h_mnth, h_yr])
 

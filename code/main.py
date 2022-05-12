@@ -137,6 +137,7 @@ status_logger.info("Config loaded")
 init = initialisation(config, status_logger)
 
 # =========================Get time sorted
+# This section should look at the date/time and decide if it is sensible, and trigger gps auto correct
 # Get current time
 rtc = RTC()
 # Get time from RTC module

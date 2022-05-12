@@ -4,7 +4,7 @@ from . import Handler
 
 
 def try_remove(fn: str) -> None:
-    """Try to remove a file if it existst."""
+    """Try to remove a file if it exist."""
     try:
         os.remove(fn)
     except OSError:
