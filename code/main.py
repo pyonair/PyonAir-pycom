@@ -113,7 +113,7 @@ except Exception as e:
     print("============================")
     # TODO: Add led warning :  this is a show stopper error
 
-# ================ thread memory default 4096
+# ================ thread memory default 4096 ================
 _thread.stack_size(4096 * 3)  # default is 4096 (and also min!)
 
 # ===================Get a logger up and running asap!
