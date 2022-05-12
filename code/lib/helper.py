@@ -103,12 +103,12 @@ def get_sensors(config, logger):
     :return: sensors
     :rtype: dict
     """
-    sensors = {TEMP: False, PM1: False, PM2: False}
+    sensors = {TEMP: False, PM1: False, PM2: False} #Default all off
 
-    for sensor in sensors:
+    for sensor in sensors: # Then enable if in config
         if config.get_config(sensor) != "OFF":
             sensors[sensor] = True
-
+    logger.debug(str(sensors))
     return sensors
 
 
