@@ -1,6 +1,6 @@
 from machine import I2C
 
-
+#TODO: Somewhere there is a check for the year, to see if it is sensible, find it and stop it throting a critical halt.
 class RtcDS1307:
     def __init__(self):
 
@@ -41,7 +41,7 @@ class RtcDS1307:
         data = self.i2c.readfrom_mem(self.DS1307_I2C_ADDRESS, 0x00, 0xFF)
         #print(data)
         # Split date and time from RTC output[2:] removes 0x characters
-        self.second = int(data[0] & 0x7F)         
+        self.second = int(data[0] & 0x7F)
         self.minute = self._bcd2dec(data[1])
         self.hour = self._bcd2dec(data[2])  # Need to change this if 12 hour am/pm
         # Day of week is not used, but needs to be set
