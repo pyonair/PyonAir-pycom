@@ -5,7 +5,7 @@ from loggingpycom import INFO, WARNING, CRITICAL, DEBUG, ERROR
 #import Configuration
 from Configuration import Configuration
 import _thread
-import strings as s
+#import strings as s
 import os
 import pycom
 import RingBuffer
@@ -125,8 +125,8 @@ class initialisation:
         Create directories for logging, processing, archive, and sending data if they do not exist.
         """
         # Create directories in /sd/
-        for directory in s.filesystem_dirs:
-            if directory not in os.listdir(s.root_path):
+        for directory in filesystem_dirs: #TODO Constant as caps
+            if directory not in os.listdir(root_path): #TODO Constant as caps
                 os.mkdir(s.root_path + directory)
 
         # Create Averages directory in /sd/Archive/ directory
