@@ -247,6 +247,7 @@ lora_file_name = "LoRa_Buffer"
 # wifi_file_name = 'WiFi_Buffer'
 
 # Paths
+#TODO Constants as caps?
 root_path = "/sd/"
 current_path = root_path + current + "/"
 processing_path = root_path + processing + "/"

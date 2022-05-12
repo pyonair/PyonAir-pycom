@@ -5,7 +5,7 @@ import os
 import time
 
 # trunk-ignore(flake8/F401)
-from logging import root
+#from logging import root
 
 import Configuration
 import GpsSIM28
