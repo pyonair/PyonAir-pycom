@@ -68,7 +68,7 @@ class Configuration:
         :param new_config: set of new configuration key-value pairs
         :type new_config: dict
         """
-
+        #config is a dictionary  , so update with json
         self.configuration.update(new_config)
 
     #  Saves keys and preferences to sd card
@@ -92,18 +92,18 @@ class Configuration:
         Read config file on SD card and load it to the configuration dict
         """
         # set to default
-        self.configuration = DEFAULT_CONFIG
+        self.configuration = DEFAULT_CONFIG# see constants.
 
-        # if no config file
+        # if no config file (is there an /sd/settings.json)
         if CONFIG_FILE_NAME not in os.listdir(CONFIG_FILE_DIRECTORY):
             with open(CONFIG_FILE_FULL_NAME, "w") as f:  # create new config file
-                f.write(ujson.dumps(self.configuration))
+                f.write(ujson.dumps(self.configuration)) # No file , so use default all round!
                 # self.set_config(str(self.configuration))
 
         # load config
         if CONFIG_FILE_NAME in os.listdir(CONFIG_FILE_DIRECTORY):
             with open(CONFIG_FILE_FULL_NAME, "r") as f:
-                self.set_config(ujson.loads(f.read()))
+                self.set_config(ujson.loads(f.read())) #read json , use as config
                 self.logger.debug(str(self.configuration))
 
         # check for debug force overwrite.

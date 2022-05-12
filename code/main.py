@@ -278,6 +278,7 @@ try:
     if sensors[TEMP]:
         TEMP_logger = SensorLogger(sensor_name=TEMP, terminal_out=True)
         if config.get_config(TEMP) == "SHT35":
+
             temp_sensor = TempSHT35(config, TEMP_logger, status_logger)
     status_logger.info("Temperature and humidity sensor initialised")
 
