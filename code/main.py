@@ -20,14 +20,14 @@ import pycom
 import ujson
 
 # from EventScheduler import EventScheduler
-from helper import blink_led, get_sensors, led_lock, secOfTheMonth
+import helper
 from initialisation import initialisation  # initialise_time # TODO: clunky refactor
 
 #Logging class to create multiple logging objects
 from LoggerFactory import LoggerFactory
 
 # trunk-ignore(flake8/F401)
-from machine import RTC, SD, Pin, Timer, reset, temperature, unique_id
+import machine
 
 # trunk-ignore(flake8/F401)
 from new_config import new_config
@@ -78,7 +78,7 @@ pycom.rgbled(0x552000)  # flash orange to indicate startup
 ##
 # ====== get time from RTC regardless -- better than default -- later we will try gps
 
-rtc = RTC() #This is the pycom RTC that does not have a battery so will ALWAYS be wrong
+rtc = machine.RTC() #This is the pycom RTC that does not have a battery so will ALWAYS be wrong
 # Get time from RTC module
 rtcClock = clock.get_time() # This is the RtcDS1307 module
 rtc.init(rtcClock)  # Set Pycom time to RTC time
@@ -87,7 +87,7 @@ print("Best guess at time: " + str(rtcClock))
 
 # =========================Mount SD card=======
 try:
-    sd = SD()
+    sd = machine.SD()
     os.mount(sd, "/sd")
     # TODO: Error catch , set led for no SD card
 # trunk-ignore(flake8/F841)
@@ -122,7 +122,7 @@ init = initialisation(config, status_logger)
 
 # =========================Get time sorted
 # Get current time
-rtc = RTC()
+rtc = machine.RTC()
 # Get time from RTC module
 # rtc.init(clock.get_time())
 no_time, update_time_later = init.initialise_time(
@@ -136,8 +136,8 @@ status_logger.info(
 
 # ======================== Setup user interupt button
 user_button = UserButton(status_logger)
-pin_14 = Pin("P14", mode=Pin.IN, pull=Pin.PULL_DOWN)
-pin_14.callback(Pin.IRQ_RISING | Pin.IRQ_FALLING, user_button.button_handler)
+pin_14 = machine.Pin("P14", mode=machine.Pin.IN, pull=machine.Pin.PULL_DOWN)
+pin_14.callback(machine.Pin.IRQ_RISING | machine.Pin.IRQ_FALLING, user_button.button_handler)
 user_button.set_config_enabled(True)
 status_logger.warning("User button enabled")
 
@@ -171,7 +171,7 @@ try:
 
     # =======Remove this config stuff === warn this devide id may be used -- check
     # Check if device is configured, or SD card has been moved to another device
-    # device_id = hexlify(unique_id()).upper().decode("utf-8")
+    # device_id = hexlify(machine.unique_id()).upper().decode("utf-8")
     # if not config.is_complete(status_logger) or config.get_config("device_id") != device_id:
     #     config.reset_configuration(status_logger)
     #     #  Force user to configure device, then reboot
@@ -193,15 +193,15 @@ except Exception as e:
     # reboot_counter = 0
     # try:
     #     while user_button.get_reboot():
-    #         blink_led((0x555500, 0.5, True))  # blink yellow LED
+    #         helper.blink_led((0x555500, 0.5, True))  # blink yellow LED
     #         time.sleep(0.5)
     #         reboot_counter += 1
     #         if reboot_counter >= 180:
     #             status_logger.info("rebooting...")
-    #             reset()
+    #             machine.reset()
     #     new_config(status_logger, arg=0) #TODO remove this
     # except Exception:
-    #     reset()
+    #     machine.reset()
 
 pycom.rgbled(0x552000)  # flash orange until its loaded
 
@@ -211,9 +211,9 @@ try:
     status_logger.info("Filesystem.......")
     # Configurations are entered parallel to main execution upon button press for 2.5 secs
     user_button.set_config_blocking(False)
-    # status_logger.debug(DEFAULT_LOG_NAME + "  :LOG_LEVEL_KEY" + config.get_config(LOG_LEVEL_KEY))
+    # status_logger.debug(Constants.DEFAULT_LOG_NAME + "  :LOG_LEVEL_KEY" + config.get_config(LOG_LEVEL_KEY))
     # Set debug level - has to be set after logger was initialised and device was configured
-    # status_logger = logger_factory.set_level(DEFAULT_LOG_NAME, config.get_config(LOG_LEVEL_KEY) ) # Cannot change mid way?
+    # status_logger = logger_factory.set_level(Constants.DEFAULT_LOG_NAME, config.get_config(LOG_LEVEL_KEY) ) # Cannot change mid way?
     # print("HERE")
     status_logger.info("Filesystem init start")
     # print("HERE2")
@@ -225,7 +225,7 @@ try:
 
     status_logger.info("Filesystem init completed")
     # Get a dictionary of sensors and their status
-    sensors = get_sensors(config, status_logger)
+    sensors = helper.get_sensors(config, status_logger)
 
     # Join the LoRa network
     # lora = False
@@ -242,8 +242,8 @@ try:
         cell_size_bytes,
         config,
         status_logger,
-    )  # processing_path, lora_file_name, 31 * self.message_limit, 100)
-    msgBuffer.push([1, secOfTheMonth()])  # port 1 , reboot 1
+       ) #   Constants.PROCESSING_PATH, Constants.LORA_FILE_NAME, 31 * self.message_limit, 100)
+    msgBuffer.push([1, helper.secOfTheMonth()])  # port 1 , reboot 1
 
     ## Pybytes
     try:
@@ -266,7 +266,7 @@ try:
     status_logger.info("Temperature and humidity sensor initialised")
 
     # Initialise PM power circuitry
-    PM_transistor = Pin("P20", mode=Pin.OUT)
+    PM_transistor = machine.Pin("P20", mode=machine.Pin.OUT)
 
     if (
         config.get_config(Constants.PM1) == "OFF" and config.get_config(Constants.PM2) == "OFF"
@@ -288,10 +288,10 @@ try:
 
     # Blink green three times to identify that the device has been initialised
     for val in range(3):
-        blink_led((0x005500, 0.5, True))
+        helper.blink_led((0x005500, 0.5, True))
         time.sleep(0.5)
     # Initialise custom yellow heartbeat that triggers every 5 seconds
-    heartbeat = Timer.Alarm(blink_led, s=5, arg=(0x005500, 0.1, True), periodic=True)
+    heartbeat = machine.Timer.Alarm(helper.blink_led, s=5, arg=(0x005500, 0.1, True), periodic=True)
 
     # Try to update RTC module with accurate UTC datetime if GPS is enabled and has not yet synchronized
     if (
@@ -303,13 +303,13 @@ try:
         _thread.start_new_thread(GpsSIM28.SetRTCtime, (rtc, config, status_logger))
 
     status_logger.info("Initialisation finished")
-    temp = (temperature() - 32) / 1.8
+    temp = (machine.temperature() - 32) / 1.8
     status_logger.info("Memory:  " + str(pycom.get_free_heap()) + " Temp: " + str(temp))
     # TODO:  delete init object?
 # trunk-ignore(flake8/F841)
 except Exception as e:
     status_logger.exception("Exception in the main")
-    led_lock.acquire()
+    helper.led_lock.acquire()
     pycom.rgbled(0x550000)
     while True:
         time.sleep(5)
