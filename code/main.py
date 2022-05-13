@@ -19,22 +19,6 @@ import pycom
 # trunk-ignore(flake8/F401)
 import ujson
 
-# trunk-ignore(flake8/F401)
-from Constants import (
-    DEFAULT_LOG_NAME,
-    FILENAME_FMT,
-    GPS,
-    LOG_EXT,
-    LOG_FILENAME,
-    PM1,
-    PM2,
-    RING_BUFFER_DIR,
-    RING_BUFFER_FILE,
-    TEMP,
-    lora_file_name, #TODO: caps ?
-    processing_path,
-)
-
 # from EventScheduler import EventScheduler
 from helper import blink_led, get_sensors, led_lock, secOfTheMonth
 from initialisation import initialisation  # initialise_time # TODO: clunky refactor
@@ -119,10 +103,10 @@ _thread.stack_size(4096 * 3)  # default is 4096 (and also min!)
 # ===================Get a logger up and running asap!
 logger_factory = LoggerFactory()
 # TODO: Set log level to level in config file
-fileNameStr = LOG_FILENAME + FILENAME_FMT.format(*time.gmtime()) + LOG_EXT
+fileNameStr = Constants.LOG_FILENAME + Constants.FILENAME_FMT.format(*time.gmtime()) + Constants.LOG_EXT
 print(fileNameStr)
 status_logger = logger_factory.create_status_logger(
-    DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True, filename=fileNameStr
+    Constants.DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True, filename=fileNameStr
 )
 
 status_logger.info("Rebooted")
@@ -252,8 +236,8 @@ try:
     message_limit_count = 5  # buffer size?
     cell_size_bytes = 100  # all buffer slots are a fixed size ! so waste space, but dont make this smaller that a max message!
     msgBuffer = RingBuffer(
-        RING_BUFFER_DIR,
-        RING_BUFFER_FILE,
+        Constants.RING_BUFFER_DIR,
+        Constants.RING_BUFFER_FILE,
         message_limit_count,
         cell_size_bytes,
         config,
@@ -275,9 +259,9 @@ try:
 
     # Initialise temperature and humidity sensor thread with id: TEMP
     status_logger.info("Starting Temp logger...")
-    if sensors[TEMP]:
-        TEMP_logger = SensorLogger(sensor_name=TEMP, terminal_out=True)
-        if config.get_config(TEMP) == "SHT35":
+    if sensors[Constants.TEMP]:
+        TEMP_logger = SensorLogger(sensor_name=Constants.TEMP, terminal_out=True)
+        if config.get_config(Constants.TEMP) == "SHT35":
             temp_sensor = TempSHT35(config, TEMP_logger, status_logger)
     status_logger.info("Temperature and humidity sensor initialised")
 
@@ -285,7 +269,7 @@ try:
     PM_transistor = Pin("P20", mode=Pin.OUT)
 
     if (
-        config.get_config(PM1) == "OFF" and config.get_config(PM2) == "OFF"
+        config.get_config(Constants.PM1) == "OFF" and config.get_config(Constants.PM2) == "OFF"
     ):  # Turn on sensors (power)
         PM_transistor.value(0)  # TODO: Somehow make this clear that it disables BOTH???
     else:
@@ -293,13 +277,13 @@ try:
         status_logger.info("Enable power on for BOTH PM sensors")
 
     # Initialise PM sensor threads
-    if sensors[PM1]:
+    if sensors[Constants.PM1]:
         init.initialise_pm_sensor(
-            sensor_name=PM1, pins=("P3", "P17"), serial_id=1, msgBuffer=msgBuffer
+            sensor_name=Constants.PM1, pins=("P3", "P17"), serial_id=1, msgBuffer=msgBuffer
         )
-    if sensors[PM2]:
+    if sensors[Constants.PM2]:
         init.initialise_pm_sensor(
-            sensor_name=PM2, pins=("P11", "P18"), serial_id=2, msgBuffer=msgBuffer
+            sensor_name=Constants.PM2, pins=("P11", "P18"), serial_id=2, msgBuffer=msgBuffer
         )
 
     # Blink green three times to identify that the device has been initialised
