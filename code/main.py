@@ -1,12 +1,14 @@
 #!/usr/bin/env python
-# import pdb # python debugger
+
+#We need threads as every hardware logger (PM/Temp etc) runs on its own thread.
 import _thread
 import os
 import time
 
-# trunk-ignore(flake8/F401)
+# trunk-ignore(flake8/F401) #TODO: explain this, keep in in a constant location
 #from logging import root
 
+import Constants
 import Configuration
 import GpsSIM28
 import loggingpycom
@@ -29,13 +31,15 @@ from Constants import (
     RING_BUFFER_DIR,
     RING_BUFFER_FILE,
     TEMP,
-    lora_file_name,
+    lora_file_name, #TODO: caps ?
     processing_path,
 )
 
 # from EventScheduler import EventScheduler
 from helper import blink_led, get_sensors, led_lock, secOfTheMonth
 from initialisation import initialisation  # initialise_time # TODO: clunky refactor
+
+#Logging class to create multiple logging objects
 from LoggerFactory import LoggerFactory
 
 # trunk-ignore(flake8/F401)
@@ -55,15 +59,14 @@ from TempSHT35 import TempSHT35
 
 # from initialisation import initialise_time
 # trunk-ignore(flake8/F401)
-from ubinascii import hexlifys
+#from ubinascii import hexlifys #TODO not used
 from UserButton import UserButton
 
 # from initialisation import initialise_pm_sensor, initialise_file_system, remove_residual_files, get_logging_level
 # from LoRaWAN import LoRaWAN
 
 
-##==== Do early , stop halting -- load on thread later
-print("Starting...")
+print("Starting, creating loggers...") # ONLY case where print shoudl be used as logger not available yet.
 
 # from _pybytes_config import PybytesConfig
 # from _pybytes import Pybytes
@@ -71,8 +74,9 @@ print("Starting...")
 # pybytes = Pybytes(conf)
 # pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
 # pybytes.activate("eyJhIjoiMjc0MWQ0ZWItMmRmMS00Mzg0LTkxMGQtMzIzMGI5MTE2N2M3IiwicyI6InB5b25haXIiLCJwIjoicHlvbmFpciJ9")
-# ===================Disable default wifi===================
 
+
+# ===================Disable default wifi===================
 try:
     wlan = network.WLAN()
     wlan.deinit()
@@ -81,19 +85,21 @@ try:
 except Exception as e:
     print("Unable to disable WiFi")
 
-# ===============LED
+# ===============Disable LED =========================
 pycom.heartbeat(False)  # disable the heartbeat LED
+# We will now use different colours to indicate startup state.
 pycom.rgbled(0x552000)  # flash orange to indicate startup
 
 
 ##
 # ====== get time from RTC regardless -- better than default -- later we will try gps
 
-rtc = RTC()
+rtc = RTC() #This is the pycom RTC that does not have a battery so will ALWAYS be wrong
 # Get time from RTC module
-rtcClock = clock.get_time()
+rtcClock = clock.get_time() # This is the RtcDS1307 module
 rtc.init(rtcClock)  # Set Pycom time to RTC time
-print(str(rtcClock))
+# Later we will check that the RTC is set to a reasonable time, but for now this will have to do
+print("Best guess at time: " + str(rtcClock))
 
 # =========================Mount SD card=======
 try:
