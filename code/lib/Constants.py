@@ -1,3 +1,7 @@
+# from http.client import PROCESSING
+# from tkinter import CURRENT
+
+
 TIME_ISO8601_FMT = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}"
 # yyyy-mm-ddThh-mm-ss  #https://en.wikipedia.org/wiki/ISO_8601
 
@@ -81,7 +85,7 @@ complication, please only do so, if you have looked at the uses and are confiden
 
 
 # use PM25 -- for average
-headers_dict_v4 = {
+HEADERS_DICT_V4 = {
     "PMS5003": [
         "timestamp",
         "pm10_cf1",
@@ -211,13 +215,13 @@ headers_dict_v4 = {
 }
 
 # headers from headers_dict_v4 to calculate averages in task.py and send over LoRaWAN
-lora_sensor_headers = {
+LORA_SENSOR_HEADERS = {
     "SHT35": ["temperature", "humidity"],
     "PMS5003": ["PM10", "PM25"],
     "SPS030": ["PM10", "PM25"],
 }
 
-status_header = ["type", "timestamp", "message"]
+STATUS_HEADER = ["type", "timestamp", "message"]
 
 
 # default_configuration = {"device_id": "", "device_name": "NewPyonAir", "password": "newpyonair", "region": "Europe",
@@ -237,20 +241,20 @@ TEMP = "TEMP"
 GPS = "GPS"
 
 # Directories in /sd/
-current = "Current"
-processing = "Processing"
-archive = "Archive"
-archive_averages = "Averages"
+CURRENT = "Current"
+PROCESSING = "Processing"
+ARCHIVE = "Archive"
+ARCHIVE_AVERAGES = "Averages"
 
 # File names
-lora_file_name = "LoRa_Buffer"
-# wifi_file_name = 'WiFi_Buffer'
+LORA_FILE_NAME = "LoRa_Buffer"
+# WIFI_FILE_NAME = 'WiFi_Buffer'
 
 # Paths
 #TODO Constants as caps?
-root_path = "/sd/"
-current_path = root_path + current + "/"
-processing_path = root_path + processing + "/"
-archive_path = root_path + archive + "/"
-archive_averages_path = archive_path + archive_averages + "/"
-filesystem_dirs = [current, processing, archive]
+ROOT_PATH = "/sd/"
+CURRENT_PATH = ROOT_PATH + CURRENT + "/"
+PROCESSING_PATH = ROOT_PATH + PROCESSING + "/"
+ARCHIVE_PATH = ROOT_PATH + ARCHIVE + "/"
+ARCHIVE_AVERAGES_PATH = ARCHIVE_PATH + ARCHIVE_AVERAGES + "/"
+FILESYSTEM_DIRS = [CURRENT, PROCESSING, ARCHIVE]
