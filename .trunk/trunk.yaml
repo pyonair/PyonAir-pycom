@@ -1,10 +1,19 @@
 version: 0.1
 cli:
   version: 0.10.1-beta
-lint:
+lint:  
+  linters:
+    - name: test
+      type: lsp_json
+      file: [ALL]
+      command: ["${workspace}/bin/foo", "--file", "${target}"]
+      read_output_from: stdout
+      run_linter_from: workspace
+      success_codes: [0, 1]
   enabled:
+    - test@SYSTEM
     - actionlint@1.6.9
-    - black@22.3.0
+    - black@22.1.0
     - flake8@4.0.1
     - gitleaks@8.3.0
     - isort@5.9.3

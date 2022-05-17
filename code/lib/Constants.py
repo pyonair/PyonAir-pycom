@@ -1,3 +1,6 @@
+# from http.client import PROCESSING
+# from tkinter import CURRENT
+
 TIME_ISO8601_FMT = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}"
 # yyyy-mm-ddThh-mm-ss  #https://en.wikipedia.org/wiki/ISO_8601
 
@@ -11,7 +14,7 @@ DEFAULT_LOG_NAME = "Pyonair"
 
 
 # Names in JSON file (config)
-LOG_LEVEL_KEY = "logging_lvl"  # TODO : rename to something sensible
+LOG_LEVEL_KEY = "logging_lvl"  #TODO : rename to something sensible
 AVERAGES_PER_HOUR_INT_KEY = "averagesPerHour"  # averages are done at same time(e.g. on the our, min = once per hour)
 
 PM_SENSOR_SAMPLING_RATE = 1  # How many seconds to wait to read the PM sensors
