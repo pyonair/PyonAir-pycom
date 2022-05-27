@@ -3,11 +3,10 @@ Tasks to be called by event scheduler
 """
 
 import os
-from helper import mean_across_arrays, minutes_of_the_month, blink_led, get_sensors, get_format, current_lock  #TODO: chenge this type of import
+import helper
 
 from Configuration import Configuration
-#import strings as s
-from Constants import TIME_ISO8601_FMT
+import Constants
 import time
 
 
@@ -23,21 +22,21 @@ def get_sensor_averages(config, logger, lora):
     logger.debug("Calculating averages")
 
     # get a dictionary of sensors and their status
-    sensors = get_sensors(config, logger)
-    fmt = get_format(sensors)
+    sensors = helper.get_sensors(config, logger)
+    fmt = helper.get_format(sensors)
     version = str( config.get_config("fmt_version"))
-    timestamp = TIME_ISO8601_FMT.format(*time.gmtime())  # get current time in desired format
-    minutes = str(minutes_of_the_month())  # get minutes past last midnight
+    timestamp = Constants.TIME_ISO8601_FMT.format(*time.gmtime())  # get current time in desired format
+    minutes = str(helper.minutes_of_the_month())  # get minutes past last midnight
 
     try:
         sensor_averages = {}
-        for sensor_name in [s.TEMP, s.PM1, s.PM2]:
+        for sensor_name in [Constants.TEMP, Constants.PM1, Constants.PM2]:
             if sensors[sensor_name]:
                 sensor_averages.update(calculate_average(sensor_name, logger))
 
         # Append averages to the line to be sent over LoRa according to which sensors are defined.
         line_to_log = '{}' + fmt + ',' + version + ',' + minutes
-        for sensor_name in [s.TEMP, s.PM1, s.PM2]:
+        for sensor_name in [Constants.TEMP, Constants.PM1, Constants.PM2]:
             if sensors[sensor_name]:
                 line_to_log += ',' + str(config.get_config(sensor_name + "_id")) + ',' + ','.join(sensor_averages[sensor_name + "_avg"]) + ',' + str(sensor_averages[sensor_name + "_count"])
         line_to_log += '\n'
@@ -50,7 +49,7 @@ def get_sensor_averages(config, logger, lora):
 
         # If raw data was processed, saved and dumped, processing files can be deleted
         path = s.processing_path
-        for sensor_name in [s.TEMP, s.PM1, s.PM2]:
+        for sensor_name in [Constants.TEMP, Constants.PM1, Constants.PM2]:
             if sensors[sensor_name]:
                 filename = sensor_name + '.csv'
                 try:
@@ -60,7 +59,7 @@ def get_sensor_averages(config, logger, lora):
 
     except Exception as e:
         logger.exception("Failed to flash averages")
-        blink_led((0x550000, 0.4, True))
+        helper.blink_led((0x550000, 0.4, True))
 
 
 def calculate_average(sensor_name, config, logger):
@@ -83,7 +82,7 @@ def calculate_average(sensor_name, config, logger):
     count = 0
 
     try:
-        with current_lock:
+        with helper.current_lock:
             # Move sensor_name.csv from current dir to processing dir
             os.rename(s.current_path + filename, s.processing_path + filename)
 
@@ -103,7 +102,7 @@ def calculate_average(sensor_name, config, logger):
                     count += 1
 
                 # Compute averages from sensor_name.csv.processing
-                avg_readings_str = [str(int(i)) for i in mean_across_arrays(lines_lst)]
+                avg_readings_str = [str(int(i)) for i in helper.mean_across_arrays(lines_lst)]
 
                 # Append content of sensor_name.csv.processing into sensor_name.csv
                 with open(s.archive_path + sensor_name + '_' + sensor_id + '.csv', 'a') as f:
@@ -113,7 +112,7 @@ def calculate_average(sensor_name, config, logger):
     except Exception as e:
         logger.error("No readings from sensor {}".format(sensor_name))
         logger.warning("Setting 0 as a place holder")
-        blink_led((0x550000, 0.4, True))
+        helper.blink_led((0x550000, 0.4, True))
     finally:
         return {sensor_name + "_avg": avg_readings_str, sensor_name + "_count": count}
 
