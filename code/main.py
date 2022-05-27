@@ -16,8 +16,8 @@ import network  # Used to disable WiFi
 import PybytesTransmit
 import pycom
 
-# trunk-ignore(flake8/F401)
-import ujson
+#TODO: remove line below
+#import ujson -- Flake F401 not used -- check
 
 # trunk-ignore(flake8/F401)
 from Constants import (
