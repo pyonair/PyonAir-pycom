@@ -19,7 +19,7 @@ PM_SAMPLE_COUNT_FOR_AVERAGE = 30  # How many samples to take before doing an ave
 
 # config_filename = 'Settings.cfg'
 CONFIG_FILE_NAME = "Settings.json"  # JSON file with all PYON air setting s -- on flash but can be on SD so public
-CONFIG_FILE_DIRECTORY = "/sd/"
+CONFIG_FILE_DIRECTORY = "/sd/" #Location of default config file
 CONFIG_FILE_FULL_NAME = (
     CONFIG_FILE_DIRECTORY + CONFIG_FILE_NAME
 )  # os.path does not exist, so string concat
@@ -238,7 +238,7 @@ GPS = "GPS"
 
 # Directories in /sd/
 current = "Current"
-processing = "Processing"
+processing = "Processing" ## Should not use now we have welfords
 archive = "Archive"
 archive_averages = "Averages"
 

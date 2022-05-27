@@ -4,7 +4,7 @@ from . import Handler
 
 
 def try_remove(fn: str) -> None:
-    """Try to remove a file if it existst."""
+    """Try to remove a file if it exist."""
     try:
         os.remove(fn)
     except OSError:
@@ -59,6 +59,7 @@ class RotatingFileHandler(Handler):
             self._counter = 0
 
         with open(self.filename, "a") as f:
+            print(self.filename)
             f.write(msg + "\n")
 
         self._counter += s_len

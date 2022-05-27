@@ -1,11 +1,13 @@
 #!/usr/bin/env python
-# import pdb # python debugger
+
+#We need threads as every hardware logger (PM/Temp etc) runs on its own thread.
 import _thread
 import os
 import time
 
-# trunk-ignore(flake8/F401)
+# trunk-ignore(flake8/F401) #TODO: explain this, keep in in a constant location
 #from logging import root
+
 import Constants
 import Configuration
 import GpsSIM28
@@ -14,8 +16,8 @@ import network  # Used to disable WiFi
 import PybytesTransmit
 import pycom
 
-# trunk-ignore(flake8/F401)
-import ujson
+#TODO: remove line below
+#import ujson -- Flake F401 not used -- check
 
 # trunk-ignore(flake8/F401)
 from Constants import (
@@ -29,13 +31,15 @@ from Constants import (
     RING_BUFFER_DIR,
     RING_BUFFER_FILE,
     TEMP,
-    lora_file_name,
+    lora_file_name, #TODO: caps ?
     processing_path,
 )
 
 # from EventScheduler import EventScheduler
 from helper import blink_led, get_sensors, led_lock, secOfTheMonth
 from initialisation import initialisation  # initialise_time # TODO: clunky refactor
+
+#Logging class to create multiple logging objects
 from LoggerFactory import LoggerFactory
 
 # trunk-ignore(flake8/F401)
@@ -62,8 +66,7 @@ from UserButton import UserButton
 # from LoRaWAN import LoRaWAN
 
 
-##==== Do early , stop halting -- load on thread later
-print("Starting...")
+print("Starting, creating loggers...") # ONLY case where print shoudl be used as logger not available yet.
 
 # from _pybytes_config import PybytesConfig
 # from _pybytes import Pybytes
@@ -71,8 +74,9 @@ print("Starting...")
 # pybytes = Pybytes(conf)
 # pybytes.update_config('pybytes_autostart', False, permanent=True, silent=False, reconnect=False)
 # pybytes.activate("eyJhIjoiMjc0MWQ0ZWItMmRmMS00Mzg0LTkxMGQtMzIzMGI5MTE2N2M3IiwicyI6InB5b25haXIiLCJwIjoicHlvbmFpciJ9")
-# ===================Disable default wifi===================
 
+
+# ===================Disable default wifi===================
 try:
     wlan = network.WLAN()
     wlan.deinit()
@@ -81,19 +85,21 @@ try:
 except Exception as e:
     print("Unable to disable WiFi")
 
-# ===============LED
+# ===============Disable LED =========================
 pycom.heartbeat(False)  # disable the heartbeat LED
+# We will now use different colours to indicate startup state.
 pycom.rgbled(0x552000)  # flash orange to indicate startup
 
 
 ##
 # ====== get time from RTC regardless -- better than default -- later we will try gps
 
-rtc = RTC()
+rtc = RTC() #This is the pycom RTC that does not have a battery so will ALWAYS be wrong
 # Get time from RTC module
-rtcClock = clock.get_time()
+rtcClock = clock.get_time() # This is the RtcDS1307 module
 rtc.init(rtcClock)  # Set Pycom time to RTC time
-print(str(rtcClock))
+# Later we will check that the RTC is set to a reasonable time, but for now this will have to do
+print("Best guess at time: " + str(rtcClock))
 
 # =========================Mount SD card=======
 try:
@@ -107,14 +113,14 @@ except Exception as e:
     print("============================")
     # TODO: Add led warning :  this is a show stopper error
 
-# ================ thread memory default 4096
+# ================ thread memory default 4096 ================
 _thread.stack_size(4096 * 3)  # default is 4096 (and also min!)
 
 # ===================Get a logger up and running asap!
 logger_factory = LoggerFactory()
 # TODO: Set log level to level in config file
 fileNameStr = LOG_FILENAME + FILENAME_FMT.format(*time.gmtime()) + LOG_EXT
-print(fileNameStr)
+print("=====LOG File: " + fileNameStr  + "=============")
 status_logger = logger_factory.create_status_logger(
     DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True, filename=fileNameStr
 )
@@ -131,6 +137,7 @@ status_logger.info("Config loaded")
 init = initialisation(config, status_logger)
 
 # =========================Get time sorted
+# This section should look at the date/time and decide if it is sensible, and trigger gps auto correct
 # Get current time
 rtc = RTC()
 # Get time from RTC module
@@ -272,6 +279,7 @@ try:
     if sensors[TEMP]:
         TEMP_logger = SensorLogger(sensor_name=TEMP, terminal_out=True)
         if config.get_config(TEMP) == "SHT35":
+
             temp_sensor = TempSHT35(config, TEMP_logger, status_logger)
     status_logger.info("Temperature and humidity sensor initialised")
 
