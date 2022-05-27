@@ -8,7 +8,7 @@ import time
 import uos
 import sys
 import _thread
-from Constants import TIME_ISO8601_FMT
+import Constants
 
 
 #good for thread
@@ -237,7 +237,7 @@ class GPSSIM28:
                                 Altitude: {}""".format(gps.satellites_in_use, gps.hdop, latitude, longitude, gps.altitude)
 
                                 # Process GPS location
-                                timestamp = TIME_ISO8601_FMT.format(*time.gmtime())  # get current time in desired format
+                                timestamp = Constants.TIME_ISO8601_FMT.format(*time.gmtime())  # get current time in desired format
                                 lst_to_log = [timestamp, latitude, longitude, self.gps.altitude]
                                 str_lst_to_log = list(map(str, lst_to_log))  # cast to string
                                 line_to_log = ','.join(str_lst_to_log) + '\n'
