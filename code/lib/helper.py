@@ -2,7 +2,7 @@
 
 from Configuration import Configuration #import config
 #import strings as s
-from  Constants import * #TODO: hack fix this
+import  Constants
 import time
 import pycom
 import _thread
@@ -103,12 +103,12 @@ def get_sensors(config, logger):
     :return: sensors
     :rtype: dict
     """
-    sensors = {TEMP: False, PM1: False, PM2: False}
+    sensors = {Constants.TEMP: False, Constants.PM1: False, Constants.PM2: False} #Default all off
 
-    for sensor in sensors:
+    for sensor in sensors: # Then enable if in config
         if config.get_config(sensor) != "OFF":
             sensors[sensor] = True
-
+    logger.debug(str(sensors))
     return sensors
 
 
@@ -121,7 +121,7 @@ def get_format(sensors):
     :rtype: str
     """
     fmt = ""
-    for sensor_name in [s.TEMP, s.PM1, s.PM2]:
+    for sensor_name in [constants.TEMP, constants.PM1, constants.PM2]:
         if sensors[sensor_name]:  # if the sensor is enabled
             fmt += sensor_name[0]  # add the first character to fmt to construct format eg.: TPP, TP, PP, P, T
 
