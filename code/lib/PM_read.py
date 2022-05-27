@@ -93,7 +93,7 @@ class PMSensorReader:
 
         # start a periodic timer interrupt to poll readings every second
         debugLogger.debug("Starting repeating alarm/timer")
-        self.__processing_alarm = Timer.Alarm(self.process_readings, Constants.PM_SENSOR_SAMPELING_RATE, periodic=True)
+        self.__processing_alarm = Timer.Alarm(self.process_readings, Constants.PM_SENSOR_SAMPLING_RATE, periodic=True)
 
     def process_readings(self,alarm):
         """
