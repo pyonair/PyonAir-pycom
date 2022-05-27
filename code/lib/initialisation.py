@@ -42,31 +42,31 @@ class initialisation:
             if rtc.now()[0] < 2019 or rtc.now()[0] >= 2100:
                 # Get time and calibrate RTC module via GPS
                 if gps_on:
-                    logger.info("Attempt GPS ...")
-                    if GpsSIM28.get_time(rtc, logger):
+                    self.logger.info("Attempt GPS ...")
+                    if GpsSIM28.get_time(rtc, self.logger):
                         update_time_later = False
                     else:  # No way of getting time
-                        logger.exception("Failed to get current time from GPS")
+                        self.logger.exception("Failed to get current time from GPS")
                         no_time = True  # navigate to configurations with yellow LED
                 # Calibrate RTC module via WiFi Configurations and then reboot
                 else:
-                    logger.critical("Visit configurations page and press submit to set the RTC module")
+                    self.logger.critical("Visit configurations page and press submit to set the RTC module")
                     no_time = True
         # RTC module is not available
         except Exception as e:
-            logger.exception("Failed to get time from RTC module")
+            self.logger.exception("Failed to get time from RTC module")
             # Get time via GPS
             if gps_on:
-                if GpsSIM28.get_time(rtc, logger):
+                if GpsSIM28.get_time(rtc, self.logger):
                     update_time_later = False
                 else:  # No way of getting time
-                    logger.exception("Failed to get current time from GPS")
+                    self.logger.exception("Failed to get current time from GPS")
                     no_time = True  # navigate to configurations with yellow LED
             else:  # No way of getting time
                 no_time = True  # navigate to configurations with yellow LED
 
         if no_time:
-            logger.info("""Failed to get UTC timestamp from both RTC and GPS modules.
+            self.logger.info("""Failed to get UTC timestamp from both RTC and GPS modules.
                         User has to connect and configure the device with GPS or RTC connected.
                         Device will reboot in 3 minutes unless button is pressed for 3 seconds and device is configured.
 

@@ -25,7 +25,7 @@ class SensorLogger:
         timeStr = FILENAME_FMT.format(*time.gmtime())
         #timeStr = timeStr.replace(" ", "") # Use datetime at boot for filename.
 
-        self.filename = s.current_path + sensor_name + "-"+ timeStr  + '.csv'
+        self.filename = Constants.current_path + sensor_name + "-"+ timeStr  + '.csv'
         self.terminal_out = terminal_out
         self.terminator = terminator
         self.sensor_name = sensor_name

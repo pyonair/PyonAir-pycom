@@ -113,14 +113,14 @@ except Exception as e:
     print("============================")
     # TODO: Add led warning :  this is a show stopper error
 
-# ================ thread memory default 4096
+# ================ thread memory default 4096 ================
 _thread.stack_size(4096 * 3)  # default is 4096 (and also min!)
 
 # ===================Get a logger up and running asap!
 logger_factory = LoggerFactory()
 # TODO: Set log level to level in config file
 fileNameStr = LOG_FILENAME + FILENAME_FMT.format(*time.gmtime()) + LOG_EXT
-print(fileNameStr)
+print("=====LOG File: " + fileNameStr  + "=============")
 status_logger = logger_factory.create_status_logger(
     DEFAULT_LOG_NAME, level=loggingpycom.DEBUG, terminal_out=True, filename=fileNameStr
 )
@@ -137,6 +137,7 @@ status_logger.info("Config loaded")
 init = initialisation(config, status_logger)
 
 # =========================Get time sorted
+# This section should look at the date/time and decide if it is sensible, and trigger gps auto correct
 # Get current time
 rtc = RTC()
 # Get time from RTC module
@@ -278,6 +279,7 @@ try:
     if sensors[TEMP]:
         TEMP_logger = SensorLogger(sensor_name=TEMP, terminal_out=True)
         if config.get_config(TEMP) == "SHT35":
+
             temp_sensor = TempSHT35(config, TEMP_logger, status_logger)
     status_logger.info("Temperature and humidity sensor initialised")
 
