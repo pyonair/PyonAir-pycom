@@ -25,21 +25,19 @@ def get_sensor_averages(config, logger, lora):
     # get a dictionary of sensors and their status
     sensors = get_sensors(config, logger)
     fmt = get_format(sensors)
-    version = str( config.get_config("fmt_version"))
+    version = config.get_config("fmt_version")
     timestamp = TIME_ISO8601_FMT.format(*time.gmtime())  # get current time in desired format
-    minutes = str(minutes_of_the_month())  # get minutes past last midnight
+    minutes = minutes_of_the_month()  # get minutes past last midnight
 
     try:
         sensor_averages = {}
-        for sensor_name in [s.TEMP, s.PM1, s.PM2]:
-            if sensors[sensor_name]:
-                sensor_averages.update(calculate_average(sensor_name, logger))
+        for sensor_name in [x for x in (s.TEMP, s.PM1, s.PM2) if sensors[x]]:
+            sensor_averages.update(calculate_average(sensor_name, logger))
 
         # Append averages to the line to be sent over LoRa according to which sensors are defined.
-        line_to_log = '{}' + fmt + ',' + version + ',' + minutes
-        for sensor_name in [s.TEMP, s.PM1, s.PM2]:
-            if sensors[sensor_name]:
-                line_to_log += ',' + str(config.get_config(sensor_name + "_id")) + ',' + ','.join(sensor_averages[sensor_name + "_avg"]) + ',' + str(sensor_averages[sensor_name + "_count"])
+        line_to_log = '{}' + fmt + ',' + str(version) + ',' + str(minutes)  # When f-strings are implemented this can massively be improved.
+        for sensor_name in [x for x in (s.TEMP, s.PM1, s.PM2) if sensors[x]]:
+            line_to_log += ',' + str(config.get_config(sensor_name + "_id")) + ',' + ','.join(sensor_averages[sensor_name + "_avg"]) + ',' + str(sensor_averages[sensor_name + "_count"])
         line_to_log += '\n'
 
         # Logs line_to_log to archive and places copies into relevant to_send folders
@@ -50,13 +48,12 @@ def get_sensor_averages(config, logger, lora):
 
         # If raw data was processed, saved and dumped, processing files can be deleted
         path = s.processing_path
-        for sensor_name in [s.TEMP, s.PM1, s.PM2]:
-            if sensors[sensor_name]:
-                filename = sensor_name + '.csv'
-                try:
-                    os.remove(path + filename)
-                except Exception as e:
-                    pass
+        for sensor_name in [x for x in (s.TEMP, s.PM1, s.PM2) if sensors[x]]:
+            filename = sensor_name + '.csv'
+            try:
+                os.remove(path + filename)
+            except Exception as e:
+                pass
 
     except Exception as e:
         logger.exception("Failed to flash averages")
@@ -92,15 +89,13 @@ def calculate_average(sensor_name, config, logger):
                 lines = f.readlines()
                 lines_lst = []  # list of lists that store average sensor readings from specific columns
                 for line in lines:
-                    stripped_line = line[:-1]  # strip \n
-                    stripped_line_lst = str(stripped_line).split(',')  # split string to list at comas
+                    stripped_line = line[:-1]  # strip \n   - Use .rstrip("\n") instead? More verbose
+                    stripped_line_lst = str(stripped_line).split(',')  # split string to list at commas
                     named_line = dict(zip(headers, stripped_line_lst))  # assign each value to its header
-                    sensor_reading = []
-                    for header in s.lora_sensor_headers[sensor_type]:
-                        sensor_reading.append(int(named_line[header]))
+                    sensor_reading = [int(named_line[header]) for header in s.lora_sensor_headers[sensor_type]]
                     # Append extra lines here for more readings - update version number and back-end to interpret data
                     lines_lst.append(sensor_reading)
-                    count += 1
+                    count += 1  # If this increments with each count of the loop, why not use len(lines)?
 
                 # Compute averages from sensor_name.csv.processing
                 avg_readings_str = [str(int(i)) for i in mean_across_arrays(lines_lst)]
